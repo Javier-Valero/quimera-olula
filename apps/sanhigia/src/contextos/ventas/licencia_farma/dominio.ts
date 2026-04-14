@@ -1,5 +1,14 @@
 import { EstadoModelo, initEstadoModelo, MetaModelo } from "@olula/lib/dominio.ts";
-import { LicenciaFarma, NuevaLicenciaFarma } from "./diseño.ts";
+import { CabeceraLicenciaFarma, LicenciaFarma, NuevaLicenciaFarma } from "./diseño.ts";
+
+export const cabeceraLicenciaFarmaVacia: CabeceraLicenciaFarma = {
+    id: '',
+    tipoLicencia: '',
+    fechaCaducidad: '',
+    fechaInicio: null,
+    nombreCliente: null,
+    agenteId: null,
+};
 
 export const licenciaFarmaVacia: LicenciaFarma = {
     id: '',
@@ -15,6 +24,7 @@ export const licenciaFarmaVacia: LicenciaFarma = {
     nombreCliente: null,
     clienteId: null,
     agenteId: null,
+    trato: null,
 };
 
 export const nuevaLicenciaFarmaVacia: NuevaLicenciaFarma = {

@@ -6,15 +6,13 @@ import { criteriaDefecto } from "@olula/lib/dominio.js";
 import { useLista } from "@olula/lib/useLista.ts";
 import { Maquina, useMaquina } from "@olula/lib/useMaquina.ts";
 import { useCallback, useEffect, useState } from "react";
-import { LicenciaFarma } from "../diseño.ts";
+import { CabeceraLicenciaFarma, LicenciaFarma } from "../diseño.ts";
 import { getLicenciasFarma } from "../infraestructura.ts";
 import { AltaLicenciaFarma } from "./AltaLicenciaFarma.tsx";
 import { DetalleLicenciaFarma } from "./DetalleLicenciaFarma/DetalleLicenciaFarma.tsx";
 
-const metaTablaLicenciaFarma: MetaTabla<LicenciaFarma> = [
-  { id: "nombreCliente", cabecera: "Cliente" },
+const metaTablaLicenciaFarma: MetaTabla<CabeceraLicenciaFarma> = [
   { id: "tipoLicencia", cabecera: "Tipo" },
-  { id: "estado", cabecera: "Estado" },
   { id: "fechaInicio", cabecera: "Fecha inicio" },
   { id: "fechaCaducidad", cabecera: "Caducidad" },
 ];
@@ -26,12 +24,12 @@ export const MaestroConDetalleLicenciaFarma = () => {
   const [criteria, setCriteria] = useState<Criteria>(criteriaDefecto);
   const [cargando, setCargando] = useState(false);
   const [total, setTotal] = useState(0);
-  const licencias = useLista<LicenciaFarma>([]);
+  const licencias = useLista<CabeceraLicenciaFarma>([]);
 
   const maquina: Maquina<Estado> = {
     alta: {
       LICENCIA_FARMA_CREADA: (payload: unknown) => {
-        licencias.añadir(payload as LicenciaFarma);
+        licencias.añadir(payload as CabeceraLicenciaFarma);
         return "lista";
       },
       ALTA_CANCELADA: "lista",
@@ -39,10 +37,10 @@ export const MaestroConDetalleLicenciaFarma = () => {
     lista: {
       ALTA_INICIADA: "alta",
       LICENCIA_FARMA_CAMBIADA: (payload: unknown) => {
-        licencias.modificar(payload as LicenciaFarma);
+        licencias.modificar(payload as CabeceraLicenciaFarma);
       },
       LICENCIA_FARMA_BORRADA: (payload: unknown) => {
-        licencias.eliminar(payload as LicenciaFarma);
+        licencias.eliminar(payload as CabeceraLicenciaFarma);
         return "lista";
       },
       CANCELAR_SELECCION: () => {
@@ -84,7 +82,7 @@ export const MaestroConDetalleLicenciaFarma = () => {
             <div className="maestro-botones">
               <QBoton onClick={() => emitir("ALTA_INICIADA")}>Nueva</QBoton>
             </div>
-            <Listado<LicenciaFarma>
+            <Listado<CabeceraLicenciaFarma>
               metaTabla={metaTablaLicenciaFarma}
               criteria={criteria}
               criteriaInicial={criteriaDefecto}

@@ -11,7 +11,7 @@ import { ProcesarEvento } from "@olula/lib/useMaquina.js";
 import { useModelo } from "@olula/lib/useModelo.ts";
 import { useContext, useState } from "react";
 import { useParams } from "react-router";
-import { LicenciaFarma } from "../../diseño.ts";
+import { CabeceraLicenciaFarma } from "../../diseño.ts";
 import { licenciaFarmaVacia, metaLicenciaFarma } from "../../dominio.ts";
 import {
   deleteLicenciaFarma,
@@ -23,7 +23,7 @@ export const DetalleLicenciaFarma = ({
   licenciaInicial = null,
   emitir = async () => {},
 }: {
-  licenciaInicial?: LicenciaFarma | null;
+  licenciaInicial?: CabeceraLicenciaFarma | null;
   emitir?: ProcesarEvento;
 }) => {
   const params = useParams();

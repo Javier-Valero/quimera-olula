@@ -1,35 +1,55 @@
 import { Entidad } from "@olula/lib/diseño.ts";
 
-export interface LicenciaFarma extends Entidad {
+export type TratoAPI = {
+    id: string;
+    estado: string;
+    titulo: string;
+};
+
+export type Trato = {
+    id: string;
+    estado: string;
+    titulo: string;
+};
+
+export interface CabeceraLicenciaFarma extends Entidad {
     id: string;
     tipoLicencia: string;
     fechaCaducidad: string;
     fechaInicio: string | null;
+    nombreCliente: string | null;
+    agenteId: string | null;
+};
+
+export interface LicenciaFarma extends CabeceraLicenciaFarma {
     fechaRevisionDatos: string | null;
     fechaRecepcionAcuerdos: string | null;
     fechaEnvioDocumentacion: string | null;
     fechaFin: string | null;
     tratoId: string | null;
     estado: string | null;
-    nombreCliente: string | null;
     clienteId: string | null;
-    agenteId: string | null;
+    trato: Trato | null;
 }
 
-export interface LicenciaFarmaAPI {
+export interface CabeceraLicenciaFarmaAPI {
     id: string;
     tipo_licencia: string;
     fecha_caducidad: string;
     fecha_inicio: string | null;
+    nombre_cliente: string | null;
+    agente_id: string | null;
+}
+
+export interface LicenciaFarmaAPI extends CabeceraLicenciaFarmaAPI {
     fecha_revision_datos: string | null;
     fecha_recepcion_acuerdos: string | null;
     fecha_envio_documentacion: string | null;
     fecha_fin: string | null;
     trato_id: string | null;
     estado: string | null;
-    nombre_cliente: string | null;
     cliente_id: string | null;
-    agente_id: string | null;
+    trato: TratoAPI | null;
 }
 
 export type NuevaLicenciaFarma = {

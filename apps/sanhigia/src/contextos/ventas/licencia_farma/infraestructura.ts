@@ -1,26 +1,35 @@
 import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Filtro, Orden, Paginacion, RespuestaLista } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
-import { LicenciaFarma, LicenciaFarmaAPI, NuevaLicenciaFarma } from "./diseño.ts";
+import { CabeceraLicenciaFarma, CabeceraLicenciaFarmaAPI, LicenciaFarma, LicenciaFarmaAPI, NuevaLicenciaFarma, Trato, TratoAPI } from "./diseño.ts";
 
-// const baseUrl = `/ss/licencia_farma`;
 const baseUrl = `/ventas/licencia_farma`;
 
+const tratoDesdeAPI = (t: TratoAPI): Trato => ({
+    id: t.id,
+    estado: t.estado,
+    titulo: t.titulo,
+});
 
-const licenciaFarmaFromAPI = (a: LicenciaFarmaAPI): LicenciaFarma => ({
-    id: a.id,
-    tipoLicencia: a.tipo_licencia,
-    fechaCaducidad: a.fecha_caducidad,
-    fechaInicio: a.fecha_inicio,
-    fechaRevisionDatos: a.fecha_revision_datos,
-    fechaRecepcionAcuerdos: a.fecha_recepcion_acuerdos,
-    fechaEnvioDocumentacion: a.fecha_envio_documentacion,
-    fechaFin: a.fecha_fin,
-    tratoId: a.trato_id,
-    estado: a.estado,
-    nombreCliente: a.nombre_cliente,
-    clienteId: a.cliente_id,
-    agenteId: a.agente_id,
+const cabeceraLicenciaFarmaDesdeAPI = (api: CabeceraLicenciaFarmaAPI): CabeceraLicenciaFarma => ({
+    id: api.id,
+    tipoLicencia: api.tipo_licencia,
+    fechaCaducidad: api.fecha_caducidad,
+    fechaInicio: api.fecha_inicio,
+    nombreCliente: api.nombre_cliente,
+    agenteId: api.agente_id,
+});
+
+const licenciaFarmaFromAPI = (api: LicenciaFarmaAPI): LicenciaFarma => ({
+    ...cabeceraLicenciaFarmaDesdeAPI(api),
+    fechaRevisionDatos: api.fecha_revision_datos,
+    fechaRecepcionAcuerdos: api.fecha_recepcion_acuerdos,
+    fechaEnvioDocumentacion: api.fecha_envio_documentacion,
+    fechaFin: api.fecha_fin,
+    tratoId: api.trato_id,
+    estado: api.estado,
+    clienteId: api.cliente_id,
+    trato: api.trato ? tratoDesdeAPI(api.trato) : null,
 });
 
 const licenciaFarmaToAPI = (l: Partial<LicenciaFarma>) => ({
@@ -33,7 +42,7 @@ const licenciaFarmaToAPI = (l: Partial<LicenciaFarma>) => ({
     ...(l.fechaFin !== undefined && { fecha_fin: l.fechaFin }),
     ...(l.tratoId !== undefined && { trato_id: l.tratoId }),
     ...(l.estado !== undefined && { estado: l.estado }),
-    ...(l.clienteId !== undefined && { cliente_id: l.clienteId }),
+    ...(l.nombreCliente !== undefined && { nombre_cliente: l.nombreCliente }),
     ...(l.agenteId !== undefined && { agente_id: l.agenteId }),
 });
 
@@ -51,10 +60,10 @@ export const getLicenciasFarma = async (
     filtro: Filtro,
     orden: Orden,
     paginacion: Paginacion
-): RespuestaLista<LicenciaFarma> => {
+): RespuestaLista<CabeceraLicenciaFarma> => {
     const q = criteriaQuery(filtro, orden, paginacion);
-    const respuesta = await RestAPI.get<{ datos: LicenciaFarmaAPI[]; total: number }>(baseUrl + q);
-    return { datos: respuesta.datos.map(licenciaFarmaFromAPI), total: respuesta.total };
+    const respuesta = await RestAPI.get<{ datos: CabeceraLicenciaFarmaAPI[]; total: number }>(baseUrl + q);
+    return { datos: respuesta.datos.map(cabeceraLicenciaFarmaDesdeAPI), total: respuesta.total };
 };
 
 export const postLicenciaFarma = async (nueva: NuevaLicenciaFarma): Promise<string> =>
