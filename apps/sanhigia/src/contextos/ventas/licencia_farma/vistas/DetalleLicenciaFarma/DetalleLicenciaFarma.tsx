@@ -28,7 +28,7 @@ export const DetalleLicenciaFarma = ({
 }) => {
   const params = useParams();
   const licenciaId = licenciaInicial?.id ?? params.id;
-  const titulo = (licencia: Entidad) => licencia.id as string;
+  const titulo = (licencia: Entidad) => licencia.nombreCliente as string;
   const { intentar } = useContext(ContextoError);
 
   const licencia = useModelo(metaLicenciaFarma, licenciaFarmaVacia);

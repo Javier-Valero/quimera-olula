@@ -56,7 +56,7 @@ export default parent => ({
       },
       licencias: {
         title: "Licencias",
-        rule: "TratosFarma:visit",
+        // rule: "TratosFarma:visit",
         icons: ["medication"],
         color: "info",
         url: "/ss/licencias",

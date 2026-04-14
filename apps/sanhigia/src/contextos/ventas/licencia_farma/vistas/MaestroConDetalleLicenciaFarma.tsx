@@ -76,6 +76,7 @@ export const MaestroConDetalleLicenciaFarma = () => {
   return (
     <div className="LicenciaFarma">
       <MaestroDetalle<LicenciaFarma>
+        modoDisposicion="maestro-50"
         seleccionada={licencias.seleccionada?.id}
         Maestro={
           <>
