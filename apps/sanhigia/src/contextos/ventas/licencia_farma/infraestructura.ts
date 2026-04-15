@@ -3,7 +3,7 @@ import { Filtro, Orden, Paginacion, RespuestaLista } from "@olula/lib/diseño.ts
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import { CabeceraLicenciaFarma, CabeceraLicenciaFarmaAPI, LicenciaFarma, LicenciaFarmaAPI, NuevaLicenciaFarma, Trato, TratoAPI } from "./diseño.ts";
 
-const baseUrl = `/ventas/licencia_farma`;
+const baseUrlLicenciaFarma = `/ventas/licencia_farma`;
 
 const tratoDesdeAPI = (t: TratoAPI): Trato => ({
     id: t.id,
@@ -54,7 +54,7 @@ const nuevaLicenciaFarmaToAPI = (n: NuevaLicenciaFarma) => ({
 });
 
 export const getLicenciaFarma = async (id: string): Promise<LicenciaFarma> =>
-    await RestAPI.get<{ datos: LicenciaFarmaAPI }>(`${baseUrl}/${id}`).then((r) => licenciaFarmaFromAPI(r.datos));
+    await RestAPI.get<{ datos: LicenciaFarmaAPI }>(`${baseUrlLicenciaFarma}/${id}`).then((r) => licenciaFarmaFromAPI(r.datos));
 
 export const getLicenciasFarma = async (
     filtro: Filtro,
@@ -62,15 +62,27 @@ export const getLicenciasFarma = async (
     paginacion: Paginacion
 ): RespuestaLista<CabeceraLicenciaFarma> => {
     const q = criteriaQuery(filtro, orden, paginacion);
-    const respuesta = await RestAPI.get<{ datos: CabeceraLicenciaFarmaAPI[]; total: number }>(baseUrl + q);
+    const respuesta = await RestAPI.get<{ datos: CabeceraLicenciaFarmaAPI[]; total: number }>(baseUrlLicenciaFarma + q);
     return { datos: respuesta.datos.map(cabeceraLicenciaFarmaDesdeAPI), total: respuesta.total };
 };
 
 export const postLicenciaFarma = async (nueva: NuevaLicenciaFarma): Promise<string> =>
-    await RestAPI.post(baseUrl, nuevaLicenciaFarmaToAPI(nueva)).then((r) => r.id);
+    await RestAPI.post(baseUrlLicenciaFarma, nuevaLicenciaFarmaToAPI(nueva)).then((r) => r.id);
 
 export const patchLicenciaFarma = async (id: string, cambios: Partial<LicenciaFarma>): Promise<void> =>
-    await RestAPI.patch(`${baseUrl}/${id}`, { cambios: licenciaFarmaToAPI(cambios) });
+    await RestAPI.patch(`${baseUrlLicenciaFarma}/${id}`, { cambios: licenciaFarmaToAPI(cambios) });
 
 export const deleteLicenciaFarma = async (id: string): Promise<void> =>
-    await RestAPI.delete(`${baseUrl}/${id}`);
+    await RestAPI.delete(`${baseUrlLicenciaFarma}/${id}`);
+
+type RespuestaMarcarDatosRevisados = { datos: { fecha_revision_datos: string } };
+
+export const marcarDatosRevisados = async (id: string): Promise<string> => {
+    const response = await RestAPI.patch(
+        `${baseUrlLicenciaFarma}/${id}/datos_revisados`,
+        {},
+        "Error al revisar datos"
+    );
+
+    return ((response as unknown) as RespuestaMarcarDatosRevisados).datos.fecha_revision_datos;
+};
