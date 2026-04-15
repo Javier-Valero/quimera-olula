@@ -4,6 +4,7 @@ import {
   QDate,
   QInput,
   QModalConfirmacion,
+  QSelect,
 } from "@olula/componentes/index.ts";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { Entidad } from "@olula/lib/diseño.ts";
@@ -123,7 +124,19 @@ export const DetalleLicenciaFarma = ({
               label="Envío de documentación"
               {...licencia.uiProps("fechaEnvioDocumentacion")}
             />
-            <QInput label="Estado" {...licencia.uiProps("estado")} condensado />
+            <QSelect
+              label="Estado"
+              opciones={[
+                { valor: "En revisión", descripcion: "En revisión" },
+                {
+                  valor: "Acuerdo por recibir",
+                  descripcion: "Acuerdo por recibir",
+                },
+                { valor: "Por presentar", descripcion: "Por presentar" },
+                { valor: "Presentada", descripcion: "Presentada" },
+              ]}
+              {...licencia.uiProps("estado")}
+            />
             <QInput label="Cliente" {...licencia.uiProps("nombreCliente")} />
             <QInput label="ID Cliente" {...licencia.uiProps("clienteId")} />
             <QInput label="ID Trato" {...licencia.uiProps("tratoId")} />
