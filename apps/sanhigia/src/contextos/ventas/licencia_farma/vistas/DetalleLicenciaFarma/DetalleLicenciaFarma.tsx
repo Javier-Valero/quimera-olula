@@ -8,6 +8,7 @@ import {
 } from "@olula/componentes/index.ts";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { Entidad } from "@olula/lib/diseño.ts";
+import { puede } from "@olula/lib/dominio.ts";
 import { ProcesarEvento } from "@olula/lib/useMaquina.js";
 import { useModelo } from "@olula/lib/useModelo.ts";
 import { useContext, useState } from "react";
@@ -102,27 +103,37 @@ export const DetalleLicenciaFarma = ({
             <QInput
               label="Tipo de licencia"
               {...licencia.uiProps("tipoLicencia")}
+              deshabilitado={!puede("farma")}
             />
             <QDate
               label="Fecha de caducidad"
               {...licencia.uiProps("fechaCaducidad")}
+              deshabilitado={!puede("farma")}
             />
             <QDate
               label="Fecha de inicio"
               {...licencia.uiProps("fechaInicio")}
+              deshabilitado={!puede("farma")}
             />
-            <QDate label="Fecha de fin" {...licencia.uiProps("fechaFin")} />
             <QDate
-              label="Revisión de datos"
+              label="Fecha de fin"
+              {...licencia.uiProps("fechaFin")}
+              deshabilitado={!puede("farma")}
+            />
+            <QDate
+              label="Fecha de revisión de datos"
               {...licencia.uiProps("fechaRevisionDatos")}
+              // deshabilitado={!puede("farma")}
             />
             <QDate
-              label="Recepción de acuerdos"
+              label="Fecha de recepción de acuerdos"
               {...licencia.uiProps("fechaRecepcionAcuerdos")}
+              deshabilitado={!puede("farma")}
             />
             <QDate
-              label="Envío de documentación"
+              label="Fecha de envío de documentación"
               {...licencia.uiProps("fechaEnvioDocumentacion")}
+              deshabilitado={!puede("farma")}
             />
             <QSelect
               label="Estado"
@@ -136,11 +147,28 @@ export const DetalleLicenciaFarma = ({
                 { valor: "Presentada", descripcion: "Presentada" },
               ]}
               {...licencia.uiProps("estado")}
+              deshabilitado={!puede("farma")}
             />
-            <QInput label="Cliente" {...licencia.uiProps("nombreCliente")} />
-            <QInput label="ID Cliente" {...licencia.uiProps("clienteId")} />
-            <QInput label="ID Trato" {...licencia.uiProps("tratoId")} />
-            <QInput label="ID Agente" {...licencia.uiProps("agenteId")} />
+            <QInput
+              label="Cliente"
+              {...licencia.uiProps("nombreCliente")}
+              deshabilitado={!puede("farma")}
+            />
+            <QInput
+              label="ID Cliente"
+              {...licencia.uiProps("clienteId")}
+              deshabilitado={!puede("farma")}
+            />
+            <QInput
+              label="ID Trato"
+              {...licencia.uiProps("tratoId")}
+              deshabilitado={!puede("farma")}
+            />
+            <QInput
+              label="ID Agente"
+              {...licencia.uiProps("agenteId")}
+              deshabilitado={!puede("farma")}
+            />
 
             {licencia.modelo.trato && (
               <div
