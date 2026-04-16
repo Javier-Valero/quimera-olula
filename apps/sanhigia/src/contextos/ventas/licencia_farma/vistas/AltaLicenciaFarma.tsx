@@ -1,4 +1,5 @@
-import { QBoton, QDate, QInput } from "@olula/componentes/index.ts";
+import { Agente } from "#/ventas/comun/componentes/agente.tsx";
+import { QBoton, QInput } from "@olula/componentes/index.ts";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { ProcesarEvento } from "@olula/lib/useMaquina.js";
 import { useModelo } from "@olula/lib/useModelo.ts";
@@ -25,13 +26,11 @@ export const AltaLicenciaFarma = ({
     <>
       <h2>Nueva Licencia Farma</h2>
       <quimera-formulario>
-        <QInput label="Tipo de licencia" {...nueva.uiProps("tipoLicencia")} />
-        <QDate
-          label="Fecha de caducidad"
-          {...nueva.uiProps("fechaCaducidad")}
+        <QInput
+          label="Nombre del cliente"
+          {...nueva.uiProps("nombreCliente")}
         />
-        <QInput label="ID Trato" {...nueva.uiProps("tratoId")} />
-        <QInput label="ID Cliente" {...nueva.uiProps("clienteId")} />
+        <Agente {...nueva.uiProps("agenteId", "nombreAgente")} />
       </quimera-formulario>
       <div className="botones">
         <QBoton onClick={guardar} deshabilitado={nueva.valido === false}>
