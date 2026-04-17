@@ -53,8 +53,10 @@ export interface LicenciaFarmaAPI extends CabeceraLicenciaFarmaAPI {
 }
 
 export type NuevaLicenciaFarma = {
-    tipoLicencia: string;
-    fechaCaducidad: string;
+    tipoLicencia: string | null;
+    fechaCaducidad: string | null;
     tratoId: string | null;
     clienteId: string | null;
+    nombreCliente: string;
+    agenteId: string | null;
 };

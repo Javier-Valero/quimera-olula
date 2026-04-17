@@ -32,6 +32,8 @@ export const nuevaLicenciaFarmaVacia: NuevaLicenciaFarma = {
     fechaCaducidad: '',
     tratoId: null,
     clienteId: null,
+    nombreCliente: '',
+    agenteId: null,
 };
 
 export const metaLicenciaFarma: MetaModelo<LicenciaFarma> = {
@@ -43,8 +45,8 @@ export const metaLicenciaFarma: MetaModelo<LicenciaFarma> = {
 
 export const metaNuevaLicenciaFarma: MetaModelo<NuevaLicenciaFarma> = {
     campos: {
-        tipoLicencia: { requerido: true, tipo: "texto" },
-        fechaCaducidad: { requerido: true, tipo: "texto" },
+        nombreCliente: { requerido: true, tipo: "texto" },
+        agenteId: { requerido: true, tipo: "texto" },
     },
 };
 

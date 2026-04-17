@@ -95,9 +95,9 @@ export const DetalleLicenciaFarma = ({
                 {cargando ? "Procesando..." : "Datos revisados"}
               </QBoton>
             )}
-            <QBoton onClick={() => setEstado("confirmarBorrado")}>
+            {/* <QBoton onClick={() => setEstado("confirmarBorrado")}>
               Borrar
-            </QBoton>
+            </QBoton> */}
           </div>
           <quimera-formulario>
             <QInput

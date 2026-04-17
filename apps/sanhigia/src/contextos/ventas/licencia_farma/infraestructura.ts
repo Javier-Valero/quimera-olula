@@ -47,10 +47,12 @@ const licenciaFarmaToAPI = (l: Partial<LicenciaFarma>) => ({
 });
 
 const nuevaLicenciaFarmaToAPI = (n: NuevaLicenciaFarma) => ({
-    tipo_licencia: n.tipoLicencia,
-    fecha_caducidad: n.fechaCaducidad,
+    tipo_licencia: n.tipoLicencia || 'Tratamiento de regeneración ósea',
+    fecha_caducidad: n.fechaCaducidad || '3000-12-31',
     trato_id: n.tratoId,
     cliente_id: n.clienteId,
+    nombre_cliente: n.nombreCliente,
+    agente_id: n.agenteId,
 });
 
 export const getLicenciaFarma = async (id: string): Promise<LicenciaFarma> =>
