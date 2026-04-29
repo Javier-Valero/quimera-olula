@@ -1,6 +1,6 @@
-import { ThemeProvider as MuiThemeProvider, StyledEngineProvider } from "@mui/material/styles";
+import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import { adaptV4Theme, createTheme, ThemeProvider } from "@quimera/styles";
-import { initReactI18next } from "@quimera/thirdparty";
+import { CacheProvider, createCache, initReactI18next } from "@quimera/thirdparty";
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { useEffect, useState } from "react";
@@ -16,6 +16,11 @@ import {
   loadView,
 } from "../../hooks/useManager";
 import util from "../../util";
+
+const emotionCache = createCache({
+  key: "css",
+  insertionPoint: document.querySelector("meta[name='emotion-insertion-point']") ?? undefined,
+});
 
 export default function App({ project, environment }) {
   const [loading, setLoading] = useState(true);
@@ -73,7 +78,7 @@ export default function App({ project, environment }) {
   return loading ? (
     <div style={{ visibility: visibleLoading }}>Loading app</div>
   ) : (
-    <StyledEngineProvider injectFirst>
+    <CacheProvider value={emotionCache}>
       <MuiThemeProvider theme={MUITheme}>
         <ThemeProvider theme={MUITheme}>
           <title>{title}</title>
@@ -89,6 +94,6 @@ export default function App({ project, environment }) {
           </AppProvider>
         </ThemeProvider>
       </MuiThemeProvider>
-    </StyledEngineProvider>
+    </CacheProvider>
   );
 }
