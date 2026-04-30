@@ -14,6 +14,7 @@ import * as DatosCliente from "./views/Checkout/DatosCliente";
 import * as ConfiguracionSofa from "./views/ConfiguracionSofa";
 import * as Configuraciones from "./views/ConfiguracionSofa/Configuraciones";
 import * as Montador from "./views/ConfiguracionSofa/Montador";
+import * as Container from "./views/Container";
 import * as DocumentosClientes from "./views/DocumentosClientes";
 import * as ListaDocumentos from "./views/DocumentosClientes/ListaDocumentos";
 import * as Header from "./views/Header";
@@ -33,6 +34,7 @@ import * as MasterReparaciones from "./views/Reparaciones/MasterReparaciones";
 export default {
   path: "extensions/area_clientes",
   views: {
+    Container,
     Header,
     Home,
     ConfiguracionSofa,
