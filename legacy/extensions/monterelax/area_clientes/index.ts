@@ -17,6 +17,7 @@ import * as Montador from "./views/ConfiguracionSofa/Montador";
 import * as Container from "./views/Container";
 import * as DocumentosClientes from "./views/DocumentosClientes";
 import * as ListaDocumentos from "./views/DocumentosClientes/ListaDocumentos";
+import * as Global from "./views/Global";
 import * as Header from "./views/Header";
 import * as HeaderCarrito from "./views/Header/Carrito";
 import * as Home from "./views/Home";
@@ -35,6 +36,7 @@ export default {
   path: "extensions/area_clientes",
   views: {
     Container,
+    Global,
     Header,
     Home,
     ConfiguracionSofa,
