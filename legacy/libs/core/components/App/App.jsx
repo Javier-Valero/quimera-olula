@@ -4,6 +4,7 @@ import { CacheProvider, createCache, initReactI18next } from "@quimera/thirdpart
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { useEffect, useState } from "react";
+import { RouterBridge } from "../../base/router";
 
 import { AppProvider } from "../../contexts";
 import {
@@ -82,6 +83,7 @@ export default function App({ project, environment }) {
       <MuiThemeProvider theme={MUITheme}>
         <ThemeProvider theme={MUITheme}>
           <title>{title}</title>
+          <RouterBridge />
           <AppProvider
             reducer={appReducer}
             apiClient={appApiClient}
