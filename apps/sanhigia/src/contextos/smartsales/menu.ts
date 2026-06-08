@@ -12,5 +12,5 @@ export const menuSmartsales = {
     "SmartSales/Cursos": { url: "/ss/cursos", regla: "crm.trato" },
     "SmartSales/Clientes": { url: "/ss/clientes", regla: "crm.cliente.acceso_clientes" },
     "SmartSales/Incidencias": { url: "/ss/incidencias" },
-    "SmartSales/Incidencias_new": { url: "/ss/incidencias" },
+    "SmartSales/Incidencias_new": { url: "/crm/incidencia" },
 };

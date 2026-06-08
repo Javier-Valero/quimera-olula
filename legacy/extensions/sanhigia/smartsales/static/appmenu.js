@@ -94,7 +94,7 @@ export default parent => ({
         // rule: "incidencias:acceso",
         icons: ["error_outline"],
         color: "info",
-        url: "/ss/incidencias_new",
+        url: "/crm/incidencia",
       },
     },
   },
