@@ -1,4 +1,3 @@
-import { QCheckbox } from "@olula/componentes/atomos/qcheckbox.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
 import { QTextArea } from "@olula/componentes/atomos/qtextarea.tsx";
@@ -69,7 +68,7 @@ export const TabGeneral = ({ form }: { form: HookModelo<Incidencia> }) => {
         {/*
          * Fila 5: En garantía + Resolución
          */}
-        <QCheckbox label="En garantía" {...uiProps("enGarantia")} />
+        {/* <QCheckbox label="En garantía" {...uiProps("enGarantia")} /> */}
         <QTextArea label="Resolución" {...uiProps("resolucion")} />
       </quimera-formulario>
     </div>

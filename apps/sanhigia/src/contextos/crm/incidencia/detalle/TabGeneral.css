@@ -31,4 +31,14 @@
 
     /* Descripción: ancho completo (12 cols es el valor por defecto, no hace falta declararlo) */
     /* quimera-input[nombre="descripcion"] { grid-column: span 12; } */
+
+    /* Descripción larga: ancho completo */
+    quimera-textarea[nombre="descripcionLarga"] {
+        grid-column: span 12;
+    }
+
+    /* Resolución: ancho completo */
+    quimera-textarea[nombre="resolucion"] {
+        grid-column: span 12;
+    }
 }
