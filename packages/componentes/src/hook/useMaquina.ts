@@ -1,7 +1,7 @@
 import { ContextoError } from '@olula/lib/contexto.ts';
 import { Contexto, EmitirEvento, Maquina } from '@olula/lib/diseño.ts';
 import { procesarEvento } from '@olula/lib/dominio.js';
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 export interface UseMaquinaReturn<Estado extends string, C extends Contexto<Estado>> {
     ctx: C;
@@ -16,20 +16,26 @@ export function useMaquina<Estado extends string, C extends Contexto<Estado>>(
 ): UseMaquinaReturn<Estado, C> {
 
     const { intentar } = useContext(ContextoError);
-    const maquina = getMaquina();
+    const maquina = useMemo(() => getMaquina(), []);
 
     const [ctx, setCtx] = useState<C>(contextoInicial);
+    const ctxRef = useRef<C>(contextoInicial);
+
+    useEffect(() => {
+        ctxRef.current = ctx;
+    }, [ctx]);
 
     const emitir: EmitirEvento = useCallback(async (evento: string, payload?: unknown, init: boolean = false): Promise<void> => {
         const contexto: C = {
-            ...ctx,
-            estado: init ? contextoInicial.estado : ctx.estado,
+            ...ctxRef.current,
+            estado: init ? contextoInicial.estado : ctxRef.current.estado,
         };
 
         const [nuevoContexto, eventos] = await intentar(() =>
             procesarEvento(maquina, contexto, evento, payload)
         );
 
+        ctxRef.current = nuevoContexto;
         setCtx(nuevoContexto);
 
         if (publicar) {
@@ -37,7 +43,7 @@ export function useMaquina<Estado extends string, C extends Contexto<Estado>>(
         }
 
         // return eventos;
-    }, [ctx, maquina, intentar, publicar, contextoInicial.estado]);
+    }, [maquina, intentar, publicar, contextoInicial.estado]);
 
     return {
         ctx,
