@@ -89,6 +89,13 @@ export default parent => ({
         color: "info",
         url: "/ss/incidencias",
       },
+      incidencias_new: {
+        title: "Incidencias_new",
+        // rule: "incidencias:acceso",
+        icons: ["error_outline"],
+        color: "info",
+        url: "/ss/incidencias_new",
+      },
     },
   },
   informes: {
