@@ -37,7 +37,7 @@ export const metaIncidencia: MetaModelo<Incidencia> = {
         descripcion: { requerido: true, minimo: 5 },
         descripcionLarga: { requerido: false },
         nombreCliente: { requerido: true, minimo: 3 },
-        fecha: { requerido: true },
+        fecha: { requerido: true, tipo: 'fecha' },
         prioridad: { requerido: true },
         estado: { requerido: true },
         clienteId: { requerido: false },
