@@ -1,0 +1,26 @@
+.crear-incidencia-botones {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+
+.CrearIncidencia {
+    width: 100%;
+}
+
+.CrearIncidencia quimera-input[nombre="descripcion"] {
+    grid-column: 1 / span 12;
+}
+
+.CrearIncidencia quimera-input[nombre="clienteId"] {
+    grid-column: 1 / span 6;
+}
+
+.CrearIncidencia quimera-select[nombre="tipoIncidencia"] {
+    grid-column: 1 / span 6;
+}
+
+.CrearIncidencia quimera-textarea[nombre="descripcionLarga"] {
+    grid-column: 1 / span 12;
+}

@@ -1,18 +1,30 @@
-/*
- * DetalleModulo.css — posicionado de campos del detalle principal.
- *
- * Si el detalle tiene campos en un formulario fuera de los tabs,
- * posiciónalos aquí usando selectores de atributo sobre los elementos
- * custom que renderizan QInput, QSelect, etc.:
- *
- *   .DetalleModulo {
- *       quimera-input[nombre="codigo"] { grid-column: span 3; }
- *       quimera-input[nombre="nombre"] { grid-column: span 9; }
- *   }
- *
- * Cada tab tiene su propio CSS file (p.ej. TabGeneral.css).
- * Ver TabGeneral.css para ejemplos detallados de la estrategia de posicionado.
- */
+.DetalleIncidencia {
 
-.DetalleModulo {
+    quimera-input[nombre="descripcion"] {
+        grid-column: 1 / span 12;
+    }
+
+    quimera-input[nombre="nombreCliente"] {
+        grid-column: 1 / span 12;
+    }
+
+    quimera-date[nombre="fecha"] {
+        grid-column: span 4;
+    }
+
+    quimera-select[nombre="prioridad"] {
+        grid-column: span 4;
+    }
+
+    quimera-select[nombre="estado"] {
+        grid-column: span 4;
+    }
+
+    quimera-textarea[nombre="descripcionLarga"] {
+        grid-column: span 12;
+    }
+
+    .Tabs {
+        grid-column: 1 / span 12;
+    }
 }

@@ -1,4 +1,4 @@
-import { Entidad, Filtro, Orden, Paginacion, RespuestaLista } from "@olula/lib/diseño.ts";
+import { Entidad } from "@olula/lib/diseño.ts";
 
 /**
  * Estados posibles de una incidencia
@@ -17,7 +17,6 @@ export type TipoIncidencia = 'Proveedor' | 'Transportista';
 
 /**
  * Interfaz principal de Incidencia (camelCase para el frontend)
- * Representa una incidencia en el sistema CRM
  */
 export interface Incidencia extends Entidad {
     id: string;
@@ -69,7 +68,7 @@ export interface IncidenciaAPI {
 /**
  * Tipo para crear nueva incidencia (sin id)
  */
-export interface NuevaIncidencia {
+export type NuevaIncidencia = {
     fecha: Date;
     descripcion: string;
     prioridad: PrioridadIncidencia;
@@ -77,22 +76,10 @@ export interface NuevaIncidencia {
     nombreCliente: string;
     clienteId?: string | null;
     tipoIncidencia?: TipoIncidencia;
-    [key: string]: unknown; // Satisface la interfaz Modelo que requiere index signature
-}
+    [key: string]: unknown;
+};
 
-/**
- * Tipos de funciones para infraestructura (contratos)
- */
 export type GetIncidencia = (id: string) => Promise<Incidencia>;
-
-export type GetIncidencias = (
-    filtro: Filtro,
-    orden: Orden,
-    paginacion: Paginacion
-) => Promise<RespuestaLista<Incidencia>>;
-
 export type PostIncidencia = (incidencia: NuevaIncidencia) => Promise<string>;
-
 export type PatchIncidencia = (id: string, incidencia: Partial<Incidencia>) => Promise<void>;
-
 export type DeleteIncidencia = (id: string) => Promise<void>;
