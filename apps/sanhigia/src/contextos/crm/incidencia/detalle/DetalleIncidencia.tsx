@@ -63,7 +63,7 @@ export const DetalleIncidencia = ({
   // Recargar cuando el ID cambia (o se deselecciona con undefined)
   useEffect(() => {
     emitir("incidencia_id_cambiado", id, true);
-  }, [id, emitir]);
+  }, [id]);
 
   if (!ctx.incidencia.id) return null;
 
