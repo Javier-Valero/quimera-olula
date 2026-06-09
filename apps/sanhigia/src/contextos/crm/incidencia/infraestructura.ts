@@ -26,7 +26,7 @@ const incidenciaFromAPI = (api: IncidenciaAPI): Incidencia => ({
     familiaId: api.familia_id || null,
     agenteId: api.agente_id || null,
     enGarantia: api.en_garantia,
-    tipoIncidencia: api.tipo_incidencia || null,
+    tipoIncidencia: api.tipo_incidencia,
     proveedorId: api.proveedor_id || null,
     transportistaId: api.transportista_id || null,
     resolucion: api.resolucion || null,

@@ -3,6 +3,7 @@ import { Accion } from "../accion/diseño.ts";
 
 export type PrioridadIncidencia = "alta" | "media" | "baja";
 export type EstadoIncidencia = "nueva" | "en_espera" | "asignada" | "rechazada" | "cerrada";
+export type TipoIncidencia = 'proveedor' | 'transportista';
 
 export interface Incidencia extends Entidad {
     id: string;
@@ -12,6 +13,7 @@ export interface Incidencia extends Entidad {
     responsable_id: string | null;
     prioridad: PrioridadIncidencia;
     estado: EstadoIncidencia;
+    tipo_incidencia?: TipoIncidencia;
     fecha: Date
 }
 

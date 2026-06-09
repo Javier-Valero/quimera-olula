@@ -11,6 +11,11 @@ export type EstadoIncidencia = 'Pendiente' | 'Nueva' | 'Pendiente de datos' | 'A
 export type PrioridadIncidencia = 'Baja' | 'Media' | 'Alta';
 
 /**
+ * Tipos de una incidencia
+ */
+export type TipoIncidencia = 'Proveedor' | 'Transportista';
+
+/**
  * Interfaz principal de Incidencia (camelCase para el frontend)
  * Representa una incidencia en el sistema CRM
  */
@@ -30,7 +35,7 @@ export interface Incidencia extends Entidad {
     familiaId?: string | null;
     agenteId?: string | null;
     enGarantia: boolean;
-    tipoIncidencia?: string | null;
+    tipoIncidencia?: TipoIncidencia;
     proveedorId?: string | null;
     transportistaId?: string | null;
     resolucion?: string | null;
@@ -55,7 +60,7 @@ export interface IncidenciaAPI {
     familia_id?: string | null;
     agente_id?: string | null;
     en_garantia: boolean;
-    tipo_incidencia?: string | null;
+    tipo_incidencia?: TipoIncidencia;
     proveedor_id?: string | null;
     transportista_id?: string | null;
     resolucion?: string | null;
@@ -71,6 +76,7 @@ export interface NuevaIncidencia {
     estado: EstadoIncidencia;
     nombreCliente: string;
     clienteId?: string | null;
+    tipoIncidencia?: TipoIncidencia;
     [key: string]: unknown; // Satisface la interfaz Modelo que requiere index signature
 }
 
