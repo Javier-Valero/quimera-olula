@@ -118,11 +118,12 @@ export const MaestroIncidencias = () => {
 
 const iconoEstadoAccion = (estado: string) => {
   const icono = {
-    nueva: "estrella",
-    en_espera: "relojarena",
-    asignada: "usuario",
-    rechazada: "cerrar",
-    cerrada: "checkdoble",
+    Pendiente: "reloj",
+    Nueva: "estrella",
+    "Pendiente de datos": "informacion",
+    Asignada: "usuario",
+    Rechazada: "cerrar",
+    Cerrada: "checkdoble",
   };
 
   return icono[estado as keyof typeof icono];
@@ -136,13 +137,17 @@ const TarjetaCrmIncidencia = (incidencia: Incidencia) => {
           <QIcono nombre={iconoEstadoAccion(incidencia.estado)} tamaño="sm" />
         </QAvatar>
       }
-      arribaIzquierda={incidencia.nombre}
+      arribaIzquierda={incidencia.nombreCliente}
       arribaDerecha={formatearFechaDate(incidencia.fecha)}
       abajoIzquierda={
         incidencia.estado.at(0)?.toUpperCase() +
         incidencia.estado.slice(1).replace("_", " ")
       }
-      abajoDerecha={incidencia.descripcion}
+      abajoDerecha={
+        incidencia.tipoIncidencia === "Transportista"
+          ? "Transporte"
+          : "Producto"
+      }
     />
   );
 };

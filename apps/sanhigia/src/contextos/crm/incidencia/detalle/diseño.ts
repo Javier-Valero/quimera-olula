@@ -1,12 +1,8 @@
 import { Incidencia } from "../diseño.ts";
 
-export type EstadoIncidencia =
-    | "INICIAL"
-    | "ABIERTO"
-    | "BORRANDO_INCIDENCIA";
+export type EstadoDetalleIncidencia = "INICIAL" | "BORRANDO";
 
-export type ContextoIncidencia = {
-    estado: EstadoIncidencia;
+export type ContextoDetalleIncidencia = {
+    estado: EstadoDetalleIncidencia;
     incidencia: Incidencia;
-    incidenciaInicial: Incidencia;
 };

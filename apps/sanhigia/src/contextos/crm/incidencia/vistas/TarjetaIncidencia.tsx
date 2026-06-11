@@ -10,16 +10,13 @@ export const TarjetaIncidencia = ({
   <div className="tarjeta-incidencia">
     <div className="columna">
       <div className="tarjeta-icono">
-        <QAvatar nombre={incidencia.descripcion} tamaño="sm" />
+        <QAvatar nombre={incidencia.nombreCliente} tamaño="sm" />
       </div>
     </div>
     <div className="columna">
       <div className="tarjeta-titulo">{incidencia.descripcion}</div>
       <div className="tarjeta-detalle">ID: {incidencia.id}</div>
-      {/* <div className="tarjeta-detalle">
-        Cliente: {incidencia.nombre_cliente}
-      </div>
-      <div className="tarjeta-detalle">Importe: {incidencia.importe}</div> */}
+      <div className="tarjeta-detalle">Cliente: {incidencia.nombreCliente}</div>
     </div>
   </div>
 );

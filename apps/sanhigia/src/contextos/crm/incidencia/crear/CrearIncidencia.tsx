@@ -1,76 +1,65 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
-import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
-import { QTextArea } from "@olula/componentes/index.js";
-import { QModal } from "@olula/componentes/moleculas/qmodal.tsx";
-import { ContextoError } from "@olula/lib/contexto.ts";
+import { QModal, QSelect, QTextArea } from "@olula/componentes/index.js";
+import { ContextoError } from "@olula/lib/contexto.js";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { useModelo } from "@olula/lib/useModelo.ts";
-import { useContext } from "react";
+import { useCallback, useContext, useState } from "react";
 import { getIncidencia, postIncidencia } from "../infraestructura.ts";
 import "./CrearIncidencia.css";
-import { metaNuevaIncidencia, nuevaIncidenciaVacia } from "./dominio.ts";
+import { metaNuevaIncidencia, nuevaIncidenciaVacia } from "./crear.ts";
 
-interface CrearIncidenciaProps {
-  publicar?: EmitirEvento;
-  onCancelar?: () => void;
-  activo?: boolean;
-}
-
-export const CrearIncidencia = ({
-  publicar = async () => {},
-  onCancelar = () => {},
-  activo = false,
-}: CrearIncidenciaProps) => {
-  const nuevaIncidencia = useModelo(metaNuevaIncidencia, nuevaIncidenciaVacia);
+export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
   const { intentar } = useContext(ContextoError);
 
-  const guardar = async () => {
-    const id = await intentar(() => postIncidencia(nuevaIncidencia.modelo));
-    nuevaIncidencia.init(nuevaIncidenciaVacia);
-    const incidenciaCreada = await getIncidencia(id);
-    publicar("incidencia_creada", incidenciaCreada);
-    onCancelar();
-  };
+  const [creando, setCreando] = useState(false);
+  const { modelo, uiProps, valido } = useModelo(
+    metaNuevaIncidencia,
+    nuevaIncidenciaVacia
+  );
 
-  if (!activo) return null;
+  const crear = useCallback(async () => {
+    setCreando(true);
+    const id = await intentar(() => postIncidencia(modelo));
+    const incidencia = await intentar(() => getIncidencia(id));
+    publicar("incidencia_creada", incidencia);
+  }, [modelo, publicar, intentar]);
+
+  const cancelar = useCallback(() => {
+    if (!creando) publicar("creacion_incidencia_cancelada");
+  }, [creando, publicar]);
 
   return (
     <QModal
-      abierto={activo}
-      nombre="crear_incidencia"
+      abierto={true}
+      nombre="mostrar"
       titulo="Nueva Incidencia"
-      onCerrar={onCancelar}
+      onCerrar={cancelar}
     >
       <div className="CrearIncidencia">
         <quimera-formulario>
-          <QInput
-            label="Descripción"
-            autoSeleccion={true}
-            {...nuevaIncidencia.uiProps("descripcion")}
-          />
-          <QInput
-            label="ID Cliente"
-            {...nuevaIncidencia.uiProps("clienteId")}
-          />
+          <QInput label="Descripción" {...uiProps("descripcion")} />
+          <QInput label="Nombre Cliente" {...uiProps("nombreCliente")} />
           <QSelect
             label="Tipo"
-            {...nuevaIncidencia.uiProps("tipoIncidencia")}
+            {...uiProps("tipoIncidencia")}
             opciones={[
               { valor: "Proveedor", descripcion: "Producto" },
               { valor: "Transportista", descripcion: "Transporte" },
             ]}
           />
           <QTextArea
-            label="Descripción Larga"
-            {...nuevaIncidencia.uiProps("descripcionLarga")}
+            label="Descripción larga"
+            rows={5}
+            {...uiProps("descripcionLarga")}
           />
         </quimera-formulario>
-        <div className="crear-incidencia-botones">
-          <QBoton onClick={guardar} deshabilitado={!nuevaIncidencia.valido}>
-            Crear
+
+        <div className="botones">
+          <QBoton onClick={crear} deshabilitado={!valido}>
+            Guardar
           </QBoton>
-          <QBoton tipo="reset" variante="texto" onClick={onCancelar}>
+          <QBoton onClick={cancelar} variante="texto">
             Cancelar
           </QBoton>
         </div>

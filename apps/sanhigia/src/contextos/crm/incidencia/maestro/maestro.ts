@@ -9,11 +9,13 @@ import { getIncidencias } from "../infraestructura.ts";
 import { ContextoMaestroIncidencias, EstadoMaestroIncidencias } from "./diseño.ts";
 
 export const metaTablaIncidencia: MetaTabla<Incidencia> = [
-    { id: "id", cabecera: "Código" },
-    { id: "descripcion", cabecera: "Descripcion" },
-    { id: "nombre", cabecera: "Nombre" },
-    { id: "estado", cabecera: "Estado" },
-    { id: "prioridad", cabecera: "Prioridad" },
+    { id: "fecha", cabecera: "Fecha", tipo: "fecha" },
+    { id: "nombreCliente", cabecera: "Cliente" },
+    {
+        id: "tipoIncidencia",
+        cabecera: "Tipo",
+        render: (i: Incidencia) => i.tipoIncidencia === "Transportista" ? "Transporte" : "Producto",
+    },
 ];
 
 type ProcesarIncidencias = ProcesarContexto<EstadoMaestroIncidencias, ContextoMaestroIncidencias>;

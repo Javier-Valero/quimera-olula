@@ -8,19 +8,18 @@ import { ContextoDetalleIncidencia, EstadoDetalleIncidencia } from "./diseño.ts
 export const incidenciaVacia: Incidencia = {
     id: "",
     descripcion: "",
-    descripcion_larga: "",
-    nombre: "",
-    responsable_id: "",
-    prioridad: "media",
+    descripcionLarga: "",
+    nombreCliente: "",
+    prioridad: "Media",
     fecha: new Date(),
-    estado: "nueva",
+    estado: "Nueva",
 };
 
 export const metaIncidencia: MetaModelo<Incidencia> = {
     campos: {
         descripcion: { requerido: true },
-        responsable_id: { requerido: false },
-        descripcion_larga: { requerido: false },
+        nombreCliente: { requerido: true },
+        descripcionLarga: { requerido: false },
         prioridad: { requerido: true },
         fecha: { requerido: true, tipo: "fecha" },
         estado: { requerido: true, tipo: "selector" },

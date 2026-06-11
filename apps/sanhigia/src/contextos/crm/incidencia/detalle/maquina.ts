@@ -1,48 +1,23 @@
 import { Maquina } from "@olula/lib/diseño.js";
 import { publicar } from "@olula/lib/dominio.js";
-import { ContextoIncidencia, EstadoIncidencia } from "./diseño.ts";
-import {
-    abiertoContexto,
-    borrarIncidencia,
-    cambiarIncidencia,
-    cancelarCambioIncidencia,
-    cargarContexto,
-    getContextoVacio,
-    refrescarIncidencia,
-} from "./dominio.ts";
+import { cambiarIncidencia, cargarContexto, getContextoVacio } from "./detalle.ts";
+import { ContextoDetalleIncidencia, EstadoDetalleIncidencia } from "./diseño.ts";
 
-export const getMaquina: () => Maquina<EstadoIncidencia, ContextoIncidencia> = () => {
+export const getMaquina: () => Maquina<EstadoDetalleIncidencia, ContextoDetalleIncidencia> = () => {
     return {
         INICIAL: {
-            incidencia_id_cambiado: [cargarContexto],
+            incidencia_id_cambiado: cargarContexto,
 
-            incidencia_deseleccionada: [
-                getContextoVacio,
-                publicar("incidencia_deseleccionada", null),
-            ],
+            incidencia_cambiada: cambiarIncidencia,
+
+            edicion_incidencia_cancelada: [getContextoVacio, publicar("incidencia_deseleccionada", null)],
+
+            borrado_incidencia_solicitado: "BORRANDO",
         },
+        BORRANDO: {
+            borrado_incidencia_cancelado: "INICIAL",
 
-        ABIERTO: {
-            incidencia_deseleccionada: [
-                getContextoVacio,
-                publicar("incidencia_deseleccionada", null),
-            ],
-
-            incidencia_cargada: [abiertoContexto],
-
-            incidencia_cambiada: [refrescarIncidencia],
-
-            edicion_de_incidencia_lista: [cambiarIncidencia],
-
-            edicion_de_incidencia_cancelada: [cancelarCambioIncidencia],
-
-            borrado_solicitado: "BORRANDO_INCIDENCIA",
+            incidencia_borrada: [getContextoVacio, publicar('incidencia_borrada', (_, incidenciaId) => incidenciaId)],
         },
-
-        BORRANDO_INCIDENCIA: {
-            borrado_de_incidencia_listo: borrarIncidencia,
-
-            borrado_cancelado: "ABIERTO",
-        },
-    };
-};
+    }
+}

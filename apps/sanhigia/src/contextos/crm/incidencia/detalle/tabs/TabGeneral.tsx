@@ -1,26 +1,27 @@
-import { QDate } from "@olula/componentes/atomos/qdate.tsx";
-import { QInput } from "@olula/componentes/atomos/qinput.tsx";
-import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
-import { QTextArea } from "@olula/componentes/atomos/qtextarea.tsx";
-import { HookModelo } from "@olula/lib/useModelo.ts";
-import { Incidencia } from "../diseño.ts";
-import "./TabGeneral.css";
+import {
+  QDate,
+  QInput,
+  QSelect,
+  QTextArea,
+  Tab,
+  Tabs,
+} from "@olula/componentes/index.js";
+import { HookModelo } from "@olula/lib/useModelo.js";
+import { Incidencia } from "../../diseño.ts";
 
-interface TabGeneralProps {
-  form: HookModelo<Incidencia>;
-  incidencia: Incidencia;
-}
-
-export const TabGeneral = ({ form }: TabGeneralProps) => {
-  const { uiProps } = form;
+export const TabGeneral = ({
+  incidencia,
+}: {
+  incidencia: HookModelo<Incidencia>;
+}) => {
+  const { uiProps } = incidencia;
 
   return (
     <div className="TabGeneral">
       <quimera-formulario>
-        <QDate label="Fecha" {...uiProps("fecha")} />
         <QInput label="Descripción" {...uiProps("descripcion")} />
-        <QTextArea label="Descripción Larga" {...uiProps("descripcionLarga")} />
-        <QInput label="Cliente" {...uiProps("nombreCliente")} />
+        <QInput label="Nombre Cliente" {...uiProps("nombreCliente")} />
+        <QDate label="Fecha" {...uiProps("fecha")} />
         <QSelect
           label="Prioridad"
           {...uiProps("prioridad")}
@@ -50,8 +51,24 @@ export const TabGeneral = ({ form }: TabGeneralProps) => {
             { valor: "Transportista", descripcion: "Transporte" },
           ]}
         />
-
-        <QInput label="Resolución" {...uiProps("resolucion")} />
+        <div className="Tabs">
+          <Tabs>
+            <Tab label="Descripción">
+              <QTextArea
+                label="Descripción larga"
+                rows={5}
+                {...uiProps("descripcionLarga")}
+              />
+            </Tab>
+            <Tab label="Resolución">
+              <QTextArea
+                label="Resolución"
+                rows={5}
+                {...uiProps("resolucion")}
+              />
+            </Tab>
+          </Tabs>
+        </div>
       </quimera-formulario>
     </div>
   );

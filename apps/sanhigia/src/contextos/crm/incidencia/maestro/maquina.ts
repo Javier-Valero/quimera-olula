@@ -1,24 +1,28 @@
 import { Maquina } from "@olula/lib/diseño.js";
-import { ContextoMaestroIncidencia, EstadoMaestroIncidencia } from "./diseño.ts";
-import { ampliarIncidencias, Incidencias, recargarIncidencias } from "./dominio.ts";
+import { ContextoMaestroIncidencias, EstadoMaestroIncidencias } from "./diseño.ts";
+import { Incidencias, recargarIncidencias } from "./maestro.ts";
 
-export const getMaquina: () => Maquina<EstadoMaestroIncidencia, ContextoMaestroIncidencia> = () => {
+export const getMaquina: () => Maquina<EstadoMaestroIncidencias, ContextoMaestroIncidencias> = () => {
     return {
         INICIAL: {
-            incidencia_cambiada: Incidencias.cambiar,
-            incidencia_seleccionada: [Incidencias.activar],
-            incidencia_deseleccionada: Incidencias.desactivar,
-            incidencia_borrada: Incidencias.quitar,
-            incidencia_creada: Incidencias.incluir,
-            recarga_de_incidencias_solicitada: recargarIncidencias,
-            criteria_cambiado: [Incidencias.filtrar, recargarIncidencias],
-            siguiente_pagina: [Incidencias.filtrar, ampliarIncidencias],
-            creacion_solicitada: "CREANDO_INCIDENCIA",
-        },
+            incidencia_cambiada: [Incidencias.cambiar],
 
-        CREANDO_INCIDENCIA: {
-            incidencia_creada: [Incidencias.incluir, "INICIAL"],
-            creacion_cancelada: "INICIAL",
+            incidencia_seleccionada: [Incidencias.activar],
+
+            incidencia_deseleccionada: Incidencias.desactivar,
+
+            incidencia_borrada: Incidencias.quitar,
+
+            recarga_de_incidencias_solicitada: recargarIncidencias,
+
+            criteria_cambiado: [Incidencias.filtrar, recargarIncidencias],
+
+            creacion_de_incidencia_solicitada: "CREANDO",
         },
-    };
-};
+        CREANDO: {
+            creacion_incidencia_cancelada: "INICIAL",
+
+            incidencia_creada: [Incidencias.incluir, Incidencias.activar, "INICIAL"],
+        }
+    }
+}
