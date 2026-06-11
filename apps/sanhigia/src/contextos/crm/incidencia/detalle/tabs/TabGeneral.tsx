@@ -53,19 +53,11 @@ export const TabGeneral = ({
         />
         <div className="Tabs">
           <Tabs>
-            <Tab label="Descripción">
-              <QTextArea
-                label="Descripción larga"
-                rows={5}
-                {...uiProps("descripcionLarga")}
-              />
+            <Tab label="Observaciones">
+              <QTextArea label="" rows={5} {...uiProps("observaciones")} />
             </Tab>
             <Tab label="Resolución">
-              <QTextArea
-                label="Resolución"
-                rows={5}
-                {...uiProps("resolucion")}
-              />
+              <QTextArea label="" rows={5} {...uiProps("resolucion")} />
             </Tab>
           </Tabs>
         </div>

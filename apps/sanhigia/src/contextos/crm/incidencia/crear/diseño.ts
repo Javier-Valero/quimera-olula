@@ -2,7 +2,7 @@ import { EstadoIncidencia, PrioridadIncidencia, TipoIncidencia } from "../diseñ
 
 export type NuevaIncidencia = {
     descripcion: string;
-    descripcionLarga: string;
+    observaciones: string;
     nombreCliente: string;
     tipoIncidencia?: TipoIncidencia;
     prioridad: PrioridadIncidencia;

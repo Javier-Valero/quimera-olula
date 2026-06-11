@@ -21,7 +21,7 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     id: api.id,
     fecha: new Date(Date.parse(api.fecha)),
     descripcion: api.descripcion,
-    descripcionLarga: api.descripcion_larga || "",
+    observaciones: api.descripcion_larga || "",
     nombreCliente: api.nombre_cliente,
     prioridad: (api.prioridad as PrioridadIncidencia),
     estado: (api.estado as EstadoIncidencia),
@@ -31,7 +31,7 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
 const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI> => ({
     ...(incidencia.fecha && { fecha: incidencia.fecha.toISOString().slice(0, 10) }),
     ...(incidencia.descripcion && { descripcion: incidencia.descripcion }),
-    ...(incidencia.descripcionLarga && { descripcion_larga: incidencia.descripcionLarga }),
+    ...(incidencia.observaciones && { descripcion_larga: incidencia.observaciones }),
     ...(incidencia.nombreCliente && { nombre_cliente: incidencia.nombreCliente }),
     ...(incidencia.prioridad && { prioridad: incidencia.prioridad }),
     ...(incidencia.estado && { estado: incidencia.estado }),

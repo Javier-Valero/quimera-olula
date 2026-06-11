@@ -49,9 +49,9 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
             ]}
           />
           <QTextArea
-            label="Descripción larga"
+            label="Observaciones"
             rows={5}
-            {...uiProps("descripcionLarga")}
+            {...uiProps("observaciones")}
           />
         </quimera-formulario>
 

@@ -8,7 +8,7 @@ export type TipoIncidencia = 'Proveedor' | 'Transportista';
 export interface Incidencia extends Entidad {
     id: string;
     descripcion: string;
-    descripcionLarga: string;
+    observaciones: string;
     nombreCliente: string;
     prioridad: PrioridadIncidencia;
     estado: EstadoIncidencia;

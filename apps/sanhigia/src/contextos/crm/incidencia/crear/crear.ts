@@ -5,7 +5,7 @@ export const nuevaIncidenciaVacia: NuevaIncidencia = {
     descripcion: "",
     nombreCliente: "",
     prioridad: "Media",
-    descripcionLarga: "",
+    observaciones: "",
     estado: "Nueva",
     fecha: new Date(),
 };
@@ -15,7 +15,7 @@ export const metaNuevaIncidencia: MetaModelo<NuevaIncidencia> = {
         descripcion: { requerido: true, validacion: (incidencia: NuevaIncidencia) => stringNoVacio(incidencia.descripcion) },
         nombreCliente: { requerido: true },
         fecha: { requerido: true, tipo: "fecha" },
-        descripcionLarga: { requerido: false },
+        observaciones: { requerido: true, validacion: (incidencia: NuevaIncidencia) => stringNoVacio(incidencia.observaciones) },
         prioridad: { requerido: true },
         estado: { requerido: true, tipo: "selector" }
     },
