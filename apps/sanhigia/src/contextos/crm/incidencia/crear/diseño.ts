@@ -3,9 +3,12 @@ import { EstadoIncidencia, PrioridadIncidencia, TipoIncidencia } from "../diseñ
 export type NuevaIncidencia = {
     descripcion: string;
     observaciones: string;
+    clienteId: string;
     nombreCliente: string;
     tipoIncidencia?: TipoIncidencia;
     prioridad: PrioridadIncidencia;
     estado: EstadoIncidencia;
     fecha: Date;
+    facturaId?: string;
+    articuloId?: string;
 };

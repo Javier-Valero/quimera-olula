@@ -1,3 +1,6 @@
+import { Articulo } from "#/almacen/comun/componentes/Articulo.tsx";
+import { Factura } from "#/ventas/comun/componentes/factura.tsx";
+// import { Cliente } from "#/ventas/comun/componentes/cliente.tsx";
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QModal, QSelect, QTextArea } from "@olula/componentes/index.js";
@@ -29,6 +32,34 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
     if (!creando) publicar("creacion_incidencia_cancelada");
   }, [creando, publicar]);
 
+  // const handleClienteChange = useCallback(
+  //   (opcion: { valor: string; descripcion: string } | null) => {
+  //     if (opcion) {
+  //       modelo.clienteId = opcion.valor;
+  //       modelo.nombreCliente = opcion.descripcion;
+  //     }
+  //   },
+  //   [modelo]
+  // );
+
+  const handleFacturaChange = useCallback(
+    (opcion: { valor: string; descripcion: string } | null) => {
+      if (opcion) {
+        modelo.facturaId = opcion.valor;
+      }
+    },
+    [modelo]
+  );
+
+  const handleArticuloChange = useCallback(
+    (opcion: { valor: string; descripcion: string } | null) => {
+      if (opcion) {
+        modelo.articuloId = opcion.valor;
+      }
+    },
+    [modelo]
+  );
+
   return (
     <QModal
       abierto={true}
@@ -39,6 +70,19 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
       <div className="CrearIncidencia">
         <quimera-formulario>
           <QInput label="Descripción" {...uiProps("descripcion")} />
+          {/* <Cliente
+            valor={modelo.clienteId}
+            descripcion={modelo.nombreCliente}
+            onChange={handleClienteChange}
+          /> */}
+          <Factura
+            valor={modelo.facturaId || ""}
+            onChange={handleFacturaChange}
+          />
+          <Articulo
+            valor={modelo.articuloId || ""}
+            onChange={handleArticuloChange}
+          />
           <QInput label="Nombre Cliente" {...uiProps("nombreCliente")} />
           <QSelect
             label="Tipo"

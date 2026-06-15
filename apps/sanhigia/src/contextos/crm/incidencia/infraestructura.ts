@@ -12,9 +12,12 @@ interface IncidenciaAPI {
     descripcion: string;
     descripcion_larga?: string | null;
     nombre_cliente: string;
+    cliente_id: string;
     prioridad: string;
     estado: string;
     tipo_incidencia?: string;
+    factura_id?: string;
+    articulo_id?: string;
 }
 
 export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
@@ -22,20 +25,26 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     fecha: new Date(Date.parse(api.fecha)),
     descripcion: api.descripcion,
     observaciones: api.descripcion_larga || "",
+    clienteId: api.cliente_id || "",
     nombreCliente: api.nombre_cliente,
     prioridad: (api.prioridad as PrioridadIncidencia),
     estado: (api.estado as EstadoIncidencia),
     tipoIncidencia: api.tipo_incidencia as TipoIncidencia | undefined,
+    facturaId: api.factura_id || "",
+    articuloId: api.articulo_id || "",
 });
 
 const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI> => ({
     ...(incidencia.fecha && { fecha: incidencia.fecha.toISOString().slice(0, 10) }),
     ...(incidencia.descripcion && { descripcion: incidencia.descripcion }),
     ...(incidencia.observaciones && { descripcion_larga: incidencia.observaciones }),
+    ...(incidencia.clienteId && { cliente_id: incidencia.clienteId }),
     ...(incidencia.nombreCliente && { nombre_cliente: incidencia.nombreCliente }),
     ...(incidencia.prioridad && { prioridad: incidencia.prioridad }),
     ...(incidencia.estado && { estado: incidencia.estado }),
     ...(incidencia.tipoIncidencia && { tipo_incidencia: incidencia.tipoIncidencia }),
+    ...(incidencia.facturaId && { factura_id: incidencia.facturaId }),
+    ...(incidencia.articuloId && { articulo_id: incidencia.articuloId }),
 });
 
 export const getIncidencia: GetIncidencia = async (id) =>

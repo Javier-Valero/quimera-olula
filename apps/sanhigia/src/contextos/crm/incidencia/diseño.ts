@@ -9,11 +9,14 @@ export interface Incidencia extends Entidad {
     id: string;
     descripcion: string;
     observaciones: string;
+    clienteId: string;
+    facturaId?: string;
     nombreCliente: string;
     prioridad: PrioridadIncidencia;
     estado: EstadoIncidencia;
     tipoIncidencia?: TipoIncidencia;
     fecha: Date
+    articuloId?: string;
 }
 
 export type GetIncidencia = (id: string) => Promise<Incidencia>;
