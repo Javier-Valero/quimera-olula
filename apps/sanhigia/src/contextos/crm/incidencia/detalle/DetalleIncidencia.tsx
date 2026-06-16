@@ -10,6 +10,7 @@ import { incidenciaVacia, metaIncidencia } from "./detalle.ts";
 import "./DetalleIncidencia.css";
 import { getMaquina } from "./maquina.ts";
 import { TabGeneral } from "./tabs/TabGeneral.tsx";
+import { TabTareas } from "./tareas/TabTareas/TabTareas.tsx";
 
 export const DetalleIncidencia = ({
   id,
@@ -65,6 +66,10 @@ export const DetalleIncidencia = ({
 
             <Tab label="Acciones">
               <Acciones incidencia={incidencia} />
+            </Tab>
+
+            <Tab label="Tareas">
+              <TabTareas incidenciaId={incidenciaId} />
             </Tab>
           </Tabs>
 

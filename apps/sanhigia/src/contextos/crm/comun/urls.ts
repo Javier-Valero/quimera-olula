@@ -5,6 +5,7 @@
 
 class CRM_Urls {
     readonly INCIDENCIA = `/crm/incidencia`;
+    readonly TAREA = `/crm/tarea`;
 }
 
 export default CRM_Urls;
