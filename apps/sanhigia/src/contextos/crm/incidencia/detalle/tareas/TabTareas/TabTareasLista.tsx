@@ -1,8 +1,9 @@
+import { MetaTabla } from "@olula/componentes/index.js";
 import { ListadoSemiControlado } from "@olula/componentes/maestro/ListadoSemiControlado.tsx";
 import { criteriaDefecto } from "@olula/lib/dominio.js";
 import { Tarea } from "../diseño.ts";
 
-const metaTablaTareas = [
+const metaTablaTareas: MetaTabla<Tarea> = [
   {
     id: "titulo",
     cabecera: "Título",
@@ -11,12 +12,12 @@ const metaTablaTareas = [
   {
     id: "fecha",
     cabecera: "Fecha",
-    render: (tarea: Tarea) => tarea.fecha,
+    tipo: "fecha",
   },
   {
     id: "hora",
     cabecera: "Hora",
-    render: (tarea: Tarea) => tarea.hora,
+    tipo: "hora",
   },
   {
     id: "tipo",
