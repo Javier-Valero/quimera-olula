@@ -1,6 +1,7 @@
 import { MetaTabla } from "@olula/componentes/index.js";
 import { ListadoSemiControlado } from "@olula/componentes/maestro/ListadoSemiControlado.tsx";
 import { criteriaDefecto } from "@olula/lib/dominio.js";
+import { useNavigate } from "react-router";
 import { Tarea } from "../diseño.ts";
 
 const metaTablaTareas: MetaTabla<Tarea> = [
@@ -39,6 +40,12 @@ export const TabTareasLista = ({
   tareas: Tarea[];
   cargando: boolean;
 }) => {
+  const navigate = useNavigate();
+
+  const handleSeleccion = (tarea: Tarea) => {
+    navigate(`/ss/tarea/${tarea.id}`);
+  };
+
   return (
     <ListadoSemiControlado
       metaTabla={metaTablaTareas}
@@ -46,7 +53,7 @@ export const TabTareasLista = ({
       totalEntidades={tareas.length}
       cargando={cargando}
       seleccionada={null}
-      onSeleccion={() => null}
+      onSeleccion={handleSeleccion}
       criteriaInicial={criteriaDefecto}
       onCriteriaChanged={() => null}
       renderAcciones={() => null}
