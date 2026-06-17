@@ -2,10 +2,10 @@ import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { Detalle, QBoton, Tab, Tabs } from "@olula/componentes/index.js";
 import { EmitirEvento, Entidad } from "@olula/lib/diseño.js";
 import { useModelo } from "@olula/lib/useModelo.js";
+import { navigate } from "quimera";
 import { useEffect } from "react";
 import { useParams } from "react-router";
 import { BorrarIncidencia } from "../borrar/BorrarIncidencia.tsx";
-import { Acciones } from "./acciones/Acciones.tsx";
 import { incidenciaVacia, metaIncidencia } from "./detalle.ts";
 import "./DetalleIncidencia.css";
 import { getMaquina } from "./maquina.ts";
@@ -57,15 +57,18 @@ export const DetalleIncidencia = ({
             <QBoton onClick={() => emitir("borrado_incidencia_solicitado")}>
               Borrar
             </QBoton>
+            <QBoton
+              onClick={() =>
+                navigate(`/ss/incidencias/${incidenciaId}/tarea/nueva`)
+              }
+            >
+              Añadir tarea
+            </QBoton>
           </div>
 
           <Tabs>
             <Tab label="General">
               <TabGeneral incidencia={incidencia} />
-            </Tab>
-
-            <Tab label="Acciones">
-              <Acciones incidencia={incidencia} />
             </Tab>
 
             <Tab label="Tareas">
