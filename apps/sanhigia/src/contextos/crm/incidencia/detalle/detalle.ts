@@ -13,6 +13,7 @@ export const incidenciaVacia: Incidencia = {
     prioridad: "Media",
     fecha: new Date(),
     estado: "Nueva",
+    clienteId: "",
 };
 
 export const metaIncidencia: MetaModelo<Incidencia> = {
