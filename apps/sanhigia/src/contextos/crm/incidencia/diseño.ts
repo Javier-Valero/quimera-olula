@@ -17,6 +17,8 @@ export interface Incidencia extends Entidad {
     tipoIncidencia?: TipoIncidencia;
     fecha: Date
     articuloId?: string;
+    presupuestoId?: string;
+    codigoPresupuesto?: string;
 }
 
 export type GetIncidencia = (id: string) => Promise<Incidencia>;

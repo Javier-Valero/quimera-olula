@@ -21,6 +21,8 @@ interface IncidenciaAPI {
     tipo_incidencia?: string;
     factura_id?: string;
     articulo_id?: string;
+    presupuesto_id?: string;
+    codigo_presupuesto?: string;
 }
 
 export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
@@ -35,6 +37,8 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     tipoIncidencia: api.tipo_incidencia as TipoIncidencia | undefined,
     facturaId: api.factura_id || "",
     articuloId: api.articulo_id || "",
+    presupuestoId: api.presupuesto_id,
+    codigoPresupuesto: api.codigo_presupuesto,
 });
 
 const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI> => ({

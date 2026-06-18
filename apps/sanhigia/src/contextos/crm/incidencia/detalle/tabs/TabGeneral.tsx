@@ -1,4 +1,5 @@
 import {
+  QBoton,
   QDate,
   QInput,
   QSelect,
@@ -7,6 +8,7 @@ import {
   Tabs,
 } from "@olula/componentes/index.js";
 import { HookModelo } from "@olula/lib/useModelo.js";
+import { useNavigate } from "react-router";
 import { Incidencia } from "../../diseño.ts";
 
 export const TabGeneral = ({
@@ -15,6 +17,7 @@ export const TabGeneral = ({
   incidencia: HookModelo<Incidencia>;
 }) => {
   const { uiProps } = incidencia;
+  const navigate = useNavigate();
 
   return (
     <div className="TabGeneral">
@@ -51,6 +54,29 @@ export const TabGeneral = ({
             { valor: "Transportista", descripcion: "Transporte" },
           ]}
         />
+
+        {incidencia.modelo.presupuestoId && (
+          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+            <div style={{ flex: 1 }}>
+              <QInput
+                label={`Presupuesto `}
+                nombre="presupuesto"
+                valor={incidencia?.modelo?.codigoPresupuesto}
+                deshabilitado
+              />
+            </div>
+            <QBoton
+              tamaño="pequeño"
+              onClick={() =>
+                navigate(
+                  `/ventas/presupuestos/${incidencia.modelo.presupuestoId}`
+                )
+              }
+            >
+              Ir a presupuesto
+            </QBoton>
+          </div>
+        )}
         <div className="Tabs">
           <Tabs>
             <Tab label="Observaciones">

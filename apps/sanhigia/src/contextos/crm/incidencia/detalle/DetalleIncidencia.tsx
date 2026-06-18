@@ -44,6 +44,8 @@ export const DetalleIncidencia = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incidenciaId]);
 
+  console.log("mimensaje_incidencia", incidencia?.modelo?.presupuestoId);
+
   return (
     <Detalle
       id={incidenciaId}
@@ -65,9 +67,11 @@ export const DetalleIncidencia = ({
             >
               Añadir tarea
             </QBoton>
-            <QBoton onClick={() => emitir("crear_presupuesto_solicitado")}>
-              Crear presupuesto
-            </QBoton>
+            {!incidencia?.modelo?.presupuestoId && (
+              <QBoton onClick={() => emitir("crear_presupuesto_solicitado")}>
+                Crear presupuesto
+              </QBoton>
+            )}
           </div>
 
           <Tabs>
