@@ -134,3 +134,8 @@ export const getTareas: GetTareas = async (incidenciaId, paginacion) => {
     const respuesta = await RestAPI.get<{ datos: TareaAPI[]; total: number }>(baseUrlTarea + q);
     return { datos: respuesta.datos.map(tareaDesdeApi), total: respuesta.total };
 };
+
+
+export const crearPresupuestoIncidencia = async (incidenciaId: string) => {
+    await RestAPI.post(`${baseUrlIncidencia}/${incidenciaId}/crear_presupuesto`, {}, "Error al crear presupuesto");
+}

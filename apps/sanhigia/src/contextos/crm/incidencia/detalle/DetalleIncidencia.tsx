@@ -6,6 +6,7 @@ import { navigate } from "quimera";
 import { useEffect } from "react";
 import { useParams } from "react-router";
 import { BorrarIncidencia } from "../borrar/BorrarIncidencia.tsx";
+import { CrearPresupuesto } from "../crear_presupuesto/CrearPresupuesto.tsx";
 import { incidenciaVacia, metaIncidencia } from "./detalle.ts";
 import "./DetalleIncidencia.css";
 import { getMaquina } from "./maquina.ts";
@@ -64,6 +65,9 @@ export const DetalleIncidencia = ({
             >
               Añadir tarea
             </QBoton>
+            <QBoton onClick={() => emitir("crear_presupuesto_solicitado")}>
+              Crear presupuesto
+            </QBoton>
           </div>
 
           <Tabs>
@@ -96,6 +100,10 @@ export const DetalleIncidencia = ({
 
           {ctx.estado === "BORRANDO" && (
             <BorrarIncidencia publicar={emitir} incidencia={modelo} />
+          )}
+
+          {ctx.estado === "CREANDO_PRESUPUESTO" && (
+            <CrearPresupuesto publicar={emitir} incidencia={modelo} />
           )}
         </div>
       )}

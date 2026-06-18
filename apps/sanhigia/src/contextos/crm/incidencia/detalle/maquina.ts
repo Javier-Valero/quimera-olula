@@ -13,11 +13,18 @@ export const getMaquina: () => Maquina<EstadoDetalleIncidencia, ContextoDetalleI
             edicion_incidencia_cancelada: [getContextoVacio, publicar("incidencia_deseleccionada", null)],
 
             borrado_incidencia_solicitado: "BORRANDO",
+
+            crear_presupuesto_solicitado: 'CREANDO_PRESUPUESTO',
         },
         BORRANDO: {
             borrado_incidencia_cancelado: "INICIAL",
 
             incidencia_borrada: [getContextoVacio, publicar('incidencia_borrada', (_, incidenciaId) => incidenciaId)],
+        },
+        CREANDO_PRESUPUESTO: {
+            presupuesto_creado: "INICIAL",
+
+            creacion_presupuesto_cancelada: "INICIAL",
         },
     }
 }
