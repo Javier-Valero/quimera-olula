@@ -21,6 +21,7 @@
         "@olula/componentes": "workspace:*",
         "@olula/ctx": "workspace:*",
         "@olula/lib": "workspace:*",
-        "quimera": "workspace:@quimera/core@*"
+        "quimera": "workspace:@quimera/core@*",
+        "hookrouter": "^1.2.5"
     }
 }

@@ -1,4 +1,5 @@
 import { AccionesCabeceraMonterelax } from "./componentes/AccionesCabeceraMonterelax.tsx";
+import { FactoryAuthMonterelax } from "./contextos/auth/factory.ts";
 import { FactoryVentasLegacy } from "./contextos/ventas/factory.ts";
 
 class FactoryComponentesMonterelax {
@@ -6,7 +7,7 @@ class FactoryComponentesMonterelax {
 }
 
 export class FactoryLegacy {
-    // Auth = FactoryAuthOlula;
+    Auth = FactoryAuthMonterelax;
     Componentes = FactoryComponentesMonterelax;
     Ventas = FactoryVentasLegacy;
 }
