@@ -1,6 +1,7 @@
 import { Articulo } from "#/almacen/comun/componentes/Articulo.tsx";
-import { Factura } from "#/ventas/comun/componentes/factura.tsx";
+import { FacturaCliente } from "#/ventas/comun/componentes/facturaCliente.tsx";
 // import { Cliente } from "#/ventas/comun/componentes/cliente.tsx";
+import { Cliente } from "#/ventas/comun/componentes/cliente.tsx";
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QModal, QSelect, QTextArea } from "@olula/componentes/index.js";
@@ -32,15 +33,15 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
     if (!creando) publicar("creacion_incidencia_cancelada");
   }, [creando, publicar]);
 
-  // const handleClienteChange = useCallback(
-  //   (opcion: { valor: string; descripcion: string } | null) => {
-  //     if (opcion) {
-  //       modelo.clienteId = opcion.valor;
-  //       modelo.nombreCliente = opcion.descripcion;
-  //     }
-  //   },
-  //   [modelo]
-  // );
+  const handleClienteChange = useCallback(
+    (opcion: { valor: string; descripcion: string } | null) => {
+      if (opcion) {
+        modelo.clienteId = opcion.valor;
+        modelo.nombreCliente = opcion.descripcion;
+      }
+    },
+    [modelo]
+  );
 
   const handleFacturaChange = useCallback(
     (opcion: { valor: string; descripcion: string } | null) => {
@@ -60,6 +61,8 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
     [modelo]
   );
 
+  // console.log("mimensaje_modelo.clienteId", modelo.clienteId);
+
   return (
     <QModal
       abierto={true}
@@ -70,12 +73,14 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
       <div className="CrearIncidencia">
         <quimera-formulario>
           <QInput label="Descripción" {...uiProps("descripcion")} />
-          {/* <Cliente
+          {/* <QInput label="Nombre Cliente" {...uiProps("nombreCliente")} /> */}
+          <Cliente
             valor={modelo.clienteId}
             descripcion={modelo.nombreCliente}
             onChange={handleClienteChange}
-          /> */}
-          <Factura
+          />
+          <FacturaCliente
+            clienteId={modelo.clienteId}
             valor={modelo.facturaId || ""}
             onChange={handleFacturaChange}
           />
@@ -83,7 +88,7 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
             valor={modelo.articuloId || ""}
             onChange={handleArticuloChange}
           />
-          <QInput label="Nombre Cliente" {...uiProps("nombreCliente")} />
+
           <QSelect
             label="Tipo"
             {...uiProps("tipoIncidencia")}
