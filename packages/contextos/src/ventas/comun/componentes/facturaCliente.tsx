@@ -1,5 +1,6 @@
 import { QAutocompletar } from "@olula/componentes/moleculas/qautocompletar.tsx";
 import { ClausulaFiltro, Filtro } from "@olula/lib/diseño.ts";
+import { useState } from "react";
 import { getFacturas } from "../../factura/infraestructura.ts";
 
 interface FacturaClienteProps {
@@ -23,7 +24,22 @@ export const FacturaCliente = ({
   onChange,
   ...props
 }: FacturaClienteProps) => {
+  const [intentoBusquedaSinCliente, setIntentoBusquedaSinCliente] =
+    useState(false);
+
   const obtenerOpciones = async (texto: string) => {
+    if (!texto || texto.trim() === "") {
+      setIntentoBusquedaSinCliente(false);
+      return [];
+    }
+
+    if (!clienteId || clienteId.trim() === "") {
+      setIntentoBusquedaSinCliente(true);
+      return [];
+    }
+
+    setIntentoBusquedaSinCliente(false);
+
     const criteria = {
       filtro: [
         ["codigo", "~", texto],
@@ -57,6 +73,12 @@ export const FacturaCliente = ({
       obtenerOpciones={obtenerOpciones}
       descripcion={descripcion}
       deshabilitado={deshabilitado}
+      erroneo={intentoBusquedaSinCliente}
+      textoValidacion={
+        intentoBusquedaSinCliente
+          ? "El campo cliente debe estar informado"
+          : undefined
+      }
       {...props}
     />
   );

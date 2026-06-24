@@ -17,7 +17,7 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
   const { intentar } = useContext(ContextoError);
 
   const [creando, setCreando] = useState(false);
-  const { modelo, uiProps, valido } = useModelo(
+  const { modelo, uiProps, valido, set } = useModelo(
     metaNuevaIncidencia,
     nuevaIncidenciaVacia
   );
@@ -36,32 +36,43 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
   const handleClienteChange = useCallback(
     (opcion: { valor: string; descripcion: string } | null) => {
       if (opcion) {
-        modelo.clienteId = opcion.valor;
-        modelo.nombreCliente = opcion.descripcion;
+        set({
+          ...modelo,
+          clienteId: opcion.valor,
+          nombreCliente: opcion.descripcion,
+        });
+      } else {
+        set({
+          ...modelo,
+          clienteId: "",
+          nombreCliente: "",
+        });
       }
     },
-    [modelo]
+    [modelo, set]
   );
 
   const handleFacturaChange = useCallback(
     (opcion: { valor: string; descripcion: string } | null) => {
       if (opcion) {
-        modelo.facturaId = opcion.valor;
+        set({ ...modelo, facturaId: opcion.valor });
+      } else {
+        set({ ...modelo, facturaId: "" });
       }
     },
-    [modelo]
+    [modelo, set]
   );
 
   const handleArticuloChange = useCallback(
     (opcion: { valor: string; descripcion: string } | null) => {
       if (opcion) {
-        modelo.articuloId = opcion.valor;
+        set({ ...modelo, articuloId: opcion.valor });
+      } else {
+        set({ ...modelo, articuloId: "" });
       }
     },
-    [modelo]
+    [modelo, set]
   );
-
-  // console.log("mimensaje_modelo.clienteId", modelo.clienteId);
 
   return (
     <QModal
@@ -79,16 +90,6 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
             descripcion={modelo.nombreCliente}
             onChange={handleClienteChange}
           />
-          <FacturaCliente
-            clienteId={modelo.clienteId}
-            valor={modelo.facturaId || ""}
-            onChange={handleFacturaChange}
-          />
-          <Articulo
-            valor={modelo.articuloId || ""}
-            onChange={handleArticuloChange}
-          />
-
           <QSelect
             label="Tipo"
             {...uiProps("tipoIncidencia")}
@@ -97,6 +98,17 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
               { valor: "Transportista", descripcion: "Transporte" },
             ]}
           />
+          <FacturaCliente
+            clienteId={modelo.clienteId}
+            valor={modelo.facturaId || ""}
+            onChange={handleFacturaChange}
+          />
+          {modelo.tipoIncidencia === "Proveedor" && (
+            <Articulo
+              valor={modelo.articuloId || ""}
+              onChange={handleArticuloChange}
+            />
+          )}
           <QTextArea
             label="Observaciones"
             rows={5}

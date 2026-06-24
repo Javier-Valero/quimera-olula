@@ -51,7 +51,7 @@ const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI>
     ...(incidencia.estado && { estado: incidencia.estado }),
     ...(incidencia.tipoIncidencia && { tipo_incidencia: incidencia.tipoIncidencia }),
     ...(incidencia.facturaId && { factura_id: incidencia.facturaId }),
-    ...(incidencia.articuloId && { articulo_id: incidencia.articuloId }),
+    ...(incidencia.articuloId && { articulo_id: incidencia.tipoIncidencia === "Proveedor" ? incidencia.articuloId : undefined }),
 });
 
 export const getIncidencia: GetIncidencia = async (id) =>

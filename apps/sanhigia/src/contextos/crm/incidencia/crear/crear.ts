@@ -11,16 +11,26 @@ export const nuevaIncidenciaVacia: NuevaIncidencia = {
     fecha: new Date(),
     facturaId: "",
     articuloId: "",
+    tipoIncidencia: "Proveedor"
 };
 
 export const metaNuevaIncidencia: MetaModelo<NuevaIncidencia> = {
     campos: {
         descripcion: { requerido: true, validacion: (incidencia: NuevaIncidencia) => stringNoVacio(incidencia.descripcion) },
-        // clienteId: { requerido: true },
-        nombreCliente: { requerido: true },
+        clienteId: { requerido: true },
+        facturaId: { requerido: true },
+        // nombreCliente: { requerido: true },
         fecha: { requerido: true, tipo: "fecha" },
         observaciones: { requerido: true, validacion: (incidencia: NuevaIncidencia) => stringNoVacio(incidencia.observaciones) },
         prioridad: { requerido: true },
-        estado: { requerido: true, tipo: "selector" }
+        estado: { requerido: true, tipo: "selector" },
+        tipoIncidencia: { requerido: true, tipo: "selector" },
+        articuloId: {
+            requerido: false,
+            validacion: (incidencia: NuevaIncidencia) =>
+                incidencia.tipoIncidencia === "Proveedor"
+                    ? stringNoVacio(incidencia.articuloId ?? "")
+                    : true
+        },
     },
 };

@@ -44,7 +44,7 @@ export const DetalleIncidencia = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incidenciaId]);
 
-  console.log("mimensaje_incidencia", incidencia?.modelo?.presupuestoId);
+  // console.log("mimensaje_incidencia", incidencia?.modelo?.presupuestoId);
 
   return (
     <Detalle
