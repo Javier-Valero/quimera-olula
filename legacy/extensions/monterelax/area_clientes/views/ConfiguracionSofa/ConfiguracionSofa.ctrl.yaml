@@ -36,6 +36,10 @@ bunch:
     - _type: grape 
       name: seteaFiltro
   seteaFiltro:
+    - _type: log     
+      desc: mimensaje_seta_filtro
+      value:
+        code: 'return { and: [["idmodelo", "eq", state.idModelo],["precio", "gt", 0],["confbase", state.tipoFiltroMedidaModulo, state.medidaModulo],["confbase", state.tipoFiltroMedidaBrazo, state.medidaBrazo]]}' 
     - _type: set
       path: configuraciones.filter
       value:
@@ -168,7 +172,7 @@ bunch:
           A:
             payloadPath: value
           B:
-            const: '*'
+            const: '/'
         then:
           _type: set
           path: tipoFiltroMedidaBrazo
