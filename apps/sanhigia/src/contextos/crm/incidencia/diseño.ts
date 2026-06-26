@@ -11,6 +11,7 @@ export interface Incidencia extends Entidad {
     observaciones: string;
     clienteId: string;
     facturaId?: string;
+    codigoFactura?: string;
     nombreCliente: string;
     prioridad: PrioridadIncidencia;
     estado: EstadoIncidencia;

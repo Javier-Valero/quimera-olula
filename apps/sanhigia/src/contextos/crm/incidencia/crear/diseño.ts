@@ -10,5 +10,6 @@ export type NuevaIncidencia = {
     estado: EstadoIncidencia;
     fecha: Date;
     facturaId?: string;
+    codigoFactura?: string;
     articuloId?: string;
 };

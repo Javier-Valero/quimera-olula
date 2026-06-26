@@ -55,9 +55,13 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
   const handleFacturaChange = useCallback(
     (opcion: { valor: string; descripcion: string } | null) => {
       if (opcion) {
-        set({ ...modelo, facturaId: opcion.valor });
+        set({
+          ...modelo,
+          facturaId: opcion.valor,
+          codigoFactura: opcion.descripcion,
+        });
       } else {
-        set({ ...modelo, facturaId: "" });
+        set({ ...modelo, facturaId: "", codigoFactura: "" });
       }
     },
     [modelo, set]

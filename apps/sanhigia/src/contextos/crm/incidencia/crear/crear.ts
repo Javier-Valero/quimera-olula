@@ -10,6 +10,7 @@ export const nuevaIncidenciaVacia: NuevaIncidencia = {
     estado: "Nueva",
     fecha: new Date(),
     facturaId: "",
+    codigoFactura: "",
     articuloId: "",
     tipoIncidencia: "Proveedor"
 };

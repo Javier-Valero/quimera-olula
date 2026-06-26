@@ -20,6 +20,7 @@ interface IncidenciaAPI {
     estado: string;
     tipo_incidencia?: string;
     factura_id?: string;
+    codigo_factura?: string;
     articulo_id?: string;
     presupuesto_id?: string;
     codigo_presupuesto?: string;
@@ -36,6 +37,7 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     estado: (api.estado as EstadoIncidencia),
     tipoIncidencia: api.tipo_incidencia as TipoIncidencia | undefined,
     facturaId: api.factura_id || "",
+    codigoFactura: api.codigo_factura || "",
     articuloId: api.articulo_id || "",
     presupuestoId: api.presupuesto_id,
     codigoPresupuesto: api.codigo_presupuesto,
@@ -51,6 +53,7 @@ const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI>
     ...(incidencia.estado && { estado: incidencia.estado }),
     ...(incidencia.tipoIncidencia && { tipo_incidencia: incidencia.tipoIncidencia }),
     ...(incidencia.facturaId && { factura_id: incidencia.facturaId }),
+    ...(incidencia.codigoFactura && { codigo_factura: incidencia.codigoFactura }),
     ...(incidencia.articuloId && { articulo_id: incidencia.tipoIncidencia === "Proveedor" ? incidencia.articuloId : undefined }),
 });
 
