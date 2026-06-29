@@ -1,3 +1,5 @@
+import { Articulo } from "#/almacen/comun/componentes/Articulo.tsx";
+import { Cliente } from "#/ventas/comun/componentes/cliente.tsx";
 import {
   QBoton,
   QDate,
@@ -8,6 +10,7 @@ import {
   Tabs,
 } from "@olula/componentes/index.js";
 import { HookModelo } from "@olula/lib/useModelo.js";
+import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Incidencia } from "../../diseño.ts";
 
@@ -16,14 +19,50 @@ export const TabGeneral = ({
 }: {
   incidencia: HookModelo<Incidencia>;
 }) => {
-  const { uiProps } = incidencia;
+  const { uiProps, set, modelo } = incidencia;
   const navigate = useNavigate();
+
+  const handleClienteChange = useCallback(
+    (opcion: { valor: string; descripcion: string } | null) => {
+      if (opcion) {
+        set({
+          ...modelo,
+          clienteId: opcion.valor,
+          nombreCliente: opcion.descripcion,
+        });
+      } else {
+        set({
+          ...modelo,
+          clienteId: "",
+          nombreCliente: "",
+        });
+      }
+    },
+    [modelo, set]
+  );
+
+  const handleArticuloChange = useCallback(
+    (opcion: { valor: string; descripcion: string } | null) => {
+      if (opcion) {
+        set({ ...modelo, articuloId: opcion.valor });
+      } else {
+        set({ ...modelo, articuloId: "" });
+      }
+    },
+    [modelo, set]
+  );
+
+  // console.log("mimensaje_modelo.articuloId", modelo.articuloId);
 
   return (
     <div className="TabGeneral">
       <quimera-formulario>
         <QInput label="Descripción" {...uiProps("descripcion")} />
-        <QInput label="Nombre Cliente" {...uiProps("nombreCliente")} />
+        <Cliente
+          valor={modelo.clienteId}
+          descripcion={modelo.nombreCliente}
+          onChange={handleClienteChange}
+        />
         <QDate label="Fecha" {...uiProps("fecha")} />
         <QSelect
           label="Prioridad"
@@ -55,22 +94,27 @@ export const TabGeneral = ({
           ]}
         />
 
-        {incidencia.modelo.presupuestoId && (
+        {modelo.tipoIncidencia === "Proveedor" && (
+          <Articulo
+            valor={modelo.articuloId || ""}
+            onChange={handleArticuloChange}
+          />
+        )}
+
+        {modelo.presupuestoId && (
           <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
             <div style={{ flex: 1 }}>
               <QInput
                 label={`Presupuesto `}
                 nombre="presupuesto"
-                valor={incidencia?.modelo?.codigoPresupuesto}
+                valor={modelo.codigoPresupuesto}
                 deshabilitado
               />
             </div>
             <QBoton
               tamaño="pequeño"
               onClick={() =>
-                navigate(
-                  `/ventas/presupuestos/${incidencia.modelo.presupuestoId}`
-                )
+                navigate(`/ventas/presupuestos/${modelo.presupuestoId}`)
               }
             >
               Ir a presupuesto
