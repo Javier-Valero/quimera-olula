@@ -1,77 +1,88 @@
 import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
+import { Filtro } from "@olula/lib/diseño.ts";
+import { useEffect, useState } from "react";
+import { getCategorias } from "../contextos/crm/incidencia/infraestructura.ts";
+
+interface CategoriaAPI {
+  id: string;
+  descripcion: string;
+  tipo_causante: string;
+}
 
 interface CategoriaIncidenciaProps {
   valor: string;
-  onChange: (
+  label?: string;
+  nombre?: string;
+  deshabilitado?: boolean;
+  onChange?: (
     opcion: {
       valor: string;
       descripcion: string;
       tipoIncidencia?: string;
     } | null
   ) => void;
-  getProps?: (campo: string) => Record<string, unknown>;
+  ref?: React.RefObject<HTMLInputElement | null>;
 }
-
-const opcionesCategoria = [
-  {
-    valor: "INCIDT",
-    descripcion: "Incidencia de Transporte (INCIDT)",
-    tipoIncidencia: "Transportista",
-  },
-  {
-    valor: "TRANSM",
-    descripcion: "Incidencia de Transporte (TRANSM)",
-    tipoIncidencia: "Transportista",
-  },
-  {
-    valor: "CalidadProveedor",
-    descripcion: "Incidencia Calidad del Fabricante (CalidadProveedor)",
-    tipoIncidencia: "Proveedor",
-  },
-  {
-    valor: "INCI PTA",
-    descripcion: "Máquina Averiada o Problema (INCI PTA)",
-    tipoIncidencia: "Proveedor",
-  },
-  {
-    valor: "Piezasaveria",
-    descripcion: "Avería de Pieza o Fallo (Piezasaveria)",
-    tipoIncidencia: "Proveedor",
-  },
-  {
-    valor: "INCIDC",
-    descripcion: "Incidencia de Calidad del Fabricante (INCIDC)",
-    tipoIncidencia: "Proveedor",
-  },
-];
 
 export const CategoriaIncidencia = ({
   valor,
+  label = "Categoría",
+  nombre = "categoria_incidencia",
+  deshabilitado = false,
   onChange,
-  getProps,
+  ...props
 }: CategoriaIncidenciaProps) => {
+  const [opciones, setOpciones] = useState<CategoriaAPI[]>([]);
+
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      try {
+        const filtro = {
+          or: [
+            ["shtipocausante", "Proveedor"],
+            ["shtipocausante", "Transportista"],
+          ],
+        } as unknown as Filtro;
+        const { datos } = await getCategorias(filtro, [], {
+          pagina: 1,
+          limite: 100,
+        });
+        setOpciones(datos);
+      } catch (error) {
+        console.error("Error cargando categorías:", error);
+      }
+    };
+
+    cargarCategorias();
+  }, []);
+
   const handleChange = (
     opcion: { valor: string; descripcion: string } | null
   ) => {
     if (opcion) {
-      // Buscar la opción completa con todos sus atributos
-      const opcionCompleta = opcionesCategoria.find(
-        (opt) => opt.valor === opcion.valor
-      );
-      onChange(opcionCompleta || opcion);
+      const opcionCompleta = opciones.find((opt) => opt.id === opcion.valor);
+      onChange?.({
+        valor: opcion.valor,
+        descripcion: opcion.descripcion,
+        tipoIncidencia: opcionCompleta?.tipo_causante,
+      });
     } else {
-      onChange(null);
+      onChange?.(null);
     }
   };
 
   return (
     <QSelect
-      label="Categoría"
-      nombre="categoria_incidencia"
+      label={label}
+      nombre={nombre}
       valor={valor}
       onChange={handleChange}
-      opciones={opcionesCategoria}
-      {...(getProps ? getProps("categoriaIncidencia") : {})}
+      opciones={opciones.map((cat) => ({
+        valor: cat.id,
+        descripcion: cat.descripcion,
+      }))}
+      deshabilitado={deshabilitado}
+      {...props}
     />
   );
 };

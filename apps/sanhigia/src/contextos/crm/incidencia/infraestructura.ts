@@ -1,6 +1,6 @@
 import { getAcciones } from "#/crm/accion/infraestructura.ts";
 import { RestAPI } from "@olula/lib/api/rest_api.ts";
-import { Filtro } from "@olula/lib/diseño.ts";
+import { Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import ApiUrls from "../comun/urls.ts";
 import { GetTareas, Tarea } from "./detalle/tareas/diseño.ts";
@@ -8,6 +8,7 @@ import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia,
 
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;
 const baseUrlTarea = new ApiUrls().TAREA;
+const baseUrlCategoria = new ApiUrls().CATEGORIA_INCIDENCIA;
 
 interface IncidenciaAPI {
     id: string;
@@ -147,6 +148,17 @@ export const getTareas: GetTareas = async (incidenciaId, paginacion) => {
     return { datos: respuesta.datos.map(tareaDesdeApi), total: respuesta.total };
 };
 
+interface CategoriaAPI {
+    id: string;
+    descripcion: string;
+    tipo_causante: string;
+}
+
+export const getCategorias = async (filtro: Filtro, orden: Orden, paginacion: Paginacion) => {
+    const q = criteriaQuery(filtro, orden, paginacion);
+    const respuesta = await RestAPI.get<{ datos: CategoriaAPI[]; total: number }>(baseUrlCategoria + q);
+    return { datos: respuesta.datos, total: respuesta.total };
+};
 
 export const crearPresupuestoIncidencia = async (incidenciaId: string) => {
     await RestAPI.post(`${baseUrlIncidencia}/${incidenciaId}/crear_presupuesto`, {}, "Error al crear presupuesto");

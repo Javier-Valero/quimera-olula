@@ -108,7 +108,7 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
     [modelo, set]
   );
 
-  // console.log("mimensaje_modelo", modelo.tipoIncidencia);
+  // console.log("mimensaje_modelo.tipoIncidencia", modelo.tipoIncidencia);
 
   return (
     <QModal
