@@ -2,6 +2,7 @@ import { Articulo } from "#/almacen/comun/componentes/Articulo.tsx";
 import { Cliente } from "#/ventas/comun/componentes/cliente.tsx";
 import {
   QBoton,
+  QCheckbox,
   QDate,
   QInput,
   QSelect,
@@ -13,6 +14,7 @@ import { HookModelo } from "@olula/lib/useModelo.js";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Incidencia } from "../../diseño.ts";
+import "./TabGeneral.css";
 
 export const TabGeneral = ({
   incidencia,
@@ -51,6 +53,16 @@ export const TabGeneral = ({
     },
     [modelo, set]
   );
+
+  // Helper para convertir valores a boolean
+  const toBool = (valor: boolean | string | undefined): boolean => {
+    return valor === true || valor === "true";
+  };
+
+  // Helper para manejar onChange de checkboxes
+  const handleCheckboxChange = (campo: keyof Incidencia) => (valor: string) => {
+    uiProps(campo as string).onChange(valor === "true" ? "true" : "false");
+  };
 
   // console.log("mimensaje_modelo.articuloId", modelo.articuloId);
 
@@ -95,10 +107,22 @@ export const TabGeneral = ({
         />
 
         {modelo.tipoIncidencia === "Proveedor" && (
-          <Articulo
-            valor={modelo.articuloId || ""}
-            onChange={handleArticuloChange}
-          />
+          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+            <div style={{ flex: 1 }}>
+              <Articulo
+                valor={modelo.articuloId || ""}
+                onChange={handleArticuloChange}
+                label="Artículo"
+              />
+            </div>
+            <QCheckbox
+              label="En garantía"
+              nombre="enGarantia"
+              valor={toBool(modelo.enGarantia)}
+              onChange={handleCheckboxChange("enGarantia")}
+              deshabilitado
+            />
+          </div>
         )}
 
         {modelo.presupuestoId && (

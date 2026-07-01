@@ -24,6 +24,7 @@ interface IncidenciaAPI {
     articulo_id?: string;
     presupuesto_id?: string;
     codigo_presupuesto?: string;
+    en_garantia?: boolean;
 }
 
 export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
@@ -41,6 +42,7 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     articuloId: api.articulo_id || "",
     presupuestoId: api.presupuesto_id,
     codigoPresupuesto: api.codigo_presupuesto,
+    enGarantia: api.en_garantia || false,
 });
 
 const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI> => ({
