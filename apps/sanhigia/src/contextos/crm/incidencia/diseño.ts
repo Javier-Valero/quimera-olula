@@ -4,6 +4,7 @@ import { Accion } from "../accion/diseño.ts";
 export type PrioridadIncidencia = 'Baja' | 'Media' | 'Alta';
 export type EstadoIncidencia = 'Pendiente' | 'Nueva' | 'Pendiente de datos' | 'Asignada' | 'Rechazada' | 'Cerrada';
 export type TipoIncidencia = 'Proveedor' | 'Transportista';
+export type CategoriaIncidencia = 'INCIDT' | 'TRANSM' | 'CalidadProveedor' | 'INCI PTA' | 'Piezasaveria' | 'INCIDC';
 
 export interface Incidencia extends Entidad {
     id: string;
@@ -15,12 +16,13 @@ export interface Incidencia extends Entidad {
     nombreCliente: string;
     prioridad: PrioridadIncidencia;
     estado: EstadoIncidencia;
-    tipoIncidencia?: TipoIncidencia;
+    tipoIncidencia: TipoIncidencia;
     fecha: Date
     articuloId?: string;
     presupuestoId?: string;
     codigoPresupuesto?: string;
     enGarantia?: boolean;
+    categoriaIncidencia?: CategoriaIncidencia;
 }
 
 export type GetIncidencia = (id: string) => Promise<Incidencia>;

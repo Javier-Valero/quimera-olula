@@ -12,7 +12,8 @@ export const nuevaIncidenciaVacia: NuevaIncidencia = {
     facturaId: "",
     codigoFactura: "",
     articuloId: "",
-    tipoIncidencia: "Proveedor"
+    tipoIncidencia: "Proveedor",
+    categoriaIncidencia: ""
 };
 
 export const metaNuevaIncidencia: MetaModelo<NuevaIncidencia> = {
@@ -33,5 +34,6 @@ export const metaNuevaIncidencia: MetaModelo<NuevaIncidencia> = {
                     ? stringNoVacio(incidencia.articuloId ?? "")
                     : true
         },
+        categoriaIncidencia: { requerido: true, validacion: (incidencia: NuevaIncidencia) => stringNoVacio(incidencia.categoriaIncidencia) }
     },
 };

@@ -4,7 +4,7 @@ import { Filtro } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import ApiUrls from "../comun/urls.ts";
 import { GetTareas, Tarea } from "./detalle/tareas/diseño.ts";
-import { DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
+import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
 
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;
 const baseUrlTarea = new ApiUrls().TAREA;
@@ -25,6 +25,7 @@ interface IncidenciaAPI {
     presupuesto_id?: string;
     codigo_presupuesto?: string;
     en_garantia?: boolean;
+    categoria_incidencia?: string;
 }
 
 export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
@@ -36,13 +37,14 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     nombreCliente: api.nombre_cliente,
     prioridad: (api.prioridad as PrioridadIncidencia),
     estado: (api.estado as EstadoIncidencia),
-    tipoIncidencia: api.tipo_incidencia as TipoIncidencia | undefined,
+    tipoIncidencia: api.tipo_incidencia as TipoIncidencia,
     facturaId: api.factura_id || "",
     codigoFactura: api.codigo_factura || "",
     articuloId: api.articulo_id || "",
     presupuestoId: api.presupuesto_id,
     codigoPresupuesto: api.codigo_presupuesto,
     enGarantia: api.en_garantia || false,
+    categoriaIncidencia: api.categoria_incidencia as CategoriaIncidencia,
 });
 
 const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI> => ({
@@ -57,6 +59,7 @@ const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI>
     ...(incidencia.facturaId && { factura_id: incidencia.facturaId }),
     ...(incidencia.codigoFactura && { codigo_factura: incidencia.codigoFactura }),
     ...(incidencia.articuloId && { articulo_id: incidencia.tipoIncidencia === "Proveedor" ? incidencia.articuloId : undefined }),
+    ...(incidencia.categoriaIncidencia && { categoria_incidencia: incidencia.categoriaIncidencia }),
 });
 
 export const getIncidencia: GetIncidencia = async (id) =>

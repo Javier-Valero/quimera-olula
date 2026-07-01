@@ -4,11 +4,16 @@ import { FacturaCliente } from "#/ventas/comun/componentes/facturaCliente.tsx";
 import { Cliente } from "#/ventas/comun/componentes/cliente.tsx";
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
-import { QModal, QSelect, QTextArea } from "@olula/componentes/index.js";
+import { QModal, QTextArea } from "@olula/componentes/index.js";
 import { ContextoError } from "@olula/lib/contexto.js";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { useModelo } from "@olula/lib/useModelo.ts";
 import { useCallback, useContext, useState } from "react";
+import { CategoriaIncidencia } from "../../../../componentes/CategoriaIncidencia.tsx";
+import {
+  CategoriaIncidencia as CategoriaIncidenciaType,
+  TipoIncidencia,
+} from "../diseño.ts";
 import { getIncidencia, postIncidencia } from "../infraestructura.ts";
 import "./CrearIncidencia.css";
 import { metaNuevaIncidencia, nuevaIncidenciaVacia } from "./crear.ts";
@@ -78,6 +83,33 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
     [modelo, set]
   );
 
+  const handleCategoriaChange = useCallback(
+    (
+      opcion: {
+        valor: string;
+        descripcion: string;
+        tipoIncidencia?: string;
+      } | null
+    ) => {
+      if (opcion) {
+        set({
+          ...modelo,
+          categoriaIncidencia: opcion.valor as CategoriaIncidenciaType,
+          tipoIncidencia:
+            (opcion.tipoIncidencia as TipoIncidencia) || modelo.tipoIncidencia,
+        });
+      } else {
+        set({
+          ...modelo,
+          categoriaIncidencia: undefined,
+        });
+      }
+    },
+    [modelo, set]
+  );
+
+  // console.log("mimensaje_modelo", modelo.tipoIncidencia);
+
   return (
     <QModal
       abierto={true}
@@ -94,13 +126,17 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
             descripcion={modelo.nombreCliente}
             onChange={handleClienteChange}
           />
-          <QSelect
+          {/* <QSelect
             label="Tipo"
             {...uiProps("tipoIncidencia")}
             opciones={[
               { valor: "Proveedor", descripcion: "Producto" },
               { valor: "Transportista", descripcion: "Transporte" },
             ]}
+          /> */}
+          <CategoriaIncidencia
+            valor={modelo.categoriaIncidencia || ""}
+            onChange={handleCategoriaChange}
           />
           <FacturaCliente
             clienteId={modelo.clienteId}

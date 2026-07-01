@@ -64,7 +64,7 @@ export const TabGeneral = ({
     uiProps(campo as string).onChange(valor === "true" ? "true" : "false");
   };
 
-  // console.log("mimensaje_modelo.articuloId", modelo.articuloId);
+  console.log("mimensaje_modelo", modelo);
 
   return (
     <div className="TabGeneral">

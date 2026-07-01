@@ -1,4 +1,4 @@
-import { EstadoIncidencia, PrioridadIncidencia, TipoIncidencia } from "../diseño.ts";
+import { CategoriaIncidencia, EstadoIncidencia, PrioridadIncidencia, TipoIncidencia } from "../diseño.ts";
 
 export type NuevaIncidencia = {
     descripcion: string;
@@ -12,4 +12,5 @@ export type NuevaIncidencia = {
     facturaId?: string;
     codigoFactura?: string;
     articuloId?: string;
+    categoriaIncidencia?: CategoriaIncidencia;
 };
