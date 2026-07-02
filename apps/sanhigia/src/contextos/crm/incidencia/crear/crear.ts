@@ -12,7 +12,7 @@ export const nuevaIncidenciaVacia: NuevaIncidencia = {
     facturaId: "",
     codigoFactura: "",
     articuloId: "",
-    tipoIncidencia: "Proveedor",
+    tipoIncidencia: "Transportista",
     categoriaIncidencia: "INCIDT",
     subCategoriaIncidencia: ""
 };
