@@ -9,6 +9,7 @@ import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia,
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;
 const baseUrlTarea = new ApiUrls().TAREA;
 const baseUrlCategoria = new ApiUrls().CATEGORIA_INCIDENCIA;
+const baseUrlSubCategoria = new ApiUrls().SUBCATEGORIA_INCIDENCIA;
 
 interface IncidenciaAPI {
     id: string;
@@ -27,6 +28,7 @@ interface IncidenciaAPI {
     codigo_presupuesto?: string;
     en_garantia?: boolean;
     categoria_incidencia?: string;
+    subcategoria_incidencia: string;
 }
 
 export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
@@ -46,6 +48,7 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     codigoPresupuesto: api.codigo_presupuesto,
     enGarantia: api.en_garantia || false,
     categoriaIncidencia: api.categoria_incidencia as CategoriaIncidencia,
+    subCategoriaIncidencia: api.subcategoria_incidencia,
 });
 
 const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI> => ({
@@ -61,6 +64,7 @@ const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI>
     ...(incidencia.codigoFactura && { codigo_factura: incidencia.codigoFactura }),
     ...(incidencia.articuloId && { articulo_id: incidencia.tipoIncidencia === "Proveedor" ? incidencia.articuloId : undefined }),
     ...(incidencia.categoriaIncidencia && { categoria_incidencia: incidencia.categoriaIncidencia }),
+    ...(incidencia.subCategoriaIncidencia && { subcategoria_incidencia: incidencia.subCategoriaIncidencia }),
 });
 
 export const getIncidencia: GetIncidencia = async (id) =>
@@ -157,6 +161,18 @@ interface CategoriaAPI {
 export const getCategorias = async (filtro: Filtro, orden: Orden, paginacion: Paginacion) => {
     const q = criteriaQuery(filtro, orden, paginacion);
     const respuesta = await RestAPI.get<{ datos: CategoriaAPI[]; total: number }>(baseUrlCategoria + q);
+    return { datos: respuesta.datos, total: respuesta.total };
+};
+
+interface SubCategoriaAPI {
+    id: string;
+    descripcion: string;
+    categoria_id: string;
+}
+
+export const getSubCategorias = async (filtro: Filtro, orden: Orden, paginacion: Paginacion) => {
+    const q = criteriaQuery(filtro, orden, paginacion);
+    const respuesta = await RestAPI.get<{ datos: SubCategoriaAPI[]; total: number }>(baseUrlSubCategoria + q);
     return { datos: respuesta.datos, total: respuesta.total };
 };
 

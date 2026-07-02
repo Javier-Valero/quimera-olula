@@ -10,6 +10,7 @@ import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { useModelo } from "@olula/lib/useModelo.ts";
 import { useCallback, useContext, useState } from "react";
 import { CategoriaIncidencia } from "../../../../componentes/CategoriaIncidencia.tsx";
+import { SubCategoriaIncidencia } from "../../../../componentes/SubCategoriaIncidencia.tsx";
 import {
   CategoriaIncidencia as CategoriaIncidenciaType,
   TipoIncidencia,
@@ -95,20 +96,34 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
         set({
           ...modelo,
           categoriaIncidencia: opcion.valor as CategoriaIncidenciaType,
+          subCategoriaIncidencia: "",
           tipoIncidencia:
             (opcion.tipoIncidencia as TipoIncidencia) || modelo.tipoIncidencia,
         });
       } else {
         set({
           ...modelo,
-          categoriaIncidencia: undefined,
+          categoriaIncidencia: "INCIDT" as CategoriaIncidenciaType,
+          subCategoriaIncidencia: "",
+          tipoIncidencia: "Transportista" as TipoIncidencia,
         });
       }
     },
     [modelo, set]
   );
 
-  // console.log("mimensaje_modelo.tipoIncidencia", modelo.tipoIncidencia);
+  const handleSubCategoriaChange = useCallback(
+    (opcion: { valor: string; descripcion: string } | null) => {
+      if (opcion) {
+        set({ ...modelo, subCategoriaIncidencia: opcion.valor });
+      } else {
+        set({ ...modelo, subCategoriaIncidencia: "" });
+      }
+    },
+    [modelo, set]
+  );
+
+  // console.log("mimensaje_modelo.subCategoriaIncidencia", modelo.subCategoriaIncidencia);
 
   return (
     <QModal
@@ -137,6 +152,11 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
           <CategoriaIncidencia
             valor={modelo.categoriaIncidencia || ""}
             onChange={handleCategoriaChange}
+          />
+          <SubCategoriaIncidencia
+            valor={modelo.subCategoriaIncidencia || ""}
+            categoriaIncidencia={modelo.categoriaIncidencia || ""}
+            onChange={handleSubCategoriaChange}
           />
           <FacturaCliente
             clienteId={modelo.clienteId}

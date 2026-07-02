@@ -12,5 +12,6 @@ export type NuevaIncidencia = {
     facturaId?: string;
     codigoFactura?: string;
     articuloId?: string;
-    categoriaIncidencia?: CategoriaIncidencia;
+    categoriaIncidencia: CategoriaIncidencia;
+    subCategoriaIncidencia?: string;
 };

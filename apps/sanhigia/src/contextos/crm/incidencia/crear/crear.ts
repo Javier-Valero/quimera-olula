@@ -13,7 +13,8 @@ export const nuevaIncidenciaVacia: NuevaIncidencia = {
     codigoFactura: "",
     articuloId: "",
     tipoIncidencia: "Proveedor",
-    categoriaIncidencia: ""
+    categoriaIncidencia: "INCIDT",
+    subCategoriaIncidencia: ""
 };
 
 export const metaNuevaIncidencia: MetaModelo<NuevaIncidencia> = {
