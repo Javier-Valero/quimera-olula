@@ -79,7 +79,7 @@ export const CategoriaIncidencia = ({
       onChange={handleChange}
       opciones={opciones.map((cat) => ({
         valor: cat.id,
-        descripcion: cat.descripcion,
+        descripcion: `${cat.descripcion} (${cat.id})`,
       }))}
       deshabilitado={deshabilitado}
       {...props}
