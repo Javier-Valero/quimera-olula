@@ -1,5 +1,5 @@
 import { ProcesarContexto } from "@olula/lib/diseño.js";
-import { ejecutarListaProcesos, MetaModelo } from "@olula/lib/dominio.js";
+import { ejecutarListaProcesos, MetaModelo, stringNoVacio } from "@olula/lib/dominio.js";
 import { pipe } from "@olula/lib/funcional.js";
 import { Incidencia } from "../diseño.ts";
 import { getIncidencia, patchIncidencia } from "../infraestructura.ts";
@@ -14,16 +14,33 @@ export const incidenciaVacia: Incidencia = {
     fecha: new Date(),
     estado: "Nueva",
     clienteId: "",
+    tipoIncidencia: "Transportista",
+    categoriaIncidencia: "INCIDT",
+    subCategoriaIncidencia: "",
+    facturaId: "",
+    codigoFactura: "",
+    articuloId: "",
 };
 
 export const metaIncidencia: MetaModelo<Incidencia> = {
     campos: {
-        descripcion: { requerido: true },
-        nombreCliente: { requerido: true },
-        observaciones: { requerido: true },
+        descripcion: { requerido: true, validacion: (incidencia: Incidencia) => stringNoVacio(incidencia.descripcion) },
+        clienteId: { requerido: true, validacion: (incidencia: Incidencia) => stringNoVacio(incidencia.clienteId) },
+        facturaId: { requerido: true, validacion: (incidencia: Incidencia) => stringNoVacio(incidencia.facturaId ?? "") },
+        observaciones: { requerido: true, validacion: (incidencia: Incidencia) => stringNoVacio(incidencia.observaciones) },
+        nombreCliente: { requerido: true, validacion: (incidencia: Incidencia) => stringNoVacio(incidencia.nombreCliente) },
         prioridad: { requerido: true },
         fecha: { requerido: true, tipo: "fecha" },
         estado: { requerido: true, tipo: "selector" },
+        tipoIncidencia: { requerido: true, tipo: "selector" },
+        articuloId: {
+            requerido: false,
+            validacion: (incidencia: Incidencia) =>
+                incidencia.tipoIncidencia === "Proveedor"
+                    ? stringNoVacio(incidencia.articuloId ?? "")
+                    : true
+        },
+        categoriaIncidencia: { requerido: true, validacion: (incidencia: Incidencia) => stringNoVacio(incidencia.categoriaIncidencia) },
     },
 };
 

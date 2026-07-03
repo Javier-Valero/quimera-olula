@@ -62,9 +62,9 @@ const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI>
     ...(incidencia.tipoIncidencia && { tipo_incidencia: incidencia.tipoIncidencia }),
     ...(incidencia.facturaId && { factura_id: incidencia.facturaId }),
     ...(incidencia.codigoFactura && { codigo_factura: incidencia.codigoFactura }),
-    ...(incidencia.articuloId && { articulo_id: incidencia.tipoIncidencia === "Proveedor" ? incidencia.articuloId : undefined }),
+    ...(incidencia.articuloId !== undefined && { articulo_id: incidencia.tipoIncidencia === "Proveedor" ? incidencia.articuloId : "" }),
     ...(incidencia.categoriaIncidencia && { categoria_incidencia: incidencia.categoriaIncidencia }),
-    ...(incidencia.subCategoriaIncidencia && { subcategoria_incidencia: incidencia.subCategoriaIncidencia }),
+    ...(incidencia.subCategoriaIncidencia !== undefined && { subcategoria_incidencia: incidencia.subCategoriaIncidencia }),
 });
 
 export const getIncidencia: GetIncidencia = async (id) =>

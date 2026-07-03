@@ -46,12 +46,16 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
           ...modelo,
           clienteId: opcion.valor,
           nombreCliente: opcion.descripcion,
+          facturaId: "",
+          codigoFactura: "",
         });
       } else {
         set({
           ...modelo,
           clienteId: "",
           nombreCliente: "",
+          facturaId: "",
+          codigoFactura: "",
         });
       }
     },
@@ -93,12 +97,14 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
       } | null
     ) => {
       if (opcion) {
+        const nuevoTipo =
+          (opcion.tipoIncidencia as TipoIncidencia) || modelo.tipoIncidencia;
         set({
           ...modelo,
           categoriaIncidencia: opcion.valor as CategoriaIncidenciaType,
           subCategoriaIncidencia: "",
-          tipoIncidencia:
-            (opcion.tipoIncidencia as TipoIncidencia) || modelo.tipoIncidencia,
+          tipoIncidencia: nuevoTipo,
+          ...(nuevoTipo !== "Proveedor" && { articuloId: "" }),
         });
       } else {
         set({
@@ -106,6 +112,7 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
           categoriaIncidencia: "INCIDT" as CategoriaIncidenciaType,
           subCategoriaIncidencia: "",
           tipoIncidencia: "Transportista" as TipoIncidencia,
+          articuloId: "",
         });
       }
     },
@@ -141,14 +148,6 @@ export const CrearIncidencia = ({ publicar }: { publicar: EmitirEvento }) => {
             descripcion={modelo.nombreCliente}
             onChange={handleClienteChange}
           />
-          {/* <QSelect
-            label="Tipo"
-            {...uiProps("tipoIncidencia")}
-            opciones={[
-              { valor: "Proveedor", descripcion: "Producto" },
-              { valor: "Transportista", descripcion: "Transporte" },
-            ]}
-          /> */}
           <CategoriaIncidencia
             valor={modelo.categoriaIncidencia || ""}
             onChange={handleCategoriaChange}
