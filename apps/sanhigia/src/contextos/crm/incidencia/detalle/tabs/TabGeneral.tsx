@@ -132,7 +132,7 @@ export const TabGeneral = ({
     uiProps(campo as string).onChange(valor === "true" ? "true" : "false");
   };
 
-  console.log("mimensaje_modelo", modelo.clienteId, modelo.facturaId);
+  // console.log("mimensaje_modelo", modelo.codigoAlbaran);
 
   return (
     <div className="TabGeneral">
@@ -152,12 +152,23 @@ export const TabGeneral = ({
           categoriaIncidencia={modelo.categoriaIncidencia || ""}
           onChange={handleSubCategoriaChange}
         />
-        <FacturaCliente
-          clienteId={modelo.clienteId}
-          descripcion={modelo.codigoFactura || ""}
-          valor={modelo.facturaId || ""}
-          onChange={handleFacturaChange}
-        />
+        <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+          <div style={{ flex: 1 }}>
+            <FacturaCliente
+              clienteId={modelo.clienteId}
+              descripcion={modelo.codigoFactura || ""}
+              valor={modelo.facturaId || ""}
+              onChange={handleFacturaChange}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <QInput
+              label="Albarán"
+              {...uiProps("codigoAlbaran")}
+              deshabilitado
+            />
+          </div>
+        </div>
         <QDate label="Fecha" {...uiProps("fecha")} />
         <QSelect
           label="Prioridad"
@@ -180,14 +191,6 @@ export const TabGeneral = ({
             { valor: "Cerrada", descripcion: "Cerrada" },
           ]}
         />
-        {/* <QSelect
-          label="Tipo"
-          {...uiProps("tipoIncidencia")}
-          opciones={[
-            { valor: "Proveedor", descripcion: "Producto" },
-            { valor: "Transportista", descripcion: "Transporte" },
-          ]}
-        /> */}
 
         {modelo.tipoIncidencia === "Proveedor" && (
           <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>

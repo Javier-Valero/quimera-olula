@@ -29,6 +29,7 @@ interface IncidenciaAPI {
     en_garantia?: boolean;
     categoria_incidencia?: string;
     subcategoria_incidencia: string;
+    codigo_albaran?: string;
 }
 
 export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
@@ -49,6 +50,7 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     enGarantia: api.en_garantia || false,
     categoriaIncidencia: api.categoria_incidencia as CategoriaIncidencia,
     subCategoriaIncidencia: api.subcategoria_incidencia,
+    codigoAlbaran: api.codigo_albaran,
 });
 
 const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI> => ({

@@ -79,10 +79,13 @@ export const SubCategoriaIncidencia = ({
       nombre={nombre}
       valor={valor}
       onChange={handleChange}
-      opciones={opciones.map((subcat) => ({
-        valor: subcat.id,
-        descripcion: `${subcat.descripcion}`,
-      }))}
+      opciones={[
+        { valor: "", descripcion: "-- Sin subcategoría --" },
+        ...opciones.map((subcat) => ({
+          valor: subcat.id,
+          descripcion: `${subcat.descripcion}`,
+        })),
+      ]}
       deshabilitado={deshabilitado || opciones.length === 0}
       {...props}
     />
