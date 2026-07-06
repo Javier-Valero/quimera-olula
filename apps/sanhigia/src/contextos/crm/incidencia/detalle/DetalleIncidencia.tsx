@@ -10,6 +10,7 @@ import { CrearPresupuesto } from "../crear_presupuesto/CrearPresupuesto.tsx";
 import { incidenciaVacia, metaIncidencia } from "./detalle.ts";
 import "./DetalleIncidencia.css";
 import { getMaquina } from "./maquina.ts";
+import { TabDocumentos } from "./tabs/documentos/TabDocumentos/TabDocumentos.tsx";
 import { TabNotas } from "./tabs/notas/TabNotas/TabNotas.tsx";
 import { TabGeneral } from "./tabs/TabGeneral.tsx";
 import { TabTareas } from "./tabs/tareas/TabTareas/TabTareas.tsx";
@@ -45,7 +46,7 @@ export const DetalleIncidencia = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incidenciaId]);
 
-  console.log("mimensaje_incidencia", incidencia?.modelo);
+  // console.log("mimensaje_incidencia", incidencia?.modelo);
 
   return (
     <Detalle
@@ -89,6 +90,10 @@ export const DetalleIncidencia = ({
                 incidenciaId={incidenciaId}
                 agenteId={modelo.agenteId}
               />
+            </Tab>
+
+            <Tab label="Documentos">
+              <TabDocumentos incidenciaId={incidenciaId} />
             </Tab>
           </Tabs>
 

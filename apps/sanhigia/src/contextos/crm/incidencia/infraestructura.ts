@@ -3,6 +3,7 @@ import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import ApiUrls from "../comun/urls.ts";
+import { Documento, GetDocumentos, PostDocumento } from "./detalle/tabs/documentos/diseño.ts";
 import { GetNotas, Nota, PostNota } from "./detalle/tabs/notas/diseño.ts";
 import { GetTareas, Tarea } from "./detalle/tabs/tareas/diseño.ts";
 import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
@@ -10,6 +11,7 @@ import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia,
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;
 const baseUrlTarea = new ApiUrls().TAREA;
 const baseUrlNota = new ApiUrls().NOTA_INCIDENCIA;
+const baseUrlDocumento = new ApiUrls().DOCUMENTO_INCIDENCIA;
 const baseUrlCategoria = new ApiUrls().CATEGORIA_INCIDENCIA;
 const baseUrlSubCategoria = new ApiUrls().SUBCATEGORIA_INCIDENCIA;
 
@@ -217,4 +219,52 @@ export const postNota: PostNota = async (nota) => {
     return await RestAPI.post(baseUrlNota, nota, "Error al guardar Nota").then(
         (respuesta) => respuesta.id
     );
+};
+
+interface DocumentoAPI {
+    id: string;
+    nombre: string;
+    incidencia_id: string;
+    url_descarga: string;
+    fecha_subida: string;
+    agente_id: string;
+    tipo: string;
+    tamaño: number;
+}
+
+const documentoDesdeApi = (api: DocumentoAPI): Documento => ({
+    id: api.id,
+    nombre: api.nombre,
+    incidenciaId: api.incidencia_id,
+    urlDescarga: api.url_descarga,
+    fechaSubida: api.fecha_subida,
+    agenteId: api.agente_id,
+    tipo: api.tipo,
+    tamaño: api.tamaño,
+});
+
+export const getDocumentos: GetDocumentos = (incidenciaId, paginacion) => {
+    // TODO: Backend endpoint aún no desarrollado
+    // const filtro: Filtro = [['incidencia_id', incidenciaId]];
+    // const q = criteriaQuery(filtro, [], paginacion || { limite: 50, pagina: 1 });
+    // return RestAPI.get<{ datos: DocumentoAPI[]; total: number }>(baseUrlDocumento + q).then(respuesta => ({
+    //     datos: respuesta.datos.map(documentoDesdeApi),
+    //     total: respuesta.total
+    // }));
+
+    // Mock: devolver lista vacía hasta que se desarrolle el backend
+    return Promise.resolve({
+        datos: [],
+        total: 0
+    });
+};
+
+export const postDocumento: PostDocumento = async (documento) => {
+    // TODO: Backend endpoint aún no desarrollado
+    // return await RestAPI.post(baseUrlDocumento, documento, "Error al guardar Documento").then(
+    //     (respuesta) => respuesta.id
+    // );
+
+    // Mock: generar ID ficticio hasta que se desarrolle el backend
+    return Promise.resolve(Math.random().toString(36).substring(7));
 };
