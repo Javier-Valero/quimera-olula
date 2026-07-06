@@ -3,11 +3,7 @@ import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { useCallback, useRef, useState } from "react";
 import "./ArrastraSuelta.css";
 
-export const ArrastraSuelta = ({
-  emitir,
-}: {
-  emitir: EmitirEvento;
-}) => {
+export const ArrastraSuelta = ({ emitir }: { emitir: EmitirEvento }) => {
   const [arrastrado, setArrastrado] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 

@@ -46,7 +46,7 @@ export const CrearNota = ({
     }
   }, [creando, emitir]);
 
-  console.log("mimensaje_creando", creando);
+  // console.log("mimensaje_creando", creando);
 
   return (
     <div className="CrearNota">

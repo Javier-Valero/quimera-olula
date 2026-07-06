@@ -18,6 +18,8 @@ export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
   });
   const { intentar } = useContext(ContextoError);
 
+  useEffect(() => {}, [ctx.estado, ctx.archivosSeleccionados]);
+
   useEffect(() => {
     if (incidenciaId) emitir("cargar_documentos", incidenciaId, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
