@@ -3,8 +3,8 @@ import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import ApiUrls from "../comun/urls.ts";
-import { GetNotas, Nota, PostNota } from "./detalle/notas/diseño.ts";
-import { GetTareas, Tarea } from "./detalle/tareas/diseño.ts";
+import { GetNotas, Nota, PostNota } from "./detalle/tabs/notas/diseño.ts";
+import { GetTareas, Tarea } from "./detalle/tabs/tareas/diseño.ts";
 import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
 
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;

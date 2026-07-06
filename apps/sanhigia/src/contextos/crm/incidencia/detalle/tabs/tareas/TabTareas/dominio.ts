@@ -1,5 +1,5 @@
 import { ProcesarContexto } from "@olula/lib/diseño.js";
-import { getTareas } from "../../../infraestructura.ts";
+import { getTareas } from "../../../../infraestructura.ts";
 import { ContextoTareas, EstadoTareas } from "./diseño.ts";
 
 type ProcesarTareas = ProcesarContexto<EstadoTareas, ContextoTareas>;
@@ -14,3 +14,4 @@ export const cargarTareas: ProcesarTareas = async (contexto, payload) => {
         cargando: false,
     }
 }
+

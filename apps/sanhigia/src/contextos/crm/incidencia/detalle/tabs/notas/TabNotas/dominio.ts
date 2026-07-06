@@ -1,5 +1,5 @@
 import { ProcesarContexto } from "@olula/lib/diseño.js";
-import { getNotas, postNota } from "../../../infraestructura.ts";
+import { getNotas, postNota } from "../../../../infraestructura.ts";
 import { ContextoNotas, EstadoNotas } from "./diseño.ts";
 
 type ProcesarNotas = ProcesarContexto<EstadoNotas, ContextoNotas>;

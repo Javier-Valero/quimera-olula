@@ -10,9 +10,9 @@ import { CrearPresupuesto } from "../crear_presupuesto/CrearPresupuesto.tsx";
 import { incidenciaVacia, metaIncidencia } from "./detalle.ts";
 import "./DetalleIncidencia.css";
 import { getMaquina } from "./maquina.ts";
-import { TabNotas } from "./notas/TabNotas/TabNotas.tsx";
+import { TabNotas } from "./tabs/notas/TabNotas/TabNotas.tsx";
 import { TabGeneral } from "./tabs/TabGeneral.tsx";
-import { TabTareas } from "./tareas/TabTareas/TabTareas.tsx";
+import { TabTareas } from "./tabs/tareas/TabTareas/TabTareas.tsx";
 
 export const DetalleIncidencia = ({
   id,

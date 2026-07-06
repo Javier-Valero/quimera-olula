@@ -2,7 +2,7 @@ import { QBoton, QTextArea } from "@olula/componentes/index.js";
 import { ContextoError } from "@olula/lib/contexto.js";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { useCallback, useContext, useState } from "react";
-import { postNota } from "../../../infraestructura.ts";
+import { postNota } from "../../../../infraestructura.ts";
 import "./CrearNota.css";
 
 export const CrearNota = ({
