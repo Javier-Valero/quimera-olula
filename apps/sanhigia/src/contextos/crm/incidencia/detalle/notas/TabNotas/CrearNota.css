@@ -5,6 +5,8 @@
 }
 
 .CrearNota-Boton {
+    display: flex;
+    gap: 8px;
     align-self: flex-end;
     margin-top: 8px;
 }
