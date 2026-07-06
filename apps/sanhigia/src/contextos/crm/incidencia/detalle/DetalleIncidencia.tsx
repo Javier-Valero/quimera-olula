@@ -45,7 +45,7 @@ export const DetalleIncidencia = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incidenciaId]);
 
-  // console.log("mimensaje_incidencia", incidencia?.modelo?.presupuestoId);
+  console.log("mimensaje_incidencia", incidencia?.modelo);
 
   return (
     <Detalle
@@ -85,7 +85,10 @@ export const DetalleIncidencia = ({
             </Tab>
 
             <Tab label="Notas">
-              <TabNotas incidenciaId={incidenciaId} />
+              <TabNotas
+                incidenciaId={incidenciaId}
+                agenteId={modelo.agenteId}
+              />
             </Tab>
           </Tabs>
 

@@ -7,4 +7,5 @@ export type ContextoNotas = {
     notas: Nota[];
     cargando: boolean;
     incidenciaId: string;
+    agenteId: string;
 };

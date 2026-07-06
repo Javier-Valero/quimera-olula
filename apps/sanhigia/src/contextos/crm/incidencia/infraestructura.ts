@@ -32,6 +32,7 @@ interface IncidenciaAPI {
     categoria_incidencia?: string;
     subcategoria_incidencia: string;
     codigo_albaran?: string;
+    agente_id?: string;
 }
 
 export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
@@ -53,6 +54,7 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     categoriaIncidencia: api.categoria_incidencia as CategoriaIncidencia,
     subCategoriaIncidencia: api.subcategoria_incidencia,
     codigoAlbaran: api.codigo_albaran,
+    agenteId: api.agente_id || "",
 });
 
 const incidenciaAApi = (incidencia: Partial<Incidencia>): Partial<IncidenciaAPI> => ({

@@ -24,6 +24,7 @@ export interface Incidencia extends Entidad {
     enGarantia?: boolean;
     categoriaIncidencia: CategoriaIncidencia;
     subCategoriaIncidencia: string;
+    agenteId: string;
 }
 
 export type GetIncidencia = (id: string) => Promise<Incidencia>;
