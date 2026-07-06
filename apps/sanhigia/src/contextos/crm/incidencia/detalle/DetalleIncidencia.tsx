@@ -10,6 +10,7 @@ import { CrearPresupuesto } from "../crear_presupuesto/CrearPresupuesto.tsx";
 import { incidenciaVacia, metaIncidencia } from "./detalle.ts";
 import "./DetalleIncidencia.css";
 import { getMaquina } from "./maquina.ts";
+import { TabNotas } from "./notas/TabNotas/TabNotas.tsx";
 import { TabGeneral } from "./tabs/TabGeneral.tsx";
 import { TabTareas } from "./tareas/TabTareas/TabTareas.tsx";
 
@@ -81,6 +82,10 @@ export const DetalleIncidencia = ({
 
             <Tab label="Tareas">
               <TabTareas incidenciaId={incidenciaId} />
+            </Tab>
+
+            <Tab label="Notas">
+              <TabNotas incidenciaId={incidenciaId} />
             </Tab>
           </Tabs>
 

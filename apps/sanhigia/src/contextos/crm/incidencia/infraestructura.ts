@@ -3,11 +3,13 @@ import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import ApiUrls from "../comun/urls.ts";
+import { GetNotas, Nota, PostNota } from "./detalle/notas/diseño.ts";
 import { GetTareas, Tarea } from "./detalle/tareas/diseño.ts";
 import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
 
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;
 const baseUrlTarea = new ApiUrls().TAREA;
+const baseUrlNota = new ApiUrls().NOTA_INCIDENCIA;
 const baseUrlCategoria = new ApiUrls().CATEGORIA_INCIDENCIA;
 const baseUrlSubCategoria = new ApiUrls().SUBCATEGORIA_INCIDENCIA;
 
@@ -181,3 +183,35 @@ export const getSubCategorias = async (filtro: Filtro, orden: Orden, paginacion:
 export const crearPresupuestoIncidencia = async (incidenciaId: string) => {
     await RestAPI.post(`${baseUrlIncidencia}/${incidenciaId}/crear_presupuesto`, {}, "Error al crear presupuesto");
 }
+
+interface NotaAPI {
+    id: string;
+    texto: string;
+    fecha: string;
+    agente_id: string;
+    incidencia_id: string;
+}
+
+const notaDesdeApi = (api: NotaAPI): Nota => ({
+    id: api.id,
+    texto: api.texto,
+    fecha: api.fecha,
+    agenteId: api.agente_id,
+    incidenciaId: api.incidencia_id,
+});
+
+export const getNotas: GetNotas = (incidenciaId, paginacion) => {
+    const filtro: Filtro = [['incidencia_id', incidenciaId]];
+    const q = criteriaQuery(filtro, [], paginacion || { limite: 50, pagina: 1 });
+
+    return RestAPI.get<{ datos: NotaAPI[]; total: number }>(baseUrlNota + q).then(respuesta => ({
+        datos: respuesta.datos.map(notaDesdeApi),
+        total: respuesta.total
+    }));
+};
+
+export const postNota: PostNota = async (nota) => {
+    return await RestAPI.post(baseUrlNota, nota, "Error al guardar Nota").then(
+        (respuesta) => respuesta.id
+    );
+};
