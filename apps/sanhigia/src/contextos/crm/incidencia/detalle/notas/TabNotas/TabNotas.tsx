@@ -1,3 +1,4 @@
+import { QBoton } from "@olula/componentes/atomos/qboton.js";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { useEffect } from "react";
 import { Nota } from "../diseño.ts";
@@ -25,13 +26,30 @@ export const TabNotas = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [incidenciaId]);
 
-  const handleAgregar = (texto: string) => {
-    emitir("crear_nota", { texto });
+  const handleAgregarNota = () => {
+    emitir("crear_nota_solicitado");
   };
 
   return (
     <div className="TabNotas">
-      <CrearNota onAgregar={handleAgregar} cargando={false} />
+      {ctx.estado === "lista" && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: "12px",
+          }}
+        >
+          <QBoton onClick={handleAgregarNota}>Nueva nota</QBoton>
+        </div>
+      )}
+      {ctx.estado === "creando" && (
+        <CrearNota
+          incidenciaId={incidenciaId}
+          agenteId={agenteId}
+          emitir={emitir}
+        />
+      )}
       <TabNotasLista
         incidenciaId={incidenciaId}
         notas={ctx.notas}

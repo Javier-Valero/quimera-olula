@@ -33,5 +33,5 @@ export const crearNota: ProcesarNotas = async (contexto, payload) => {
     return {
         ...contexto,
         notas: resultado.datos,
-    }
+    };
 }

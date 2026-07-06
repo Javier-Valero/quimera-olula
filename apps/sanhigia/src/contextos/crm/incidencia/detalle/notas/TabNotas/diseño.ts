@@ -1,6 +1,6 @@
 import { Nota } from "../diseño.ts";
 
-export type EstadoNotas = "lista";
+export type EstadoNotas = "lista" | "creando";
 
 export type ContextoNotas = {
     estado: EstadoNotas;
