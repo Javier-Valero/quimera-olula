@@ -1,25 +1,5 @@
-import { MetaTabla } from "@olula/componentes/index.js";
-import { ListadoSemiControlado } from "@olula/componentes/maestro/ListadoSemiControlado.tsx";
-import { criteriaDefecto } from "@olula/lib/dominio.js";
 import { Nota } from "../diseño.ts";
-
-const metaTablaNota: MetaTabla<Nota> = [
-  {
-    id: "fecha",
-    cabecera: "Fecha",
-    tipo: "fecha",
-  },
-  {
-    id: "texto",
-    cabecera: "Nota",
-    render: (nota: Nota) => nota.texto,
-  },
-  {
-    id: "agenteId",
-    cabecera: "Agente",
-    render: (nota: Nota) => nota.agenteId || "-",
-  },
-];
+import "./TabNotasLista.css";
 
 export const TabNotasLista = ({
   notas,
@@ -29,17 +9,27 @@ export const TabNotasLista = ({
   notas: Nota[];
   cargando: boolean;
 }) => {
+  if (cargando) {
+    return <div className="TabNotasLista">Cargando notas...</div>;
+  }
+
+  if (notas.length === 0) {
+    return <div className="TabNotasLista">No hay notas</div>;
+  }
+
   return (
-    <ListadoSemiControlado
-      metaTabla={metaTablaNota}
-      entidades={notas}
-      totalEntidades={notas.length}
-      cargando={cargando}
-      seleccionada={null}
-      onSeleccion={() => null}
-      criteriaInicial={criteriaDefecto}
-      onCriteriaChanged={() => null}
-      renderAcciones={() => null}
-    />
+    <div className="TabNotasLista">
+      {notas.map((nota) => (
+        <div key={nota.id} className="NotaItem">
+          <div className="NotaTexto">{nota.texto}</div>
+          <div className="NotaFooter">
+            <span className="NotaAgente">{nota.agenteId}</span>
+            <span className="NotaFecha">
+              {new Date(nota.fecha).toLocaleDateString("es-ES")}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };

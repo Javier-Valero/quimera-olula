@@ -1,0 +1,10 @@
+.CrearNota {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.CrearNota-Boton {
+    align-self: flex-end;
+    margin-top: 8px;
+}

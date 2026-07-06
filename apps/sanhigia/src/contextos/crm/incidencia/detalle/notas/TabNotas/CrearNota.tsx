@@ -1,5 +1,6 @@
 import { QBoton, QTextArea } from "@olula/componentes/index.js";
 import { useState } from "react";
+import "./CrearNota.css";
 
 export const CrearNota = ({
   onAgregar,
@@ -27,9 +28,14 @@ export const CrearNota = ({
         placeholder="Ingresa el texto de la nota..."
         rows={4}
       />
-      <QBoton onClick={handleAgregar} deshabilitado={!texto.trim() || cargando}>
-        Agregar nota
-      </QBoton>
+      <div className="CrearNota-Boton">
+        <QBoton
+          onClick={handleAgregar}
+          deshabilitado={!texto.trim() || cargando}
+        >
+          Agregar nota
+        </QBoton>
+      </div>
     </div>
   );
 };

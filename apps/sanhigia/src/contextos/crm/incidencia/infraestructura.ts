@@ -204,7 +204,8 @@ const notaDesdeApi = (api: NotaAPI): Nota => ({
 
 export const getNotas: GetNotas = (incidenciaId, paginacion) => {
     const filtro: Filtro = [['incidencia_id', incidenciaId]];
-    const q = criteriaQuery(filtro, [], paginacion || { limite: 50, pagina: 1 });
+    const orden: Orden = ["fecha", "DESC", "idnota", "DESC"];
+    const q = criteriaQuery(filtro, orden, paginacion || { limite: 50, pagina: 1 });
 
     return RestAPI.get<{ datos: NotaAPI[]; total: number }>(baseUrlNota + q).then(respuesta => ({
         datos: respuesta.datos.map(notaDesdeApi),
