@@ -22,10 +22,10 @@ export const CrearNota = ({
     <div className="CrearNota">
       <QTextArea
         nombre="texto"
-        label="Nueva nota"
+        label=""
         valor={texto}
         onChange={(valor: string) => setTexto(valor)}
-        placeholder="Ingresa el texto de la nota..."
+        placeholder="Ingresa el texto de la nueva nota..."
         rows={4}
       />
       <div className="CrearNota-Boton">
@@ -33,7 +33,7 @@ export const CrearNota = ({
           onClick={handleAgregar}
           deshabilitado={!texto.trim() || cargando}
         >
-          Agregar nota
+          Añadir nota
         </QBoton>
       </div>
     </div>
