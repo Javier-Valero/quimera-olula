@@ -9,6 +9,8 @@ export interface Documento extends Entidad {
     agenteId: string;
     tipo: string;
     tamaño: number;
+    versionId?: string;
+    codigo?: string;
 }
 
 export type GetDocumentos = (
@@ -16,4 +18,10 @@ export type GetDocumentos = (
     paginacion?: Paginacion
 ) => Promise<{ datos: Documento[]; total: number }>;
 
-export type PostDocumento = (documento: FormData) => Promise<string>;
+export type PostDocumento = (
+    documento: Partial<Documento>,
+    incidenciaId: string,
+    archivo: File
+) => Promise<string>;
+
+export type DescargarDocumento = (codigo: string) => Promise<Blob>;

@@ -10,6 +10,7 @@ class CRM_Urls {
     readonly DOCUMENTO_INCIDENCIA = `/crm/documentoincidencia`;
     readonly CATEGORIA_INCIDENCIA = `/crm/catincidencia`;
     readonly SUBCATEGORIA_INCIDENCIA = `/crm/subcatincidencia`;
+    readonly DOCUMENTAL_DOCUMENTO = `/documental/documento`;
 }
 
 export default CRM_Urls;

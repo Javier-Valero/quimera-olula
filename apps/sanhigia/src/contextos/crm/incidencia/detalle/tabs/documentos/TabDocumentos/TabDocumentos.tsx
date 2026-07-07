@@ -31,10 +31,14 @@ export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
         try {
           await intentar(async () => {
             for (const file of ctx.archivosSeleccionados) {
-              const formData = new FormData();
-              formData.append("archivo", file);
-              formData.append("incidencia_id", ctx.incidenciaId);
-              await postDocumento(formData);
+              await postDocumento(
+                {
+                  nombre: file.name,
+                  tipo: file.type || "application/octet-stream",
+                },
+                ctx.incidenciaId,
+                file
+              );
             }
           });
           emitir("documentos_subidos");
