@@ -14,6 +14,7 @@ export const getMaquina: () => Maquina<EstadoDocumentos, ContextoDocumentos> = (
         },
         subiendo: {
             documentos_subidos: [cargarDocumentos, "lista"],
+            subida_cancelada: "lista",
         },
     };
 };

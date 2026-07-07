@@ -14,7 +14,9 @@ export const ArchivosSeleccionados = ({
     emitir("subir_archivos_solicitado", archivos);
   }, [archivos, emitir]);
 
-  const handleCancelar = useCallback(() => {}, [emitir]);
+  const handleCancelar = useCallback(() => {
+    emitir("subida_cancelada");
+  }, [emitir]);
 
   const formatearTamaño = (bytes: number): string => {
     if (bytes === 0) return "0 B";
