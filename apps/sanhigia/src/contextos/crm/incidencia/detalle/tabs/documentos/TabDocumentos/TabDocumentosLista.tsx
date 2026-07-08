@@ -27,7 +27,7 @@ export const TabDocumentosLista = ({
           <tr>
             <th>Nombre</th>
             <th>Tipo</th>
-            <th>Tamaño</th>
+            {/* <th>Tamaño</th> */}
             <th>Fecha de subida</th>
             <th>Acciones</th>
           </tr>
@@ -37,7 +37,7 @@ export const TabDocumentosLista = ({
             <tr key={doc.id}>
               <td>{doc.nombre}</td>
               <td>{doc.tipo}</td>
-              <td>{formatearTamaño(doc.tamaño)}</td>
+              {/* <td>{formatearTamaño(doc.tamaño)}</td> */}
               <td>{new Date(doc.fechaSubida).toLocaleDateString("es-ES")}</td>
               <td>
                 <a href={doc.urlDescarga} download>
@@ -52,10 +52,10 @@ export const TabDocumentosLista = ({
   );
 };
 
-const formatearTamaño = (bytes: number): string => {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const tamaños = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + tamaños[i];
-};
+// const formatearTamaño = (bytes: number): string => {
+//   if (bytes === 0) return "0 B";
+//   const k = 1024;
+//   const tamaños = ["B", "KB", "MB", "GB"];
+//   const i = Math.floor(Math.log(bytes) / Math.log(k));
+//   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + tamaños[i];
+// };

@@ -32,8 +32,23 @@ export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
           await intentar(async () => {
             for (const file of ctx.archivosSeleccionados) {
               const formData = new FormData();
-              formData.append("archivo", file);
-              formData.append("incidencia_id", ctx.incidenciaId);
+              formData.append("nombre", file.name);
+              formData.append("tipo_documento", "Documento");
+              formData.append("nombre_fichero", file.name);
+              formData.append("fichero", file);
+              formData.append("vinculo_tipo", "incidencia");
+              formData.append("vinculo_id", ctx.incidenciaId);
+
+              // Debug: log FormData entries
+              console.log("FormData entries:", {
+                nombre: file.name,
+                tipo_documento: "incidencia",
+                nombre_fichero: file.name,
+                fichero: `File(${file.size} bytes)`,
+                vinculo_tipo: "incidencia",
+                vinculo_id: ctx.incidenciaId,
+              });
+
               await postDocumento(formData);
             }
           });

@@ -260,11 +260,7 @@ export const getDocumentos: GetDocumentos = (incidenciaId, paginacion) => {
 };
 
 export const postDocumento: PostDocumento = async (documento) => {
-    // TODO: Backend endpoint aún no desarrollado
-    // return await RestAPI.post(baseUrlDocumento, documento, "Error al guardar Documento").then(
-    //     (respuesta) => respuesta.id
-    // );
-
-    // Mock: generar ID ficticio hasta que se desarrolle el backend
-    return Promise.resolve(Math.random().toString(36).substring(7));
+    return await RestAPI.post(baseUrlDocumento, documento, "Error al guardar Documento").then(
+        (respuesta) => respuesta.id
+    );
 };

@@ -10,13 +10,15 @@ const llamada = async <T>({ method, url, headers = {}, body, msgError }: {
   body?: T,
   msgError?: string
 }): Promise<Response> => {
+  const isFormData = body instanceof FormData;
+
   const response = await fetch(`${BASE}${url}`, {
     method,
     headers: {
       "Authorization": `Bearer ${tokenAcceso.obtener() ?? ""}`,
       ...headers,
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
   });
 
   // if ([401, 403].includes(response.status)) {
@@ -50,9 +52,13 @@ const comando = async <T, U>(
   msgError?: string,
   body?: Partial<T>
 ): Promise<U> => {
-  return llamada({ method, url, headers: { "Content-Type": "application/json" }, body, msgError })
+  const isFormData = body instanceof FormData;
+  const headers: Record<string, string> = isFormData ? {} : { "Content-Type": "application/json" };
+
+  return llamada({ method, url, headers, body, msgError })
     .then(r => {
-      const textoPlano = r.headers.get('content-type')!.startsWith('text/plain');
+      const contentType = r.headers.get('content-type');
+      const textoPlano = contentType?.startsWith('text/plain');
 
       return (textoPlano ? r.text().then(t => ({ respuesta: t })) : r.json()) as Promise<U>;
     });
@@ -71,7 +77,10 @@ const enviarPostBlob = async <T>(
   body: T,
   msgError?: string
 ): Promise<Blob> => {
-  return llamada({ method: "POST", url, headers: { "Content-Type": "application/json" }, body, msgError })
+  const isFormData = body instanceof FormData;
+  const headers: Record<string, string> = isFormData ? {} : { "Content-Type": "application/json" };
+
+  return llamada({ method: "POST", url, headers, body, msgError })
     .then(r => r.blob());
 };
 
