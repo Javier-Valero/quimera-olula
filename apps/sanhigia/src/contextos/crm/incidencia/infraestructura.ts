@@ -258,3 +258,7 @@ export const postDocumento: PostDocumento = async (documento) => {
         (respuesta) => respuesta.id
     );
 };
+
+export const descargarDocumentoAPI = async (documentoId: string): Promise<Blob> => {
+    return await RestAPI.blob(`${baseUrlDocumento}/${documentoId}/descargar`);
+};

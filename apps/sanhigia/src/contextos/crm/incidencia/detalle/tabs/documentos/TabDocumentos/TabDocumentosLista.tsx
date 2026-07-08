@@ -1,6 +1,7 @@
 import { MetaTabla, QTabla } from "@olula/componentes/atomos/qtabla.tsx";
 import { useState } from "react";
 import { Documento } from "../diseño.ts";
+import { descargarDocumento } from "./dominio.ts";
 import "./TabDocumentosLista.css";
 
 export const TabDocumentosLista = ({
@@ -63,22 +64,28 @@ export const TabDocumentosLista = ({
       prioridad: "media",
       ancho: "15%",
     },
-    // {
-    //   id: "urlDescarga",
-    //   cabecera: "Acciones",
-    //   prioridad: "alta",
-    //   ancho: "18%",
-    //   render: (doc) => (
-    //     <a
-    //       href={doc.urlDescarga}
-    //       download
-    //       target="_blank"
-    //       rel="noopener noreferrer"
-    //     >
-    //       Descargar
-    //     </a>
-    //   ),
-    // },
+    {
+      id: "id",
+      cabecera: "Acciones",
+      prioridad: "alta",
+      ancho: "15%",
+      render: (doc) => (
+        <button
+          onClick={() => descargarDocumento(doc.id, doc.nombre)}
+          style={{
+            padding: "6px 12px",
+            backgroundColor: "var(--color-primario)",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontSize: "14px",
+          }}
+        >
+          Descargar
+        </button>
+      ),
+    },
   ];
 
   if (documentos.length === 0 && !cargando) {
