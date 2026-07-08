@@ -4,11 +4,10 @@ export interface Documento extends Entidad {
     id: string;
     nombre: string;
     incidenciaId: string;
-    urlDescarga: string;
+    codigo: string;
     fechaSubida: string;
-    agenteId: string;
-    tipo: string;
-    tamaño: number;
+    horaSubida: string;
+    versionActualId: string;
 }
 
 export type GetDocumentos = (

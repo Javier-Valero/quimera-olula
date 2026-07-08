@@ -7,14 +7,22 @@ type ProcesarDocumentos = ProcesarContexto<EstadoDocumentos, ContextoDocumentos>
 export const cargarDocumentos: ProcesarDocumentos = async (contexto, payload) => {
     const incidenciaId = (payload as string) || contexto.incidenciaId;
 
-    const resultado = await getDocumentos(incidenciaId, { limite: 50, pagina: 1 });
+    console.log("cargarDocumentos - iniciando carga", { incidenciaId });
 
-    return {
-        ...contexto,
-        documentos: resultado.datos,
-        incidenciaId,
-        archivosSeleccionados: [],
-    };
+    try {
+        const resultado = await getDocumentos(incidenciaId, { limite: 50, pagina: 1 });
+        console.log("cargarDocumentos - resultado", resultado);
+
+        return {
+            ...contexto,
+            documentos: resultado.datos,
+            incidenciaId,
+            archivosSeleccionados: [],
+        };
+    } catch (error) {
+        console.error("cargarDocumentos - error", error);
+        throw error;
+    }
 };
 
 export const seleccionarArchivos: ProcesarDocumentos = async (contexto, payload) => {

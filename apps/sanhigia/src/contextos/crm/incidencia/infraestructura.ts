@@ -204,15 +204,16 @@ const notaDesdeApi = (api: NotaAPI): Nota => ({
     incidenciaId: api.incidencia_id,
 });
 
-export const getNotas: GetNotas = (incidenciaId, paginacion) => {
+export const getNotas: GetNotas = async (incidenciaId, paginacion) => {
     const filtro: Filtro = [['incidencia_id', incidenciaId]];
     const orden: Orden = ["fecha", "DESC", "idnota", "DESC"];
     const q = criteriaQuery(filtro, orden, paginacion || { limite: 50, pagina: 1 });
 
-    return RestAPI.get<{ datos: NotaAPI[]; total: number }>(baseUrlNota + q).then(respuesta => ({
+    const respuesta = await RestAPI.get<{ datos: NotaAPI[]; total: number }>(baseUrlNota + q);
+    return {
         datos: respuesta.datos.map(notaDesdeApi),
         total: respuesta.total
-    }));
+    };
 };
 
 export const postNota: PostNota = async (nota) => {
@@ -225,38 +226,31 @@ interface DocumentoAPI {
     id: string;
     nombre: string;
     incidencia_id: string;
-    url_descarga: string;
-    fecha_subida: string;
-    agente_id: string;
-    tipo: string;
-    tamaño: number;
+    codigo: string;
+    fecha_creacion: string;
+    hora_creacion: string;
+    version_actual_id: string;
 }
 
 const documentoDesdeApi = (api: DocumentoAPI): Documento => ({
     id: api.id,
     nombre: api.nombre,
     incidenciaId: api.incidencia_id,
-    urlDescarga: api.url_descarga,
-    fechaSubida: api.fecha_subida,
-    agenteId: api.agente_id,
-    tipo: api.tipo,
-    tamaño: api.tamaño,
+    codigo: api.codigo,
+    fechaSubida: api.fecha_creacion,
+    horaSubida: api.hora_creacion,
+    versionActualId: api.version_actual_id,
 });
 
-export const getDocumentos: GetDocumentos = (incidenciaId, paginacion) => {
-    // TODO: Backend endpoint aún no desarrollado
-    // const filtro: Filtro = [['incidencia_id', incidenciaId]];
-    // const q = criteriaQuery(filtro, [], paginacion || { limite: 50, pagina: 1 });
-    // return RestAPI.get<{ datos: DocumentoAPI[]; total: number }>(baseUrlDocumento + q).then(respuesta => ({
-    //     datos: respuesta.datos.map(documentoDesdeApi),
-    //     total: respuesta.total
-    // }));
+export const getDocumentos: GetDocumentos = async (incidenciaId, paginacion) => {
+    const filtro: Filtro = [['incidencia_id', incidenciaId]];
+    const q = criteriaQuery(filtro, [], paginacion || { limite: 50, pagina: 1 });
 
-    // Mock: devolver lista vacía hasta que se desarrolle el backend
-    return Promise.resolve({
-        datos: [],
-        total: 0
-    });
+    const respuesta = await RestAPI.get<{ datos: DocumentoAPI[]; total: number }>(baseUrlDocumento + q);
+    return {
+        datos: respuesta.datos.map(documentoDesdeApi),
+        total: respuesta.total
+    };
 };
 
 export const postDocumento: PostDocumento = async (documento) => {

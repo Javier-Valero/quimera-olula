@@ -1,3 +1,5 @@
+import { MetaTabla, QTabla } from "@olula/componentes/atomos/qtabla.tsx";
+import { useState } from "react";
 import { Documento } from "../diseño.ts";
 import "./TabDocumentosLista.css";
 
@@ -8,11 +10,78 @@ export const TabDocumentosLista = ({
   documentos: Documento[];
   cargando: boolean;
 }) => {
-  if (cargando) {
-    return <div className="TabDocumentosLista">Cargando documentos...</div>;
-  }
+  const [ordenActual, setOrdenActual] = useState<[string, "ASC" | "DESC"]>([
+    "fechaSubida",
+    "DESC",
+  ]);
 
-  if (documentos.length === 0) {
+  const handleOrdenar = (columna: string) => {
+    if (ordenActual[0] === columna) {
+      // Si es la misma columna, cambiar dirección
+      setOrdenActual([columna, ordenActual[1] === "ASC" ? "DESC" : "ASC"]);
+    } else {
+      // Si es otra columna, ordenar ascendente
+      setOrdenActual([columna, "ASC"]);
+    }
+  };
+
+  const documentosOrdenados = [...documentos].sort((a, b) => {
+    const [columna, direccion] = ordenActual;
+    const valorA = String(a[columna as keyof Documento] ?? "");
+    const valorB = String(b[columna as keyof Documento] ?? "");
+
+    if (valorA < valorB) return direccion === "ASC" ? -1 : 1;
+    if (valorA > valorB) return direccion === "ASC" ? 1 : -1;
+    return 0;
+  });
+
+  const metaTabla: MetaTabla<Documento> = [
+    {
+      id: "nombre",
+      cabecera: "Nombre",
+      prioridad: "alta",
+      esTitulo: true,
+      ancho: "40%",
+    },
+    // {
+    //   id: "tipo",
+    //   cabecera: "Tipo",
+    //   prioridad: "media",
+    //   ancho: "15%",
+    // },
+    {
+      id: "fechaSubida",
+      cabecera: "Fecha",
+      tipo: "fecha",
+      prioridad: "media",
+      ancho: "15%",
+    },
+    {
+      id: "horaSubida",
+      cabecera: "Hora",
+      tipo: "hora",
+      prioridad: "media",
+      ancho: "15%",
+    },
+    // {
+    //   id: "urlDescarga",
+    //   cabecera: "Acciones",
+    //   prioridad: "alta",
+    //   ancho: "18%",
+    //   render: (doc) => (
+    //     <a
+    //       href={doc.urlDescarga}
+    //       download
+    //       target="_blank"
+    //       rel="noopener noreferrer"
+    //     >
+    //       Descargar
+    //     </a>
+    //   ),
+    // },
+  ];
+
+  if (documentos.length === 0 && !cargando) {
     return (
       <div className="TabDocumentosLista">
         <p className="sin-datos">No hay documentos adjuntos</p>
@@ -22,40 +91,13 @@ export const TabDocumentosLista = ({
 
   return (
     <div className="TabDocumentosLista">
-      <table className="TabDocumentosLista-tabla">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            {/* <th>Tamaño</th> */}
-            <th>Fecha de subida</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {documentos.map((doc) => (
-            <tr key={doc.id}>
-              <td>{doc.nombre}</td>
-              <td>{doc.tipo}</td>
-              {/* <td>{formatearTamaño(doc.tamaño)}</td> */}
-              <td>{new Date(doc.fechaSubida).toLocaleDateString("es-ES")}</td>
-              <td>
-                <a href={doc.urlDescarga} download>
-                  Descargar
-                </a>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <QTabla
+        metaTabla={metaTabla}
+        datos={documentosOrdenados}
+        cargando={cargando}
+        orden={ordenActual}
+        onOrdenar={handleOrdenar}
+      />
     </div>
   );
 };
-
-// const formatearTamaño = (bytes: number): string => {
-//   if (bytes === 0) return "0 B";
-//   const k = 1024;
-//   const tamaños = ["B", "KB", "MB", "GB"];
-//   const i = Math.floor(Math.log(bytes) / Math.log(k));
-//   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + tamaños[i];
-// };
