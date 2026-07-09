@@ -5,6 +5,7 @@ export type ConfiguracionGestorDocumentos = {
     vinculo_tipo: string;
     vinculo_id: string;
     tipo_documento?: string;
+    carpeta_id?: string | null;
 };
 
 export type EstadoGestorDocumentos = "lista" | "archivos-seleccionados" | "subiendo";

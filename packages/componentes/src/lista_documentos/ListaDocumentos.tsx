@@ -11,6 +11,7 @@ export const ListaDocumentos = ({
   vinculo_id,
   paginacion = { limite: 50, pagina: 1 },
   refreshCounter,
+  carpeta_id = null,
   onError,
 }: ListaDocumentosProps) => {
   const [documentos, setDocumentos] = useState<DocumentoGenerico[]>([]);
@@ -35,6 +36,12 @@ export const ListaDocumentos = ({
           ? vinculo_tipo
           : `${vinculo_tipo}_id`;
         const filtro: Filtro = [[vinculo_tipo_filtro, vinculo_id]];
+
+        // Agregar carpeta_id al filtro si está especificado
+        if (carpeta_id !== undefined && carpeta_id !== null) {
+          filtro.push(["carpeta_id", carpeta_id]);
+        }
+
         const resultado = await DocumentosAPI.obtener(
           filtro,
           [],
@@ -52,7 +59,13 @@ export const ListaDocumentos = ({
     };
 
     cargarDocumentos();
-  }, [vinculo_id, paginacionMemoizada, vinculo_tipo, refreshCounter]);
+  }, [
+    vinculo_id,
+    paginacionMemoizada,
+    vinculo_tipo,
+    refreshCounter,
+    carpeta_id,
+  ]);
 
   const handleOrdenar = (columna: string) => {
     if (ordenActual[0] === columna) {

@@ -1,4 +1,4 @@
-import { GestorDocumentos, ListaDocumentos } from "@olula/componentes/index.js";
+import { GestorDocumental } from "@olula/componentes/index.js";
 import { useCallback, useState } from "react";
 
 export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
@@ -15,7 +15,7 @@ export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
 
   return (
     <div className="TabDocumentos">
-      <GestorDocumentos
+      {/* <GestorDocumentos
         vinculo_tipo="incidencia"
         vinculo_id={incidenciaId}
         tipo_documento="Documento"
@@ -27,6 +27,10 @@ export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
         vinculo_id={incidenciaId}
         refreshCounter={refreshCounter}
         onError={handleError}
+      /> */}
+      <GestorDocumental
+        contenedor_id={incidenciaId}
+        contenedor_tipo="incidencia"
       />
     </div>
   );

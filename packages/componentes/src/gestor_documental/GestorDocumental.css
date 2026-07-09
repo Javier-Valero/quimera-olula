@@ -1,0 +1,52 @@
+.GestorDocumental {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    min-height: 600px;
+}
+
+.GestorDocumental__sidebar {
+    border-right: 1px solid #e0e0e0;
+    padding-right: 12px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+.GestorDocumental__principal {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+.GestorDocumental__separador {
+    height: 2px;
+    background: linear-gradient(to right, #f0f0f0, #ddd, #f0f0f0);
+    margin: 8px 0;
+}
+
+/* Responsive: Cuando la pantalla es pequeña, mostrar carpetas abajo */
+@media (max-width: 768px) {
+    .GestorDocumental {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+    }
+
+    .GestorDocumental__sidebar {
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        padding-right: 0;
+        padding-bottom: 12px;
+        max-height: 300px;
+    }
+
+    .GestorDocumental__principal {
+        grid-column: 1;
+        grid-row: 2;
+    }
+}

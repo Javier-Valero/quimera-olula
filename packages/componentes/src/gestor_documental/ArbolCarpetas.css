@@ -1,0 +1,204 @@
+.ArbolCarpetas {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fafafa;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.ArbolCarpetas__header {
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f9f9f9;
+}
+
+.ArbolCarpetas__header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.ArbolCarpetas__crear {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.ArbolCarpetas__crear:hover {
+    background-color: #45a049;
+}
+
+.ArbolCarpetas__contenido {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    padding: 8px 0;
+}
+
+.ArbolCarpetas__item {
+    margin: 0;
+}
+
+.ArbolCarpetas__linea {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.ArbolCarpetas__linea:hover {
+    background-color: #f0f0f0;
+}
+
+.ArbolCarpetas__expandir,
+.ArbolCarpetas__sin-expandir {
+    width: 20px;
+    min-width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 12px;
+    padding: 0;
+}
+
+.ArbolCarpetas__expandir {
+    transition: transform 0.2s;
+}
+
+.ArbolCarpetas__expandir--expandido {
+    transform: rotate(90deg);
+}
+
+.ArbolCarpetas__carpeta {
+    flex: 1;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    color: #333;
+    font-size: 13px;
+    padding: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ArbolCarpetas__contador {
+    color: #999;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.ArbolCarpetas__acciones {
+    display: none;
+    gap: 4px;
+    align-items: center;
+}
+
+.ArbolCarpetas__linea:hover .ArbolCarpetas__acciones {
+    display: flex;
+}
+
+.ArbolCarpetas__accion {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 12px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.ArbolCarpetas__accion:hover {
+    background-color: #e0e0e0;
+}
+
+.ArbolCarpetas__accion--eliminar:hover {
+    background-color: #ffebee;
+}
+
+.ArbolCarpetas__subcarpetas {
+    padding-left: 0;
+}
+
+.ArbolCarpetas__placeholder {
+    padding: 4px 12px;
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+}
+
+.ArbolCarpetas__crear-carpeta {
+    padding: 12px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 8px;
+    background-color: #f9f9f9;
+}
+
+.ArbolCarpetas__crear-carpeta input {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.ArbolCarpetas__crear-carpeta input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.ArbolCarpetas__crear-btn,
+.ArbolCarpetas__cancelar-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.ArbolCarpetas__crear-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.ArbolCarpetas__crear-btn:hover {
+    background-color: #45a049;
+}
+
+.ArbolCarpetas__cancelar-btn {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.ArbolCarpetas__cancelar-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.ArbolCarpetas--vacio {
+    padding: 20px;
+    text-align: center;
+    color: #999;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

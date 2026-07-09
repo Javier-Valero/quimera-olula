@@ -5,5 +5,6 @@ export interface ListaDocumentosProps {
     vinculo_id: string;
     paginacion?: Paginacion;
     refreshCounter?: number;
+    carpeta_id?: string | null;
     onError?: (error: Error) => void;
 }

@@ -12,6 +12,7 @@ export interface GestorDocumentosProps {
   vinculo_tipo: string;
   vinculo_id: string;
   tipo_documento?: string;
+  carpeta_id?: string | null;
   onDocumentoSubido?: () => void;
   onError?: (error: Error) => void;
 }
@@ -20,6 +21,7 @@ export const GestorDocumentos = ({
   vinculo_tipo,
   vinculo_id,
   tipo_documento = "Documento",
+  carpeta_id = null,
   onDocumentoSubido,
   onError,
 }: GestorDocumentosProps) => {
@@ -33,6 +35,7 @@ export const GestorDocumentos = ({
     vinculo_tipo,
     vinculo_id,
     tipo_documento,
+    carpeta_id,
   };
 
   const { ctx, emitir } = useMaquina(getMaquinaGestorDocumentos, {
@@ -67,6 +70,9 @@ export const GestorDocumentos = ({
               formData.append("fichero", file);
               formData.append("vinculo_tipo", vinculo_tipo_normalizado);
               formData.append("vinculo_id", vinculo_id);
+              if (carpeta_id) {
+                formData.append("carpeta_id", carpeta_id);
+              }
 
               await DocumentosAPI.crear(formData);
             }
