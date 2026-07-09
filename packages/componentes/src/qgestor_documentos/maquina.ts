@@ -1,8 +1,8 @@
 import { Maquina } from "@olula/lib/diseño.js";
-import { ContextoDocumentos, EstadoDocumentos } from "./diseño.ts";
+import { ContextoGestorDocumentos, EstadoGestorDocumentos } from "./diseño.ts";
 import { cargarDocumentos, seleccionarArchivos } from "./dominio.ts";
 
-export const getMaquina: () => Maquina<EstadoDocumentos, ContextoDocumentos> = () => {
+export const getMaquinaGestorDocumentos: () => Maquina<EstadoGestorDocumentos, ContextoGestorDocumentos> = () => {
     return {
         lista: {
             cargar_documentos: cargarDocumentos,

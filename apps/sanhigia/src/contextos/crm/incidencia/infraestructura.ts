@@ -3,7 +3,6 @@ import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import ApiUrls from "../comun/urls.ts";
-import { Documento, GetDocumentos, PostDocumento } from "./detalle/tabs/documentos/diseño.ts";
 import { GetNotas, Nota, PostNota } from "./detalle/tabs/notas/diseño.ts";
 import { GetTareas, Tarea } from "./detalle/tabs/tareas/diseño.ts";
 import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
@@ -11,7 +10,6 @@ import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia,
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;
 const baseUrlTarea = new ApiUrls().TAREA;
 const baseUrlNota = new ApiUrls().NOTA_INCIDENCIA;
-const baseUrlDocumento = new ApiUrls().DOCUMENTO_INCIDENCIA;
 const baseUrlCategoria = new ApiUrls().CATEGORIA_INCIDENCIA;
 const baseUrlSubCategoria = new ApiUrls().SUBCATEGORIA_INCIDENCIA;
 
@@ -222,43 +220,3 @@ export const postNota: PostNota = async (nota) => {
     );
 };
 
-interface DocumentoAPI {
-    id: string;
-    nombre: string;
-    incidencia_id: string;
-    codigo: string;
-    fecha_creacion: string;
-    hora_creacion: string;
-    version_actual_id: string;
-}
-
-const documentoDesdeApi = (api: DocumentoAPI): Documento => ({
-    id: api.id,
-    nombre: api.nombre,
-    incidenciaId: api.incidencia_id,
-    codigo: api.codigo,
-    fechaSubida: api.fecha_creacion,
-    horaSubida: api.hora_creacion,
-    versionActualId: api.version_actual_id,
-});
-
-export const getDocumentos: GetDocumentos = async (incidenciaId, paginacion) => {
-    const filtro: Filtro = [['incidencia_id', incidenciaId]];
-    const q = criteriaQuery(filtro, [], paginacion || { limite: 50, pagina: 1 });
-
-    const respuesta = await RestAPI.get<{ datos: DocumentoAPI[]; total: number }>(baseUrlDocumento + q);
-    return {
-        datos: respuesta.datos.map(documentoDesdeApi),
-        total: respuesta.total
-    };
-};
-
-export const postDocumento: PostDocumento = async (documento) => {
-    return await RestAPI.post(baseUrlDocumento, documento, "Error al guardar Documento").then(
-        (respuesta) => respuesta.id
-    );
-};
-
-export const descargarDocumentoAPI = async (documentoId: string): Promise<Blob> => {
-    return await RestAPI.blob(`${baseUrlDocumento}/${documentoId}/descargar`);
-};
