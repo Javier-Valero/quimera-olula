@@ -1,15 +1,15 @@
-.QListaDocumentos {
+.ListaDocumentos {
     width: 100%;
 }
 
-.QListaDocumentos-sin-datos {
+.ListaDocumentos-sin-datos {
     padding: 20px;
     text-align: center;
     color: #999;
     font-size: 14px;
 }
 
-.QListaDocumentos-boton-descargar {
+.ListaDocumentos-boton-descargar {
     padding: 6px 12px;
     background-color: var(--color-primario, #007bff);
     color: white;
@@ -20,11 +20,11 @@
     transition: all 0.2s ease;
 }
 
-.QListaDocumentos-boton-descargar:hover {
+.ListaDocumentos-boton-descargar:hover {
     opacity: 0.9;
     transform: translateY(-1px);
 }
 
-.QListaDocumentos-boton-descargar:active {
+.ListaDocumentos-boton-descargar:active {
     transform: translateY(0);
 }

@@ -1,7 +1,4 @@
-import {
-  QGestorDocumentos,
-  QListaDocumentos,
-} from "@olula/componentes/index.js";
+import { GestorDocumentos, ListaDocumentos } from "@olula/componentes/index.js";
 import { useCallback, useState } from "react";
 
 export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
@@ -12,20 +9,20 @@ export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
   }, []);
 
   const handleDocumentoSubido = useCallback(() => {
-    // Incrementar para forzar que QListaDocumentos recargue
+    // Incrementar para forzar que ListaDocumentos recargue
     setRefreshCounter((prev) => prev + 1);
   }, []);
 
   return (
     <div className="TabDocumentos">
-      <QGestorDocumentos
+      <GestorDocumentos
         vinculo_tipo="incidencia"
         vinculo_id={incidenciaId}
         tipo_documento="Documento"
         onDocumentoSubido={handleDocumentoSubido}
         onError={handleError}
       />
-      <QListaDocumentos
+      <ListaDocumentos
         vinculo_tipo="incidencia"
         vinculo_id={incidenciaId}
         refreshCounter={refreshCounter}

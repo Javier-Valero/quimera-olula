@@ -1,6 +1,6 @@
 import { Paginacion } from "@olula/lib/diseño.ts";
 
-export interface QListaDocumentosProps {
+export interface ListaDocumentosProps {
     vinculo_tipo: string;
     vinculo_id: string;
     paginacion?: Paginacion;

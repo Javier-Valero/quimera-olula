@@ -2,13 +2,13 @@ import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { DocumentosAPI } from "@olula/lib/api/documentos.ts";
 import { ContextoError } from "@olula/lib/contexto.js";
 import { useCallback, useContext, useEffect } from "react";
-import { ArchivosSeleccionados } from "./ArchivosSeleccionados";
+import { ArchivosSeleccionados } from "./ArchivosSeleccionados.tsx";
 import { ArrastraSuelta } from "./ArrastraSuelta.tsx";
 import { ConfiguracionGestorDocumentos } from "./diseño.ts";
+import "./GestorDocumentos.css";
 import { getMaquinaGestorDocumentos } from "./maquina.ts";
-import "./QGestorDocumentos.css";
 
-export interface QGestorDocumentosProps {
+export interface GestorDocumentosProps {
   vinculo_tipo: string;
   vinculo_id: string;
   tipo_documento?: string;
@@ -16,13 +16,13 @@ export interface QGestorDocumentosProps {
   onError?: (error: Error) => void;
 }
 
-export const QGestorDocumentos = ({
+export const GestorDocumentos = ({
   vinculo_tipo,
   vinculo_id,
   tipo_documento = "Documento",
   onDocumentoSubido,
   onError,
-}: QGestorDocumentosProps) => {
+}: GestorDocumentosProps) => {
   // Memoizar callbacks para evitar cambios referenciales innecesarios
   const handleDocumentoSubido = useCallback(onDocumentoSubido || (() => {}), [
     onDocumentoSubido,
@@ -85,7 +85,7 @@ export const QGestorDocumentos = ({
   }, [ctx.estado, ctx.archivosSeleccionados]);
 
   return (
-    <div className="QGestorDocumentos">
+    <div className="GestorDocumentos">
       {ctx.estado === "lista" && <ArrastraSuelta emitir={emitir} />}
       {ctx.estado === "archivos-seleccionados" && (
         <ArchivosSeleccionados
@@ -94,7 +94,7 @@ export const QGestorDocumentos = ({
         />
       )}
       {ctx.estado === "subiendo" && (
-        <div className="QGestorDocumentos-subiendo">
+        <div className="GestorDocumentos-subiendo">
           <p>Subiendo archivos...</p>
         </div>
       )}

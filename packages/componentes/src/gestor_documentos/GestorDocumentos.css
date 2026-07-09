@@ -1,10 +1,10 @@
-.QGestorDocumentos {
+.GestorDocumentos {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.QGestorDocumentos-subiendo {
+.GestorDocumentos-subiendo {
     padding: 20px;
     text-align: center;
     background-color: #f5f5f5;
@@ -15,7 +15,7 @@
     justify-content: center;
 }
 
-.QGestorDocumentos-subiendo p {
+.GestorDocumentos-subiendo p {
     margin: 0;
     color: #333;
     font-size: 16px;

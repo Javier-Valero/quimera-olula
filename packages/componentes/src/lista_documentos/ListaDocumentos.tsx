@@ -2,17 +2,17 @@ import { MetaTabla, QTabla } from "@olula/componentes/atomos/qtabla.tsx";
 import { DocumentoGenerico, DocumentosAPI } from "@olula/lib/api/documentos.ts";
 import { Filtro } from "@olula/lib/diseño.ts";
 import { useEffect, useMemo, useState } from "react";
-import { descargarDocumento } from "../qgestor_documentos/dominio.ts";
-import { QListaDocumentosProps } from "./diseño.ts";
-import "./QListaDocumentos.css";
+import { descargarDocumento } from "../gestor_documentos/dominio.ts";
+import { ListaDocumentosProps } from "./diseño.ts";
+import "./ListaDocumentos.css";
 
-export const QListaDocumentos = ({
+export const ListaDocumentos = ({
   vinculo_tipo,
   vinculo_id,
   paginacion = { limite: 50, pagina: 1 },
   refreshCounter,
   onError,
-}: QListaDocumentosProps) => {
+}: ListaDocumentosProps) => {
   const [documentos, setDocumentos] = useState<DocumentoGenerico[]>([]);
   const [cargando, setCargando] = useState(false);
   const [ordenActual, setOrdenActual] = useState<[string, "ASC" | "DESC"]>([
@@ -116,7 +116,7 @@ export const QListaDocumentos = ({
       render: (doc) => (
         <button
           onClick={() => handleDescargar(doc)}
-          className="QListaDocumentos-boton-descargar"
+          className="ListaDocumentos-boton-descargar"
         >
           Descargar
         </button>
@@ -126,8 +126,8 @@ export const QListaDocumentos = ({
 
   if (documentos.length === 0 && !cargando) {
     return (
-      <div className="QListaDocumentos">
-        <p className="QListaDocumentos-sin-datos">No hay documentos adjuntos</p>
+      <div className="ListaDocumentos">
+        <p className="ListaDocumentos-sin-datos">No hay documentos adjuntos</p>
       </div>
     );
   }
@@ -135,7 +135,7 @@ export const QListaDocumentos = ({
   console.log("mimensaje_documentos", documentos);
 
   return (
-    <div className="QListaDocumentos">
+    <div className="ListaDocumentos">
       <QTabla
         metaTabla={metaTabla}
         datos={documentosOrdenados}
