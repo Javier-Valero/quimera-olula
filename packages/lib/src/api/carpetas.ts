@@ -20,6 +20,27 @@ export interface SubCarpeta {
     cantidad_documentos: number;
 }
 
+export interface DocumentoEnArbol {
+    id: string;
+    codigo: string;
+    nombre: string;
+    extension: string;
+}
+
+export interface CarpetaEnArbol {
+    id: string;
+    nombre: string;
+    subcarpetas: CarpetaEnArbol[];
+    documentos: DocumentoEnArbol[];
+}
+
+export interface ArbolCarpetasRespuesta {
+    tipoobjeto: string;
+    clave: string;
+    carpetas: CarpetaEnArbol[];
+    documentos_sin_carpeta: DocumentoEnArbol[];
+}
+
 export interface CarpetaContenido {
     id: string;
     nombre: string;
@@ -32,6 +53,23 @@ export interface CarpetaContenido {
  * API para carpetas documentales
  */
 export const CarpetasAPI = {
+    /**
+     * Obtiene el árbol completo de carpetas y documentos para un objeto específico
+     * @param tipoobjeto Tipo de objeto (ej: 'incidencia')
+     * @param clave Clave del objeto (ej: '00005499')
+     */
+    async obtenerArbol(tipoobjeto: string, clave: string): Promise<ArbolCarpetasRespuesta> {
+        const q = criteriaQuery(
+            [['tipoobjeto', tipoobjeto], ['clave', clave]],
+            [],
+            { limite: 50, pagina: 1 }
+        );
+        const respuesta = await RestAPI.get<ArbolCarpetasRespuesta>(
+            `${DOCUMENTAL_BASE_URL}/arbol${q}`
+        );
+        return respuesta;
+    },
+
     /**
      * Obtiene una carpeta específica con su estructura jerárquica
      */

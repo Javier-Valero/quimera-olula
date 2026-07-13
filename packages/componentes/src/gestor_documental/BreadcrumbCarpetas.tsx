@@ -1,9 +1,9 @@
-import { CarpetaContenido } from "@olula/lib/api/carpetas.ts";
+import { CarpetaEnArbol } from "@olula/lib/api/carpetas.ts";
 import "./BreadcrumbCarpetas.css";
 
 export interface BreadcrumbCarpetasProps {
-  historialCarpetas: CarpetaContenido[];
-  onNavegar: (carpeta: CarpetaContenido) => void;
+  historialCarpetas: CarpetaEnArbol[];
+  onNavegar: (carpeta: CarpetaEnArbol) => void;
   onIrARaiz: () => void;
 }
 

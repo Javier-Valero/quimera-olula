@@ -132,6 +132,41 @@
     background-color: #ffebee;
 }
 
+.ArbolCarpetas__accion--confirming,
+.ArbolCarpetas__accion--confirmando {
+    background-color: #ff9800;
+    color: white;
+}
+
+.ArbolCarpetas__accion--confirmando:hover {
+    background-color: #f57c00;
+}
+
+.ArbolCarpetas__accion--cancelar {
+    background-color: #f44336;
+    color: white;
+    padding: 2px 6px;
+}
+
+.ArbolCarpetas__accion--cancelar:hover {
+    background-color: #d32f2f;
+}
+
+.ArbolCarpetas__editar-nombre {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.ArbolCarpetas__input-nombre {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid #2196F3;
+    border-radius: 3px;
+    font-size: 13px;
+    outline: none;
+}
+
 .ArbolCarpetas__subcarpetas {
     padding-left: 0;
 }
@@ -201,4 +236,52 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.ArbolCarpetas__documento {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    color: #666;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ArbolCarpetas__documento-icono {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.ArbolCarpetas__documento-nombre {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.ArbolCarpetas__documentos {
+    margin: 0;
+}
+
+.ArbolCarpetas__documentos-directos {
+    margin-top: 8px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 8px;
+}
+
+.ArbolCarpetas__documentos-sin-carpeta {
+    margin-top: 8px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 8px;
+    background-color: #fffbf0;
+}
+
+.ArbolCarpetas__documentos-titulo {
+    padding: 4px 12px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }

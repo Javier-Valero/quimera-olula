@@ -1,3 +1,4 @@
+import { ArbolCarpetasRespuesta, CarpetaEnArbol } from "@olula/lib/api/carpetas.ts";
 import { Maquina } from "@olula/lib/diseño.ts";
 import {
     ContextoGestorDocumental,
@@ -9,38 +10,25 @@ export const getMaquinaGestorDocumental = (): Maquina<
     ContextoGestorDocumental
 > => ({
     cargando_carpeta_raiz: {
-        carpeta_raiz_cargada: async (ctx, payload) => {
-            const carpetaRaiz = payload as unknown;
+        arbol_cargado: async (ctx, payload) => {
+            const arbol = payload as ArbolCarpetasRespuesta;
             return [
                 {
                     ...ctx,
                     estado: "lista",
-                    carpetaRaiz: carpetaRaiz as ContextoGestorDocumental["carpetaRaiz"],
-                    carpetaActual: carpetaRaiz as ContextoGestorDocumental["carpetaActual"],
-                    historialCarpetas: [carpetaRaiz] as ContextoGestorDocumental["historialCarpetas"],
+                    arbolCarpetas: arbol,
+                    documentosSinCarpeta: arbol.documentos_sin_carpeta,
                     error: null,
                 },
                 [],
             ];
         },
-        // Nuevo evento cuando se cargan carpetas (incluso si están vacías)
-        carpetas_cargadas: async (ctx, _payload) => {
-            // Solo registra el evento, la siguiente transición será carpeta_seleccionada
-            return [
-                {
-                    ...ctx,
-                },
-                [],
-            ];
-        },
-        // Nuevo evento con carpeta seleccionada (puede ser null si no hay carpetas)
         carpeta_seleccionada: async (ctx, payload) => {
-            const carpeta = payload as ContextoGestorDocumental["carpetaActual"];
+            const carpeta = payload as CarpetaEnArbol | null;
             return [
                 {
                     ...ctx,
                     estado: "lista",
-                    carpetaRaiz: carpeta,
                     carpetaActual: carpeta,
                     historialCarpetas: carpeta ? [carpeta] : [],
                     error: null,
@@ -71,7 +59,7 @@ export const getMaquinaGestorDocumental = (): Maquina<
         },
         navegar_atras: async (ctx) => {
             const nuevoHistorial = ctx.historialCarpetas.slice(0, -1);
-            const carpetaActual = nuevoHistorial[nuevoHistorial.length - 1] || ctx.carpetaRaiz;
+            const carpetaActual = nuevoHistorial[nuevoHistorial.length - 1] || null;
             return {
                 ...ctx,
                 carpetaActual,
@@ -79,10 +67,11 @@ export const getMaquinaGestorDocumental = (): Maquina<
             };
         },
         ir_a_raiz: async (ctx) => {
+            const carpetaRaiz = ctx.arbolCarpetas?.carpetas[0] || null;
             return {
                 ...ctx,
-                carpetaActual: ctx.carpetaRaiz,
-                historialCarpetas: ctx.carpetaRaiz ? [ctx.carpetaRaiz] : [],
+                carpetaActual: carpetaRaiz,
+                historialCarpetas: carpetaRaiz ? [carpetaRaiz] : [],
             };
         },
         comenzar_crear_carpeta: async (ctx) => {
@@ -90,6 +79,30 @@ export const getMaquinaGestorDocumental = (): Maquina<
                 ...ctx,
                 estado: "creando_carpeta",
                 nuevaCarpetaNombre: "",
+            };
+        },
+        comenzar_renombrar_carpeta: async (ctx, payload) => {
+            const carpeta = payload as CarpetaEnArbol;
+            return {
+                ...ctx,
+                estado: "renombrando_carpeta",
+                carpetaAEditar: carpeta,
+                carpetaAEditarNombre: carpeta.nombre,
+            };
+        },
+        nombre_carpeta_editada: async (ctx, payload) => {
+            const nombre = payload as string;
+            return {
+                ...ctx,
+                carpetaAEditarNombre: nombre,
+            };
+        },
+        comenzar_eliminar_carpeta: async (ctx, payload) => {
+            const carpeta = payload as CarpetaEnArbol;
+            return {
+                ...ctx,
+                estado: "eliminando_carpeta",
+                carpetaAEliminar: carpeta,
             };
         },
         error: async (ctx, payload) => {
@@ -123,6 +136,7 @@ export const getMaquinaGestorDocumental = (): Maquina<
             return {
                 ...ctx,
                 estado: "lista",
+                nuevaCarpetaNombre: "",
             };
         },
         cancelar_crear_carpeta: async (ctx) => {
@@ -145,10 +159,26 @@ export const getMaquinaGestorDocumental = (): Maquina<
         },
     },
     renombrando_carpeta: {
-        cancelar_crear_carpeta: async (ctx) => {
+        renombrar_carpeta: async (ctx) => {
             return {
                 ...ctx,
                 estado: "lista",
+            };
+        },
+        carpeta_renombrada: async (ctx) => {
+            return {
+                ...ctx,
+                estado: "lista",
+                carpetaAEditar: null,
+                carpetaAEditarNombre: "",
+            };
+        },
+        cancelar_renombrar: async (ctx) => {
+            return {
+                ...ctx,
+                estado: "lista",
+                carpetaAEditar: null,
+                carpetaAEditarNombre: "",
             };
         },
         error: async (ctx, payload) => {
@@ -163,11 +193,25 @@ export const getMaquinaGestorDocumental = (): Maquina<
             ];
         },
     },
-    borrando_carpeta: {
-        cancelar_crear_carpeta: async (ctx) => {
+    eliminando_carpeta: {
+        eliminar_carpeta: async (ctx) => {
             return {
                 ...ctx,
                 estado: "lista",
+            };
+        },
+        carpeta_eliminada: async (ctx) => {
+            return {
+                ...ctx,
+                estado: "lista",
+                carpetaAEliminar: null,
+            };
+        },
+        cancelar_eliminar: async (ctx) => {
+            return {
+                ...ctx,
+                estado: "lista",
+                carpetaAEliminar: null,
             };
         },
         error: async (ctx, payload) => {
@@ -191,11 +235,12 @@ export const getMaquinaGestorDocumental = (): Maquina<
             };
         },
         ir_a_raiz: async (ctx) => {
+            const carpetaRaiz = ctx.arbolCarpetas?.carpetas[0] || null;
             return {
                 ...ctx,
                 estado: "lista",
-                carpetaActual: ctx.carpetaRaiz,
-                historialCarpetas: ctx.carpetaRaiz ? [ctx.carpetaRaiz] : [],
+                carpetaActual: carpetaRaiz,
+                historialCarpetas: carpetaRaiz ? [carpetaRaiz] : [],
                 error: null,
             };
         },

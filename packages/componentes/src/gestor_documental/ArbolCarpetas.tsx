@@ -1,27 +1,32 @@
-import {
-  CarpetaContenido,
-  CarpetasAPI,
-  SubCarpeta,
-} from "@olula/lib/api/carpetas.ts";
+import { CarpetaEnArbol, DocumentoEnArbol } from "@olula/lib/api/carpetas.ts";
 import { useState } from "react";
 import "./ArbolCarpetas.css";
 
 export interface ArbolCarpetasProps {
-  carpetaActual: CarpetaContenido | null;
-  onSeleccionar: (carpeta: CarpetaContenido) => void | Promise<void>;
+  carpetaActual: CarpetaEnArbol | null;
+  documentosSinCarpeta: DocumentoEnArbol[];
+  onSeleccionar: (carpeta: CarpetaEnArbol) => void | Promise<void>;
   onCrearCarpeta?: (nombre: string, padre_id?: string) => void;
+  onRenombrarCarpeta?: (carpeta_id: string, nuevoNombre: string) => void;
   onEliminarCarpeta?: (carpeta_id: string) => void;
 }
 
 export const ArbolCarpetas = ({
   carpetaActual,
+  documentosSinCarpeta,
   onSeleccionar,
   onCrearCarpeta,
+  onRenombrarCarpeta,
   onEliminarCarpeta,
 }: ArbolCarpetasProps) => {
   const [expandidas, setExpandidas] = useState<Set<string>>(new Set());
   const [mostrarCrearEn, setMostrarCrearEn] = useState<string | null>(null);
   const [nombreNuevaCarpeta, setNombreNuevaCarpeta] = useState("");
+  const [editandoCarpetaId, setEditandoCarpetaId] = useState<string | null>(
+    null
+  );
+  const [nombreEditado, setNombreEditado] = useState("");
+  const [carpetaAEliminar, setCarpetaAEliminar] = useState<string | null>(null);
 
   if (!carpetaActual) {
     return (
@@ -47,12 +52,14 @@ export const ArbolCarpetas = ({
     }
   };
 
-  const renderSubcarpeta = (subcarpeta: SubCarpeta, nivel: number = 0) => {
-    const estaExpandida = expandidas.has(subcarpeta.id);
-    const tieneSubs = subcarpeta.cantidad_subcarpetas > 0;
+  const renderCarpeta = (carpeta: CarpetaEnArbol, nivel: number = 0) => {
+    const estaExpandida = expandidas.has(carpeta.id);
+    const tieneSubs = carpeta.subcarpetas.length > 0;
+    const estaEditando = editandoCarpetaId === carpeta.id;
+    const marcadaParaEliminar = carpetaAEliminar === carpeta.id;
 
     return (
-      <div key={`item-${subcarpeta.id}`} className="ArbolCarpetas__item">
+      <div key={`item-${carpeta.id}`} className="ArbolCarpetas__item">
         <div
           className="ArbolCarpetas__linea"
           style={{ paddingLeft: `${nivel * 20}px` }}
@@ -62,7 +69,7 @@ export const ArbolCarpetas = ({
               className={`ArbolCarpetas__expandir ${
                 estaExpandida ? "ArbolCarpetas__expandir--expandido" : ""
               }`}
-              onClick={() => toggleExpandir(subcarpeta.id)}
+              onClick={() => toggleExpandir(carpeta.id)}
             >
               {estaExpandida ? "▼" : "▶"}
             </button>
@@ -70,55 +77,120 @@ export const ArbolCarpetas = ({
             <span className="ArbolCarpetas__sin-expandir">·</span>
           )}
 
-          <button
-            className="ArbolCarpetas__carpeta"
-            onClick={async () => {
-              // Obtener detalles completos de la carpeta y llamar al handler
-              try {
-                const carpetaCompleta = await CarpetasAPI.obtener(
-                  subcarpeta.id
-                );
-                await onSeleccionar(carpetaCompleta);
-              } catch (error) {
-                console.error("Error navegando a carpeta:", error);
-              }
-            }}
-          >
-            📁 {subcarpeta.nombre}
-            {subcarpeta.cantidad_documentos > 0 && (
-              <span className="ArbolCarpetas__contador">
-                ({subcarpeta.cantidad_documentos})
-              </span>
-            )}
-          </button>
-
-          <div className="ArbolCarpetas__acciones">
+          {estaEditando ? (
+            <div className="ArbolCarpetas__editar-nombre">
+              <input
+                type="text"
+                className="ArbolCarpetas__input-nombre"
+                value={nombreEditado}
+                onChange={(e) => setNombreEditado(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter" && nombreEditado.trim()) {
+                    onRenombrarCarpeta?.(carpeta.id, nombreEditado);
+                    setEditandoCarpetaId(null);
+                  }
+                  if (e.key === "Escape") {
+                    setEditandoCarpetaId(null);
+                  }
+                }}
+                onBlur={() => setEditandoCarpetaId(null)}
+                autoFocus
+              />
+            </div>
+          ) : (
             <button
-              className="ArbolCarpetas__accion"
-              onClick={() => setMostrarCrearEn(subcarpeta.id)}
-              title="Crear subcarpeta"
+              className="ArbolCarpetas__carpeta"
+              onClick={async () => {
+                await onSeleccionar(carpeta);
+              }}
             >
-              ✚
+              📁 {carpeta.nombre}
+              {carpeta.documentos.length > 0 && (
+                <span className="ArbolCarpetas__contador">
+                  ({carpeta.documentos.length})
+                </span>
+              )}
             </button>
-            {onEliminarCarpeta && (
+          )}
+
+          {!estaEditando && (
+            <div className="ArbolCarpetas__acciones">
+              {onRenombrarCarpeta && (
+                <button
+                  className="ArbolCarpetas__accion"
+                  onClick={() => {
+                    setEditandoCarpetaId(carpeta.id);
+                    setNombreEditado(carpeta.nombre);
+                  }}
+                  title="Editar nombre"
+                >
+                  ✏️
+                </button>
+              )}
               <button
-                className="ArbolCarpetas__accion ArbolCarpetas__accion--eliminar"
-                onClick={() => onEliminarCarpeta(subcarpeta.id)}
-                title="Eliminar"
+                className="ArbolCarpetas__accion"
+                onClick={() => setMostrarCrearEn(carpeta.id)}
+                title="Crear subcarpeta"
               >
-                🗑️
+                ✚
               </button>
-            )}
-          </div>
+              {onEliminarCarpeta && (
+                <button
+                  className={`ArbolCarpetas__accion ArbolCarpetas__accion--eliminar ${
+                    marcadaParaEliminar
+                      ? "ArbolCarpetas__accion--confirmando"
+                      : ""
+                  }`}
+                  onClick={() => {
+                    if (marcadaParaEliminar) {
+                      onEliminarCarpeta(carpeta.id);
+                      setCarpetaAEliminar(null);
+                    } else {
+                      setCarpetaAEliminar(carpeta.id);
+                    }
+                  }}
+                  title={
+                    marcadaParaEliminar ? "Confirmar eliminación" : "Eliminar"
+                  }
+                >
+                  {marcadaParaEliminar ? "✓" : "🗑️"}
+                </button>
+              )}
+              {marcadaParaEliminar && (
+                <button
+                  className="ArbolCarpetas__accion ArbolCarpetas__accion--cancelar"
+                  onClick={() => setCarpetaAEliminar(null)}
+                  title="Cancelar"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
+        {/* Subcarpetas */}
         {estaExpandida && tieneSubs && (
           <div className="ArbolCarpetas__subcarpetas">
-            {/* Aquí irían las subcarpetas cargadas recursivamente */}
-            {/* Por ahora mostramos un placeholder */}
-            <div className="ArbolCarpetas__placeholder">
-              ({subcarpeta.cantidad_subcarpetas} subcarpetas)
-            </div>
+            {carpeta.subcarpetas.map((sub) => renderCarpeta(sub, nivel + 1))}
+          </div>
+        )}
+
+        {/* Documentos en esta carpeta */}
+        {estaExpandida && carpeta.documentos.length > 0 && (
+          <div className="ArbolCarpetas__documentos">
+            {carpeta.documentos.map((doc) => (
+              <div
+                key={`doc-${doc.id}`}
+                className="ArbolCarpetas__documento"
+                style={{ paddingLeft: `${(nivel + 1) * 20 + 20}px` }}
+              >
+                <span className="ArbolCarpetas__documento-icono">📄</span>
+                <span className="ArbolCarpetas__documento-nombre">
+                  {doc.nombre}.{doc.extension}
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -140,10 +212,57 @@ export const ArbolCarpetas = ({
       </div>
 
       <div className="ArbolCarpetas__contenido">
-        {carpetaActual.subcarpetas.length === 0 ? (
-          <p className="ArbolCarpetas__vacio">Sin subcarpetas</p>
+        {/* Subcarpetas de la carpeta actual */}
+        {carpetaActual.subcarpetas.length === 0 &&
+        carpetaActual.documentos.length === 0 ? (
+          <p className="ArbolCarpetas__vacio">Sin contenido</p>
         ) : (
-          carpetaActual.subcarpetas.map((sub) => renderSubcarpeta(sub))
+          <>
+            {/* Renderizar subcarpetas */}
+            {carpetaActual.subcarpetas.map((sub) => renderCarpeta(sub, 0))}
+
+            {/* Renderizar documentos directos en esta carpeta */}
+            {carpetaActual.documentos.length > 0 && (
+              <div className="ArbolCarpetas__documentos-directos">
+                <div className="ArbolCarpetas__documentos-titulo">
+                  Documentos
+                </div>
+                {carpetaActual.documentos.map((doc) => (
+                  <div
+                    key={`doc-${doc.id}`}
+                    className="ArbolCarpetas__documento"
+                    style={{ paddingLeft: "20px" }}
+                  >
+                    <span className="ArbolCarpetas__documento-icono">📄</span>
+                    <span className="ArbolCarpetas__documento-nombre">
+                      {doc.nombre}.{doc.extension}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Documentos sin carpeta */}
+            {documentosSinCarpeta.length > 0 && (
+              <div className="ArbolCarpetas__documentos-sin-carpeta">
+                <div className="ArbolCarpetas__documentos-titulo">
+                  📂 Sin carpeta
+                </div>
+                {documentosSinCarpeta.map((doc) => (
+                  <div
+                    key={`doc-sin-${doc.id}`}
+                    className="ArbolCarpetas__documento"
+                    style={{ paddingLeft: "20px" }}
+                  >
+                    <span className="ArbolCarpetas__documento-icono">📄</span>
+                    <span className="ArbolCarpetas__documento-nombre">
+                      {doc.nombre}.{doc.extension}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

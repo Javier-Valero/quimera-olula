@@ -44,6 +44,23 @@ const transformarDocumento = (doc: unknown): DocumentoGenerico => {
  */
 export const DocumentosAPI = {
     /**
+     * Obtiene documentos de un objeto específico (incidencia, obra, etc.)
+     * @param tipoobjeto Tipo de objeto (ej: 'incidencia')
+     * @param clave Clave del objeto (ej: '00005499')
+     * @param orden Orden de resultados
+     * @param paginacion Configuración de paginación
+     */
+    async obtenerPorObjeto(
+        tipoobjeto: string,
+        clave: string,
+        orden: Orden = [],
+        paginacion: Paginacion = { limite: 50, pagina: 1 }
+    ): Promise<{ datos: DocumentoGenerico[]; total: number }> {
+        const filtro: Filtro = { and: [['tipoobjeto', '=', tipoobjeto], ['clave', '=', clave]] };
+        return this.obtener(filtro, orden, paginacion);
+    },
+
+    /**
      * Obtiene documentos relacionados con un objeto específico
      * @param filtro Filtro con pares [campo, valor]
      * @param orden Orden de resultados
