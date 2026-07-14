@@ -8,9 +8,17 @@ export interface NodoArbolItemProps {
     expandidos: Set<string>;
     onToggle: (id: string) => void;
     onDescargar: (documento: DocumentoArbol) => void;
+    onCrearCarpeta: (carpetaPadreId: string) => void;
 }
 
-export const NodoArbolItem = ({ nodo, nivel, expandidos, onToggle, onDescargar }: NodoArbolItemProps) => {
+export const NodoArbolItem = ({
+    nodo,
+    nivel,
+    expandidos,
+    onToggle,
+    onDescargar,
+    onCrearCarpeta,
+}: NodoArbolItemProps) => {
     const sangria = { paddingLeft: `${nivel * 1.25}rem` };
 
     if (esCarpetaArbol(nodo)) {
@@ -25,6 +33,16 @@ export const NodoArbolItem = ({ nodo, nivel, expandidos, onToggle, onDescargar }
                     <span className="NodoArbolItem-chevron">{abierta ? "▾" : "▸"}</span>
                     <span className="NodoArbolItem-icono">{abierta ? "📂" : "📁"}</span>
                     <span className="NodoArbolItem-nombre">{nodo.nombre}</span>
+                    <QBoton
+                        tamaño="pequeño"
+                        variante="borde"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onCrearCarpeta(nodo.id);
+                        }}
+                    >
+                        Nueva carpeta
+                    </QBoton>
                 </div>
                 {abierta &&
                     nodo.contenido.map((hijo) => (
@@ -35,6 +53,7 @@ export const NodoArbolItem = ({ nodo, nivel, expandidos, onToggle, onDescargar }
                             expandidos={expandidos}
                             onToggle={onToggle}
                             onDescargar={onDescargar}
+                            onCrearCarpeta={onCrearCarpeta}
                         />
                     ))}
             </div>

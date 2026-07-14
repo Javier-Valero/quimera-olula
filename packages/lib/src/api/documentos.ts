@@ -153,6 +153,27 @@ export const DocumentosAPI = {
     },
 
     /**
+     * Crea una nueva carpeta contenedora
+     * @param nombre Nombre de la carpeta
+     * @param vinculoTipo Tipo del vínculo: tipo del objeto de negocio, o "gd_documentos" si cuelga de otra carpeta
+     * @param vinculoId Id del vínculo: id del objeto de negocio, o id de la carpeta padre
+     */
+    async crearCarpeta(nombre: string, vinculoTipo: string, vinculoId: string): Promise<string> {
+        console.log('mimensaje_formData', vinculoTipo, vinculoId);
+        const respuesta = await RestAPI.post(
+            `${DOCUMENTAL_BASE_URL}/carpeta`,
+            {
+                nombre,
+                tipo_documento: "Carpeta",
+                vinculo_tipo: vinculoTipo,
+                vinculo_id: vinculoId,
+            },
+            "Error al crear carpeta"
+        );
+        return (respuesta as { id: string }).id;
+    },
+
+    /**
      * Descarga un documento
      * @param documentoId ID del documento a descargar
      */

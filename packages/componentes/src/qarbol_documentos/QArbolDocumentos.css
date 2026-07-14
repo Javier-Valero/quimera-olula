@@ -1,6 +1,12 @@
 .QArbolDocumentos {
     display: flex;
     flex-direction: column;
+    gap: 0.5rem;
+}
+
+.QArbolDocumentos-cabecera {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .QArbolDocumentos-cargando,

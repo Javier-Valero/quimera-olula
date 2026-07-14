@@ -1,8 +1,9 @@
-import { descargarDocumento } from "@olula/componentes/index.js";
+import { descargarDocumento, QBoton } from "@olula/componentes/index.js";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { DocumentoArbol, DocumentosAPI } from "@olula/lib/api/documentos.ts";
 import { ContextoError } from "@olula/lib/contexto.js";
 import { useCallback, useContext, useEffect, useState } from "react";
+import { CrearCarpeta } from "./CrearCarpeta.tsx";
 import { NodoArbolItem } from "./NodoArbolItem.tsx";
 import { ConfiguracionArbolDocumentos } from "./diseño.ts";
 import { getMaquinaArbolDocumentos } from "./maquina.ts";
@@ -24,14 +25,23 @@ export const QArbolDocumentos = ({ tipoObjeto, objetoId, onDescargar, onError }:
         estado: "cargando" as const,
         nodos: [],
         configuracion,
+        carpetaPadreId: null,
     });
     const { intentar } = useContext(ContextoError);
     const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
 
     useEffect(() => {
-        emitir("cargar_arbol");
+        setExpandidos(new Set());
+        emitir("cargar_arbol", { tipoObjeto, objetoId });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tipoObjeto, objetoId]);
+
+    useEffect(() => {
+        if (ctx.estado === "cargado" && ctx.carpetaPadreId) {
+            const carpetaPadreId = ctx.carpetaPadreId;
+            setExpandidos((actual) => (actual.has(carpetaPadreId) ? actual : new Set(actual).add(carpetaPadreId)));
+        }
+    }, [ctx.estado, ctx.carpetaPadreId]);
 
     const handleToggle = useCallback((id: string) => {
         setExpandidos((actual) => {
@@ -63,6 +73,13 @@ export const QArbolDocumentos = ({ tipoObjeto, objetoId, onDescargar, onError }:
         [intentar, onDescargar, handleError]
     );
 
+    const handleCrearCarpeta = useCallback(
+        (carpetaPadreId: string | null) => {
+            emitir("creacion_carpeta_solicitada", carpetaPadreId);
+        },
+        [emitir]
+    );
+
     return (
         <div className="QArbolDocumentos">
             {ctx.estado === "cargando" && (
@@ -70,12 +87,19 @@ export const QArbolDocumentos = ({ tipoObjeto, objetoId, onDescargar, onError }:
                     <p>Cargando árbol de documentos...</p>
                 </div>
             )}
+            {ctx.estado !== "cargando" && (
+                <div className="QArbolDocumentos-cabecera">
+                    <QBoton tamaño="pequeño" variante="borde" onClick={() => handleCrearCarpeta(null)}>
+                        Nueva carpeta
+                    </QBoton>
+                </div>
+            )}
             {ctx.estado === "cargado" && ctx.nodos.length === 0 && (
                 <div className="QArbolDocumentos-vacio">
                     <p>No hay documentos</p>
                 </div>
             )}
-            {ctx.estado === "cargado" && ctx.nodos.length > 0 && (
+            {ctx.estado !== "cargando" && ctx.nodos.length > 0 && (
                 <div className="QArbolDocumentos-arbol">
                     {ctx.nodos.map((nodo) => (
                         <NodoArbolItem
@@ -85,9 +109,17 @@ export const QArbolDocumentos = ({ tipoObjeto, objetoId, onDescargar, onError }:
                             expandidos={expandidos}
                             onToggle={handleToggle}
                             onDescargar={handleDescargar}
+                            onCrearCarpeta={handleCrearCarpeta}
                         />
                     ))}
                 </div>
+            )}
+            {ctx.estado === "creando_carpeta" && (
+                <CrearCarpeta
+                    vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
+                    vinculoId={ctx.carpetaPadreId ?? objetoId}
+                    publicar={emitir}
+                />
             )}
         </div>
     );
