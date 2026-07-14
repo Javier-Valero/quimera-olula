@@ -13,6 +13,7 @@ import { BorrarPagoVentaTpv } from "../borrar_pago/BorrarPagoVentaTpv.tsx";
 import { DevolverVentaTpv } from "../devolver/DevolverVentaTpv.tsx";
 import { LineaFactura, PagoVentaTpv, VentaTpv } from "../diseño.ts";
 import { ventaTpvVacia } from "../dominio.ts";
+import { EmitirVentaTpv } from "../emitir/EmitirVentaTpv.tsx";
 import { getReportVale, getReportVenta } from "../infraestructura.ts";
 import { PagarTarjetaVentaTpv } from "../pagar_con_tarjeta/PagarTarjetaVentaTpv.tsx";
 import { PagoValeVentaTpv } from "../pagar_con_vale/PagoValeVentaTpv.tsx";
@@ -25,20 +26,24 @@ import { getMaquina } from "./maquina.ts";
 import { Pagos } from "./pagos/Pagos.tsx";
 import { TabCliente } from "./tabs/TabCliente.tsx";
 
-const imprimirTicketOFactura = async (venta: VentaTpv) => {
+const imprimirTicketOFactura = async (venta: VentaTpv, pagos: PagoVentaTpv[]) => {
     if (venta.cliente) {
         const blob = await getReportFactura(venta.id);
         const url = URL.createObjectURL(blob);
         window.open(url, "_blank");
     } else {
         const blob = await getReportVenta(venta.id);
-        imprimir_blob(blob)
+        await imprimir_blob(blob);
+        const pagos_vale = pagos.filter((p) => p.vale && p.saldoVale && p.saldoVale > 0);
+        for (const p of pagos_vale) {
+            await imprimirVale(p.vale!);
+        }
     }
 }
 
-const imprimirVale = async (venta: VentaTpv) => {
-    const blob = await getReportVale(venta.codigo);
-    imprimir_blob(blob)
+const imprimirVale = async (idVale: string) => {
+    const blob = await getReportVale(idVale);
+    await imprimir_blob(blob);
 }
 
 export const DetalleVentaTpv = ({
@@ -59,8 +64,8 @@ export const DetalleVentaTpv = ({
 
     const autoGuardar = useCallback(
         async (venta: VentaTpv) => {
-        await guardarVenta(ctx, venta);
-        await emitir("venta_guardada");
+            await guardarVenta(ctx, venta);
+            await emitir("venta_guardada");
         },
         [ctx, emitir]
     );
@@ -75,7 +80,7 @@ export const DetalleVentaTpv = ({
     useEffect(() => {
         const estadosPago = ["PAGANDO_EN_EFECTIVO", "PAGANDO_CON_TARJETA", "PAGANDO_CON_VALE"];
         if (ctx.estado === 'EMITIDA' && estadosPago.includes(estadoAnterior.current) && ctx.venta.pendiente === 0) {
-            imprimirTicketOFactura(ctx.venta);
+            imprimirTicketOFactura(ctx.venta, ctx.pagos.lista);
         }
         estadoAnterior.current = ctx.estado;
     }, [ctx.estado, ctx.venta]);
@@ -83,13 +88,12 @@ export const DetalleVentaTpv = ({
     if (!ctx.venta.id) return;
 
     const imprimir = async () => {
-        await imprimirTicketOFactura(ctx.venta);
+        await imprimirTicketOFactura(ctx.venta, ctx.pagos.lista);
     };
 
     const imprimir_vale = async () => {
-        await imprimirVale(ctx.venta);
+        await imprimirVale(ctx.venta.codigo);
     };
-
 
     const { estado, pagos, lineas, venta } = ctx;
 
@@ -113,6 +117,12 @@ export const DetalleVentaTpv = ({
             )}
             <QBoton texto="Imprimir" onClick={imprimir} />
             <QBoton texto="Cajón" onClick={abrirCajon} />
+            {estado === "ABIERTA" && (
+                <QBoton
+                texto="Emitir"
+                onClick={() => emitir("emision_solicitada")}
+                />
+            )}
             {estado == "EMITIDA" && venta.total > 0 && (
                 <QBoton
                 texto="Tique regalo"
@@ -129,27 +139,27 @@ export const DetalleVentaTpv = ({
             <Tabs
             children={[
                 <Tab
-                key="tab-1"
-                label="Cliente"
-                children={
-                    <TabCliente
-                    venta={venta}
-                    estado={estado}
-                    form={modeloVenta}
-                    publicar={emitir}
-                    />
-                }
+                    key="tab-1"
+                    label="Cliente"
+                    children={
+                        <TabCliente
+                            venta={venta}
+                            estado={estado}
+                            form={modeloVenta}
+                            publicar={emitir}
+                        />
+                    }
                 />,
                 <Tab
-                key="tab-3"
-                label="Pagos"
-                children={
-                    <Pagos
-                    pagoActivo={pagos.activo}
-                    pagos={pagos.lista}
-                    publicar={emitir}
-                    />
-                }
+                    key="tab-3"
+                    label="Pagos"
+                    children={
+                        <Pagos
+                            pagoActivo={pagos.activo}
+                            pagos={pagos.lista}
+                            publicar={emitir}
+                        />
+                    }
                 />,
             ]}
             ></Tabs>
@@ -171,6 +181,9 @@ export const DetalleVentaTpv = ({
             />
             {estado === "BORRANDO_VENTA" && (
                 <BorrarVentaTpv publicar={emitir} venta={venta} />
+            )}
+            {estado === "EMITIENDO_VENTA" && (
+                <EmitirVentaTpv publicar={emitir} venta={venta} />
             )}
             {estado === "PAGANDO_EN_EFECTIVO" && (
                 <PagarEfectivoVentaTpv publicar={emitir} venta={venta} />

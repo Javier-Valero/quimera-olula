@@ -1,45 +1,44 @@
 import { QAutocompletar } from "@olula/componentes/moleculas/qautocompletar.tsx";
-import { Filtro } from "@olula/lib/diseño.ts";
+import { Criteria } from "@olula/lib/diseño.ts";
 import { getFacturas } from "../../factura/infraestructura.ts";
 
-interface FacturaProps {
+interface FacturaSelectorProps {
   descripcion?: string;
   valor: string;
   nombre?: string;
   label?: string;
+  autoFocus?: boolean;
   deshabilitado?: boolean;
-  ref?: React.RefObject<HTMLInputElement | null>;
-  onChange?: (opcion: { valor: string; descripcion: string } | null) => void;
+  onChange: (opcion: { valor: string; descripcion: string } | null) => void;
 }
 
-export const Factura = ({
+export const FacturaSelector = ({
   descripcion = "",
   valor,
   nombre = "factura_id",
-  label = "Factura",
+  label = "Seleccionar factura",
+  autoFocus = false,
   deshabilitado = false,
   onChange,
-  ...props
-}: FacturaProps) => {
-  const obtenerOpciones = async (texto: string) => {
-    const criteria = {
-      filtro: ["codigo", "~", texto],
-      orden: ["id"],
+}: FacturaSelectorProps) => {
+  const obtenerOpciones = async (busqueda: string) => {
+    if (busqueda.length < 3) return [];
+
+    const criteria: Criteria = {
+      filtro: [["codigo", "~", busqueda]],
+      orden: ["fecha", "DESC"],
+      paginacion: { pagina: 1, limite: 10 },
     };
 
     const { datos } = await getFacturas(
-      criteria.filtro as unknown as Filtro,
+      criteria.filtro,
       criteria.orden,
-      { pagina: 1, limite: 10 }
+      criteria.paginacion
     );
-
-    if (!Array.isArray(datos)) {
-      return [];
-    }
 
     return datos.map((factura) => ({
       valor: factura.id,
-      descripcion: factura.codigo,
+      descripcion: `${factura.codigo} - ${factura.cliente?.nombre_cliente ?? ""}`,
     }));
   };
 
@@ -49,10 +48,11 @@ export const Factura = ({
       nombre={nombre}
       onChange={onChange}
       valor={valor}
+      autoSeleccion
+      autoFocus={autoFocus}
       obtenerOpciones={obtenerOpciones}
       descripcion={descripcion}
       deshabilitado={deshabilitado}
-      {...props}
     />
   );
 };
