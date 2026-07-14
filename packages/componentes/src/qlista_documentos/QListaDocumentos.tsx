@@ -132,7 +132,7 @@ export const QListaDocumentos = ({
     );
   }
 
-  console.log("mimensaje_documentos", documentos);
+  // console.log("mimensaje_documentos", documentos);
 
   return (
     <div className="QListaDocumentos">
