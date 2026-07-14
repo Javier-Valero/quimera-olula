@@ -6,7 +6,7 @@ export type ConfiguracionArbolDocumentos = {
     objetoId: string;
 };
 
-export type EstadoArbolDocumentos = "cargando" | "cargado" | "creando_carpeta";
+export type EstadoArbolDocumentos = "cargando" | "cargado" | "creando_carpeta" | "anadiendo_documento";
 
 export type ContextoArbolDocumentos = Contexto<EstadoArbolDocumentos> & {
     nodos: NodoArbol[];

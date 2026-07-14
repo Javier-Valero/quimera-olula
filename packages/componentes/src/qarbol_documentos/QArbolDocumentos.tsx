@@ -3,6 +3,7 @@ import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { DocumentoArbol, DocumentosAPI } from "@olula/lib/api/documentos.ts";
 import { ContextoError } from "@olula/lib/contexto.js";
 import { useCallback, useContext, useEffect, useState } from "react";
+import { AnadirDocumento } from "./AnadirDocumento.tsx";
 import { CrearCarpeta } from "./CrearCarpeta.tsx";
 import { NodoArbolItem } from "./NodoArbolItem.tsx";
 import { ConfiguracionArbolDocumentos } from "./diseño.ts";
@@ -80,6 +81,13 @@ export const QArbolDocumentos = ({ tipoObjeto, objetoId, onDescargar, onError }:
         [emitir]
     );
 
+    const handleAnadirDocumento = useCallback(
+        (carpetaPadreId: string | null) => {
+            emitir("adicion_documento_solicitada", carpetaPadreId);
+        },
+        [emitir]
+    );
+
     return (
         <div className="QArbolDocumentos">
             {ctx.estado === "cargando" && (
@@ -89,6 +97,9 @@ export const QArbolDocumentos = ({ tipoObjeto, objetoId, onDescargar, onError }:
             )}
             {ctx.estado !== "cargando" && (
                 <div className="QArbolDocumentos-cabecera">
+                    <QBoton tamaño="pequeño" variante="borde" onClick={() => handleAnadirDocumento(null)}>
+                        Añadir
+                    </QBoton>
                     <QBoton tamaño="pequeño" variante="borde" onClick={() => handleCrearCarpeta(null)}>
                         Nueva carpeta
                     </QBoton>
@@ -110,12 +121,20 @@ export const QArbolDocumentos = ({ tipoObjeto, objetoId, onDescargar, onError }:
                             onToggle={handleToggle}
                             onDescargar={handleDescargar}
                             onCrearCarpeta={handleCrearCarpeta}
+                            onAnadirDocumento={handleAnadirDocumento}
                         />
                     ))}
                 </div>
             )}
             {ctx.estado === "creando_carpeta" && (
                 <CrearCarpeta
+                    vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
+                    vinculoId={ctx.carpetaPadreId ?? objetoId}
+                    publicar={emitir}
+                />
+            )}
+            {ctx.estado === "anadiendo_documento" && (
+                <AnadirDocumento
                     vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
                     vinculoId={ctx.carpetaPadreId ?? objetoId}
                     publicar={emitir}
