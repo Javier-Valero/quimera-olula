@@ -40,6 +40,68 @@ const transformarDocumento = (doc: unknown): DocumentoGenerico => {
 };
 
 /**
+ * Origen de un documento dentro del árbol documental
+ */
+export interface OrigenDocumentoArbol {
+    tipo: string;
+    origenId: string | null;
+}
+
+/**
+ * Nodo hoja del árbol documental (un documento)
+ */
+export interface DocumentoArbol extends DocumentoGenerico {
+    codigo: string;
+    tipoId: string;
+    extension: string | null;
+    origen: OrigenDocumentoArbol;
+}
+
+/**
+ * Nodo de carpeta del árbol documental (contiene subcarpetas y/o documentos)
+ */
+export interface CarpetaArbol {
+    id: string;
+    nombre: string;
+    contenido: NodoArbol[];
+}
+
+export type NodoArbol = DocumentoArbol | CarpetaArbol;
+
+/**
+ * Type guard: distingue una carpeta de un documento dentro del árbol
+ */
+export const esCarpetaArbol = (nodo: NodoArbol): nodo is CarpetaArbol =>
+    Array.isArray((nodo as { contenido?: unknown }).contenido);
+
+/**
+ * Transforma un nodo del árbol devuelto por el backend (carpeta o documento)
+ */
+const transformarNodoArbol = (nodo: unknown): NodoArbol => {
+    const data = nodo as Record<string, unknown>;
+
+    if (Array.isArray(data.contenido)) {
+        return {
+            id: String(data.id || ""),
+            nombre: String(data.nombre || ""),
+            contenido: data.contenido.map(transformarNodoArbol),
+        };
+    }
+
+    const origen = data.origen as Record<string, unknown> | undefined;
+    return {
+        ...transformarDocumento(data),
+        codigo: String(data.codigo || ""),
+        tipoId: String(data.tipo_id || ""),
+        extension: (data.extension as string | null) ?? null,
+        origen: {
+            tipo: String(origen?.tipo || ""),
+            origenId: (origen?.origen_id as string | null) ?? null,
+        },
+    } as DocumentoArbol;
+};
+
+/**
  * API para documentos de la API de documentos (genérico para todas las aplicaciones)
  */
 export const DocumentosAPI = {
@@ -63,6 +125,18 @@ export const DocumentosAPI = {
             datos: respuesta.datos.map(transformarDocumento),
             total: respuesta.total,
         };
+    },
+
+    /**
+     * Obtiene el árbol de carpetas/subcarpetas y documentos de un objeto
+     * @param tipoObjeto Tipo del objeto vinculado (p.ej. "incidencia")
+     * @param objetoId Id del objeto vinculado
+     */
+    async obtenerArbol(tipoObjeto: string, objetoId: string): Promise<NodoArbol[]> {
+        const respuesta = await RestAPI.get<{ datos: unknown[] }>(
+            `${DOCUMENTAL_BASE_URL}/arbol/${tipoObjeto}/${objetoId}`
+        );
+        return respuesta.datos.map(transformarNodoArbol);
     },
 
     /**

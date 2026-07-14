@@ -1,6 +1,6 @@
 import {
+  QArbolDocumentos,
   QGestorDocumentos,
-  QListaDocumentos,
 } from "@olula/componentes/index.js";
 import { useCallback, useState } from "react";
 
@@ -25,12 +25,13 @@ export const TabDocumentos = ({ incidenciaId }: { incidenciaId: string }) => {
         onDocumentoSubido={handleDocumentoSubido}
         onError={handleError}
       />
-      <QListaDocumentos
+      <QArbolDocumentos tipoObjeto="incidencia" objetoId={incidenciaId} />
+      {/* <QListaDocumentos
         vinculo_tipo="incidencia"
         vinculo_id={incidenciaId}
         refreshCounter={refreshCounter}
         onError={handleError}
-      />
+      /> */}
     </div>
   );
 };

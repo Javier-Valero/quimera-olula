@@ -1,0 +1,28 @@
+.QArbolDocumentos {
+    display: flex;
+    flex-direction: column;
+}
+
+.QArbolDocumentos-cargando,
+.QArbolDocumentos-vacio {
+    padding: 20px;
+    text-align: center;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.QArbolDocumentos-cargando p,
+.QArbolDocumentos-vacio p {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.QArbolDocumentos-arbol {
+    display: flex;
+    flex-direction: column;
+}

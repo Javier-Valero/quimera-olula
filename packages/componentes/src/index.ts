@@ -43,6 +43,7 @@ export * from "./SinDatos/SinDatos.tsx";
 export * from "./slot/Slot.tsx";
 export * from "./vista/Vista.tsx";
 
+export * from "./qarbol_documentos/index.ts";
 export * from "./qgestor_documentos/index.ts";
 export * from "./qlista_documentos/index.ts";
 

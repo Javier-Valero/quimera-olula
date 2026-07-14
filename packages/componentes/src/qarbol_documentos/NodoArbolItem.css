@@ -1,0 +1,53 @@
+.NodoArbolItem-fila {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    user-select: none;
+}
+
+.NodoArbolItem-carpeta {
+    cursor: pointer;
+}
+
+.NodoArbolItem-carpeta:hover {
+    background-color: #f5f5f5;
+}
+
+.NodoArbolItem-chevron {
+    width: 1rem;
+    flex-shrink: 0;
+    color: #999;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.NodoArbolItem-documento .NodoArbolItem-chevron {
+    visibility: hidden;
+}
+
+.NodoArbolItem-icono {
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.NodoArbolItem-nombre {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.NodoArbolItem-carpeta .NodoArbolItem-nombre {
+    font-weight: 600;
+}
+
+.NodoArbolItem-fecha {
+    flex-shrink: 0;
+    color: #999;
+    font-size: 0.8rem;
+}
