@@ -4,6 +4,10 @@ import {
   esCarpetaArbol,
   NodoArbol,
 } from "@olula/lib/api/documentos.ts";
+import {
+  formatearFechaString,
+  formatearHoraString,
+} from "@olula/lib/dominio.ts";
 import "./NodoArbolItem.css";
 
 export interface NodoArbolItemProps {
@@ -99,7 +103,8 @@ export const NodoArbolItem = ({
         </span>
         <span className="NodoArbolItem-nombre">{nodo.nombre}</span>
         <span className="NodoArbolItem-fecha">
-          {nodo.fechaSubida} {nodo.horaSubida}
+          {formatearFechaString(nodo.fechaSubida)}{" "}
+          {formatearHoraString(nodo.horaSubida)}
         </span>
         <QBoton
           tamaño="pequeño"
