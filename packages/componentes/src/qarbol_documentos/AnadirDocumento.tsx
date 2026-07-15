@@ -1,6 +1,8 @@
 import { QGestorDocumentos, QModal } from "@olula/componentes/index.js";
+import { useEsMovil } from "@olula/componentes/maestro/useEsMovil.ts";
 import { EmitirEvento } from "@olula/lib/diseño.js";
 import { useCallback } from "react";
+import "./AnadirDocumento.css";
 
 /**
  * Modal de alta de documentos dentro del árbol documental.
@@ -14,26 +16,40 @@ import { useCallback } from "react";
  *   - No recibe prop `activo`; la visibilidad la controla el padre.
  */
 export interface AnadirDocumentoProps {
-    vinculoTipo: string;
-    vinculoId: string;
-    publicar: EmitirEvento;
+  vinculoTipo: string;
+  vinculoId: string;
+  publicar: EmitirEvento;
 }
 
-export const AnadirDocumento = ({ vinculoTipo, vinculoId, publicar }: AnadirDocumentoProps) => {
-    const handleDocumentoSubido = useCallback(() => {
-        publicar("documento_anadido");
-    }, [publicar]);
+export const AnadirDocumento = ({
+  vinculoTipo,
+  vinculoId,
+  publicar,
+}: AnadirDocumentoProps) => {
+  const handleDocumentoSubido = useCallback(() => {
+    publicar("documento_anadido");
+  }, [publicar]);
 
-    const cancelar = useCallback(() => publicar("adicion_documento_cancelada"), [publicar]);
+  const cancelar = useCallback(
+    () => publicar("adicion_documento_cancelada"),
+    [publicar]
+  );
 
-    return (
-        <QModal abierto={true} nombre="mostrar" titulo="Añadir documento" onCerrar={cancelar}>
-            <QGestorDocumentos
-                vinculo_tipo={vinculoTipo}
-                vinculo_id={vinculoId}
-                tipo_documento="Documento"
-                onDocumentoSubido={handleDocumentoSubido}
-            />
-        </QModal>
-    );
+  return (
+    <QModal
+      abierto={true}
+      nombre="mostrar"
+      titulo="Añadir documento"
+      onCerrar={cancelar}
+    >
+      <div className={`${useEsMovil() ? "" : "AnadirDocumento"}`}>
+        <QGestorDocumentos
+          vinculo_tipo={vinculoTipo}
+          vinculo_id={vinculoId}
+          tipo_documento="Documento"
+          onDocumentoSubido={handleDocumentoSubido}
+        />
+      </div>
+    </QModal>
+  );
 };
