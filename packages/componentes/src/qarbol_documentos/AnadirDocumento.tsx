@@ -9,9 +9,8 @@ import "./AnadirDocumento.css";
  * Patrón:
  *   - El padre lo renderiza condicionalmente cuando estado === "anadiendo_documento".
  *   - Envuelve QGestorDocumentos y emite:
- *       "documento_anadido"           en cada subida completada (recarga el árbol sin cerrar el modal,
- *                                     para permitir subir varios documentos en la misma sesión)
- *       "adicion_documento_cancelada" al cerrar el modal
+ *       "documento_anadido"           al terminar la subida (recarga el árbol y cierra el modal)
+ *       "adicion_documento_cancelada" al cancelar la subida o cerrar el modal (sin recargar)
  *   - No recibe prop `activo`; la visibilidad la controla el padre.
  */
 export interface AnadirDocumentoProps {
@@ -47,6 +46,7 @@ export const AnadirDocumento = ({
           vinculo_id={vinculoId}
           tipo_documento="Documento"
           onDocumentoSubido={handleDocumentoSubido}
+          onCancelar={cancelar}
         />
       </div>
     </QModal>

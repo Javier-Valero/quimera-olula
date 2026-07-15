@@ -1,7 +1,7 @@
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { DocumentosAPI } from "@olula/lib/api/documentos.ts";
 import { ContextoError } from "@olula/lib/contexto.js";
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { ArchivosSeleccionados } from "./ArchivosSeleccionados";
 import { ArrastraSuelta } from "./ArrastraSuelta.tsx";
 import { ConfiguracionGestorDocumentos } from "./diseño.ts";
@@ -13,6 +13,7 @@ export interface QGestorDocumentosProps {
   vinculo_id: string;
   tipo_documento?: string;
   onDocumentoSubido?: () => void;
+  onCancelar?: () => void;
   onError?: (error: Error) => void;
 }
 
@@ -21,12 +22,14 @@ export const QGestorDocumentos = ({
   vinculo_id,
   tipo_documento = "Documento",
   onDocumentoSubido,
+  onCancelar,
   onError,
 }: QGestorDocumentosProps) => {
   // Memoizar callbacks para evitar cambios referenciales innecesarios
   const handleDocumentoSubido = useCallback(onDocumentoSubido || (() => {}), [
     onDocumentoSubido,
   ]);
+  const handleCancelar = useCallback(onCancelar || (() => {}), [onCancelar]);
   const handleError = useCallback(onError || (() => {}), [onError]);
 
   const configuracion: ConfiguracionGestorDocumentos = {
@@ -43,11 +46,20 @@ export const QGestorDocumentos = ({
     archivosSeleccionados: [],
   });
   const { intentar } = useContext(ContextoError);
+  const estadoAnteriorRef = useRef(ctx.estado);
 
   useEffect(() => {
     emitir("cargar_documentos");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vinculo_id]);
+
+  useEffect(() => {
+    // Solo el botón "Cancelar" de la selección de archivos produce esta transición
+    if (estadoAnteriorRef.current === "archivos-seleccionados" && ctx.estado === "lista") {
+      handleCancelar();
+    }
+    estadoAnteriorRef.current = ctx.estado;
+  }, [ctx.estado, handleCancelar]);
 
   useEffect(() => {
     if (ctx.estado === "subiendo" && ctx.archivosSeleccionados.length > 0) {

@@ -20,7 +20,7 @@ export const getMaquinaArbolDocumentos: () => Maquina<EstadoArbolDocumentos, Con
         },
         anadiendo_documento: {
             cargar_arbol: [cargarArbol, "cargado"],
-            documento_anadido: [cargarArbol, "anadiendo_documento"],
+            documento_anadido: [cargarArbol, "cargado"],
             adicion_documento_cancelada: "cargado",
         },
     };
