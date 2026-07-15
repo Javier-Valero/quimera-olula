@@ -12,6 +12,7 @@ import { CrearCarpeta } from "./CrearCarpeta.tsx";
 import { ConfiguracionArbolDocumentos } from "./diseño.ts";
 import { getMaquinaArbolDocumentos } from "./maquina.ts";
 import { NodoArbolItem } from "./NodoArbolItem.tsx";
+import { useSeleccionArchivosMovil } from "./useSeleccionArchivosMovil.ts";
 import "./QArbolDocumentos.css";
 
 export interface QArbolDocumentosProps {
@@ -39,6 +40,12 @@ export const QArbolDocumentos = ({
   });
   const { intentar } = useContext(ContextoError);
   const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
+  // Archivos ya elegidos por el selector nativo en móvil (ver useSeleccionArchivosMovil),
+  // a la espera de que se monte AnadirDocumento para pasárselos como archivosIniciales.
+  // undefined en el flujo normal de escritorio (el modal se abre vacío, sin preselección).
+  const [archivosPendientes, setArchivosPendientes] = useState<
+    File[] | undefined
+  >(undefined);
 
   useEffect(() => {
     setExpandidos(new Set());
@@ -97,11 +104,22 @@ export const QArbolDocumentos = ({
   );
 
   const handleAnadirDocumento = useCallback(
-    (carpetaPadreId: string | null) => {
+    (carpetaPadreId: string | null, archivosIniciales?: File[]) => {
+      // Siempre se fija (incluso a undefined) para que un clic normal de escritorio
+      // no reutilice por error archivos de una selección móvil anterior.
+      setArchivosPendientes(archivosIniciales);
       emitir("adicion_documento_solicitada", carpetaPadreId);
     },
     [emitir]
   );
+
+  // Botón raíz "Añadir": en móvil abre el selector nativo directamente (carpetaPadreId null = raíz);
+  // en escritorio abre el modal vacío como antes.
+  const {
+    inputRef: inputRefRaiz,
+    handleClick: handleClickAnadirRaiz,
+    handleChange: handleChangeAnadirRaiz,
+  } = useSeleccionArchivosMovil(null, handleAnadirDocumento);
 
   return (
     <div className="QArbolDocumentos">
@@ -127,13 +145,20 @@ export const QArbolDocumentos = ({
             <QBoton
               tamaño="pequeño"
               variante="texto"
-              onClick={() => handleAnadirDocumento(null)}
+              onClick={handleClickAnadirRaiz}
             >
               <QIcono nombre="documento_nuevo" tamaño="md" />
             </QBoton>
           </div>
         </div>
       )}
+      <input
+        ref={inputRefRaiz}
+        type="file"
+        multiple
+        style={{ display: "none" }}
+        onChange={handleChangeAnadirRaiz}
+      />
       {ctx.estado === "cargado" && ctx.nodos.length === 0 && (
         <div className="QArbolDocumentos-vacio">
           <p>No hay documentos</p>
@@ -166,6 +191,7 @@ export const QArbolDocumentos = ({
         <AnadirDocumento
           vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
           vinculoId={ctx.carpetaPadreId ?? objetoId}
+          archivosIniciales={archivosPendientes}
           publicar={emitir}
         />
       )}

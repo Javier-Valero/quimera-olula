@@ -4,7 +4,7 @@ import { ContextoError } from "@olula/lib/contexto.js";
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { ArchivosSeleccionados } from "./ArchivosSeleccionados";
 import { ArrastraSuelta } from "./ArrastraSuelta.tsx";
-import { ConfiguracionGestorDocumentos } from "./diseño.ts";
+import { ConfiguracionGestorDocumentos, EstadoGestorDocumentos } from "./diseño.ts";
 import { getMaquinaGestorDocumentos } from "./maquina.ts";
 import "./QGestorDocumentos.css";
 
@@ -12,6 +12,7 @@ export interface QGestorDocumentosProps {
   vinculo_tipo: string;
   vinculo_id: string;
   tipo_documento?: string;
+  archivosIniciales?: File[];
   onDocumentoSubido?: () => void;
   onCancelar?: () => void;
   onError?: (error: Error) => void;
@@ -21,6 +22,7 @@ export const QGestorDocumentos = ({
   vinculo_tipo,
   vinculo_id,
   tipo_documento = "Documento",
+  archivosIniciales,
   onDocumentoSubido,
   onCancelar,
   onError,
@@ -38,18 +40,29 @@ export const QGestorDocumentos = ({
     tipo_documento,
   };
 
+  // Con archivos preseleccionados (selector nativo en móvil) se arranca directamente en
+  // "subiendo": no tiene sentido pedir confirmación de algo que el usuario ya eligió en
+  // el selector del sistema. El efecto de subida más abajo ya hace el resto (sube y cierra).
+  const estadoInicial: EstadoGestorDocumentos =
+    archivosIniciales && archivosIniciales.length > 0 ? "subiendo" : "lista";
+
   const { ctx, emitir } = useMaquina(getMaquinaGestorDocumentos, {
-    estado: "lista" as const,
+    estado: estadoInicial,
     documentos: [],
     cargando: false,
     configuracion,
-    archivosSeleccionados: [],
+    archivosSeleccionados: archivosIniciales ?? [],
   });
   const { intentar } = useContext(ContextoError);
   const estadoAnteriorRef = useRef(ctx.estado);
 
   useEffect(() => {
-    emitir("cargar_documentos");
+    // Si ya venimos con archivos preseleccionados (p.ej. selector nativo en móvil),
+    // no recargar: "cargar_documentos" solo existe en el estado "lista" y además
+    // vaciaría archivosSeleccionados.
+    if (!archivosIniciales || archivosIniciales.length === 0) {
+      emitir("cargar_documentos");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vinculo_id]);
 

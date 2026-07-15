@@ -59,7 +59,7 @@ export const ArchivosSeleccionados = ({
               destructivo
               onClick={() => handleEliminar(index)}
             >
-              Quitar
+              <QIcono nombre="eliminar" tamaño="md" />
             </QBoton>
           </div>
         ))}

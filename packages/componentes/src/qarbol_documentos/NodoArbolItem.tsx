@@ -9,6 +9,7 @@ import {
   formatearHoraString,
 } from "@olula/lib/dominio.ts";
 import "./NodoArbolItem.css";
+import { useSeleccionArchivosMovil } from "./useSeleccionArchivosMovil.ts";
 
 export interface NodoArbolItemProps {
   nodo: NodoArbol;
@@ -17,7 +18,10 @@ export interface NodoArbolItemProps {
   onToggle: (id: string) => void;
   onDescargar: (documento: DocumentoArbol) => void;
   onCrearCarpeta: (carpetaPadreId: string) => void;
-  onAnadirDocumento: (carpetaPadreId: string) => void;
+  onAnadirDocumento: (
+    carpetaPadreId: string | null,
+    archivosIniciales?: File[]
+  ) => void;
 }
 
 export const NodoArbolItem = ({
@@ -30,6 +34,10 @@ export const NodoArbolItem = ({
   onAnadirDocumento,
 }: NodoArbolItemProps) => {
   const sangria = { paddingLeft: `${nivel * 1.25}rem` };
+  const { inputRef, handleClick, handleChange } = useSeleccionArchivosMovil(
+    nodo.id,
+    onAnadirDocumento
+  );
 
   if (esCarpetaArbol(nodo)) {
     const abierta = expandidos.has(nodo.id);
@@ -67,13 +75,26 @@ export const NodoArbolItem = ({
             variante="texto"
             onClick={(e) => {
               e.stopPropagation();
-              onAnadirDocumento(nodo.id);
+              handleClick();
             }}
           >
             <QIcono nombre="documento_nuevo" tamaño="md" />
             {/* Añadir */}
           </QBoton>
         </div>
+        {/*
+          Input oculto para el selector nativo de archivos en móvil (ver useSeleccionArchivosMovil).
+          Se coloca FUERA de la fila con onClick={() => onToggle(...)}: inputRef.current.click()
+          dispara un evento "click" real que burbujea por el DOM, y si el input estuviera anidado
+          dentro de la fila, ese burbujeo abriría/cerraría la carpeta cada vez que se elige un archivo.
+        */}
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          style={{ display: "none" }}
+          onChange={handleChange}
+        />
         {abierta &&
           nodo.contenido.map((hijo) => (
             <NodoArbolItem
