@@ -49,23 +49,25 @@ export const NodoArbolItem = ({
           <span className="NodoArbolItem-nombre">{nodo.nombre}</span>
           <QBoton
             tamaño="pequeño"
-            variante="borde"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAnadirDocumento(nodo.id);
-            }}
-          >
-            Añadir
-          </QBoton>
-          <QBoton
-            tamaño="pequeño"
-            variante="borde"
+            variante="texto"
             onClick={(e) => {
               e.stopPropagation();
               onCrearCarpeta(nodo.id);
             }}
           >
-            Nueva carpeta
+            <QIcono nombre="carpeta_nueva" tamaño="md" />
+            {/* Nueva carpeta */}
+          </QBoton>
+          <QBoton
+            tamaño="pequeño"
+            variante="texto"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAnadirDocumento(nodo.id);
+            }}
+          >
+            <QIcono nombre="documento_nuevo" tamaño="md" />
+            {/* Añadir */}
           </QBoton>
         </div>
         {abierta &&
@@ -101,10 +103,10 @@ export const NodoArbolItem = ({
         </span>
         <QBoton
           tamaño="pequeño"
-          variante="borde"
+          variante="texto"
           onClick={() => onDescargar(nodo)}
         >
-          Descargar
+          <QIcono nombre="descargar" tamaño="md" />
         </QBoton>
       </div>
     </div>

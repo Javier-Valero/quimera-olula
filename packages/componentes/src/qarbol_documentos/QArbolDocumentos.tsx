@@ -1,145 +1,174 @@
-import { descargarDocumento, QBoton } from "@olula/componentes/index.js";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
+import {
+  descargarDocumento,
+  QBoton,
+  QIcono,
+} from "@olula/componentes/index.js";
 import { DocumentoArbol, DocumentosAPI } from "@olula/lib/api/documentos.ts";
 import { ContextoError } from "@olula/lib/contexto.js";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { AnadirDocumento } from "./AnadirDocumento.tsx";
 import { CrearCarpeta } from "./CrearCarpeta.tsx";
-import { NodoArbolItem } from "./NodoArbolItem.tsx";
 import { ConfiguracionArbolDocumentos } from "./diseño.ts";
 import { getMaquinaArbolDocumentos } from "./maquina.ts";
+import { NodoArbolItem } from "./NodoArbolItem.tsx";
 import "./QArbolDocumentos.css";
 
 export interface QArbolDocumentosProps {
-    tipoObjeto: string;
-    objetoId: string;
-    onDescargar?: (documento: DocumentoArbol) => void;
-    onError?: (error: Error) => void;
+  tipoObjeto: string;
+  objetoId: string;
+  onDescargar?: (documento: DocumentoArbol) => void;
+  onError?: (error: Error) => void;
 }
 
-export const QArbolDocumentos = ({ tipoObjeto, objetoId, onDescargar, onError }: QArbolDocumentosProps) => {
-    const handleError = useCallback(onError || (() => {}), [onError]);
+export const QArbolDocumentos = ({
+  tipoObjeto,
+  objetoId,
+  onDescargar,
+  onError,
+}: QArbolDocumentosProps) => {
+  const handleError = useCallback(onError || (() => {}), [onError]);
 
-    const configuracion: ConfiguracionArbolDocumentos = { tipoObjeto, objetoId };
+  const configuracion: ConfiguracionArbolDocumentos = { tipoObjeto, objetoId };
 
-    const { ctx, emitir } = useMaquina(getMaquinaArbolDocumentos, {
-        estado: "cargando" as const,
-        nodos: [],
-        configuracion,
-        carpetaPadreId: null,
+  const { ctx, emitir } = useMaquina(getMaquinaArbolDocumentos, {
+    estado: "cargando" as const,
+    nodos: [],
+    configuracion,
+    carpetaPadreId: null,
+  });
+  const { intentar } = useContext(ContextoError);
+  const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setExpandidos(new Set());
+    emitir("cargar_arbol", { tipoObjeto, objetoId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipoObjeto, objetoId]);
+
+  useEffect(() => {
+    if (ctx.estado === "cargado" && ctx.carpetaPadreId) {
+      const carpetaPadreId = ctx.carpetaPadreId;
+      setExpandidos((actual) =>
+        actual.has(carpetaPadreId)
+          ? actual
+          : new Set(actual).add(carpetaPadreId)
+      );
+    }
+  }, [ctx.estado, ctx.carpetaPadreId]);
+
+  const handleToggle = useCallback((id: string) => {
+    setExpandidos((actual) => {
+      const nuevo = new Set(actual);
+      if (nuevo.has(id)) {
+        nuevo.delete(id);
+      } else {
+        nuevo.add(id);
+      }
+      return nuevo;
     });
-    const { intentar } = useContext(ContextoError);
-    const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
+  }, []);
 
-    useEffect(() => {
-        setExpandidos(new Set());
-        emitir("cargar_arbol", { tipoObjeto, objetoId });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tipoObjeto, objetoId]);
-
-    useEffect(() => {
-        if (ctx.estado === "cargado" && ctx.carpetaPadreId) {
-            const carpetaPadreId = ctx.carpetaPadreId;
-            setExpandidos((actual) => (actual.has(carpetaPadreId) ? actual : new Set(actual).add(carpetaPadreId)));
-        }
-    }, [ctx.estado, ctx.carpetaPadreId]);
-
-    const handleToggle = useCallback((id: string) => {
-        setExpandidos((actual) => {
-            const nuevo = new Set(actual);
-            if (nuevo.has(id)) {
-                nuevo.delete(id);
-            } else {
-                nuevo.add(id);
-            }
-            return nuevo;
+  const handleDescargar = useCallback(
+    async (documento: DocumentoArbol) => {
+      if (onDescargar) {
+        onDescargar(documento);
+        return;
+      }
+      try {
+        await intentar(async () => {
+          const blob = await DocumentosAPI.descargar(documento.id);
+          await descargarDocumento(blob, documento.nombre);
         });
-    }, []);
+      } catch (error) {
+        handleError(
+          error instanceof Error ? error : new Error("Error desconocido")
+        );
+      }
+    },
+    [intentar, onDescargar, handleError]
+  );
 
-    const handleDescargar = useCallback(
-        async (documento: DocumentoArbol) => {
-            if (onDescargar) {
-                onDescargar(documento);
-                return;
-            }
-            try {
-                await intentar(async () => {
-                    const blob = await DocumentosAPI.descargar(documento.id);
-                    await descargarDocumento(blob, documento.nombre);
-                });
-            } catch (error) {
-                handleError(error instanceof Error ? error : new Error("Error desconocido"));
-            }
-        },
-        [intentar, onDescargar, handleError]
-    );
+  const handleCrearCarpeta = useCallback(
+    (carpetaPadreId: string | null) => {
+      emitir("creacion_carpeta_solicitada", carpetaPadreId);
+    },
+    [emitir]
+  );
 
-    const handleCrearCarpeta = useCallback(
-        (carpetaPadreId: string | null) => {
-            emitir("creacion_carpeta_solicitada", carpetaPadreId);
-        },
-        [emitir]
-    );
+  const handleAnadirDocumento = useCallback(
+    (carpetaPadreId: string | null) => {
+      emitir("adicion_documento_solicitada", carpetaPadreId);
+    },
+    [emitir]
+  );
 
-    const handleAnadirDocumento = useCallback(
-        (carpetaPadreId: string | null) => {
-            emitir("adicion_documento_solicitada", carpetaPadreId);
-        },
-        [emitir]
-    );
-
-    return (
-        <div className="QArbolDocumentos">
-            {ctx.estado === "cargando" && (
-                <div className="QArbolDocumentos-cargando">
-                    <p>Cargando árbol de documentos...</p>
-                </div>
-            )}
-            {ctx.estado !== "cargando" && (
-                <div className="QArbolDocumentos-cabecera">
-                    <QBoton tamaño="pequeño" variante="borde" onClick={() => handleAnadirDocumento(null)}>
-                        Añadir
-                    </QBoton>
-                    <QBoton tamaño="pequeño" variante="borde" onClick={() => handleCrearCarpeta(null)}>
-                        Nueva carpeta
-                    </QBoton>
-                </div>
-            )}
-            {ctx.estado === "cargado" && ctx.nodos.length === 0 && (
-                <div className="QArbolDocumentos-vacio">
-                    <p>No hay documentos</p>
-                </div>
-            )}
-            {ctx.estado !== "cargando" && ctx.nodos.length > 0 && (
-                <div className="QArbolDocumentos-arbol">
-                    {ctx.nodos.map((nodo) => (
-                        <NodoArbolItem
-                            key={nodo.id}
-                            nodo={nodo}
-                            nivel={0}
-                            expandidos={expandidos}
-                            onToggle={handleToggle}
-                            onDescargar={handleDescargar}
-                            onCrearCarpeta={handleCrearCarpeta}
-                            onAnadirDocumento={handleAnadirDocumento}
-                        />
-                    ))}
-                </div>
-            )}
-            {ctx.estado === "creando_carpeta" && (
-                <CrearCarpeta
-                    vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
-                    vinculoId={ctx.carpetaPadreId ?? objetoId}
-                    publicar={emitir}
-                />
-            )}
-            {ctx.estado === "anadiendo_documento" && (
-                <AnadirDocumento
-                    vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
-                    vinculoId={ctx.carpetaPadreId ?? objetoId}
-                    publicar={emitir}
-                />
-            )}
+  return (
+    <div className="QArbolDocumentos">
+      {ctx.estado === "cargando" && (
+        <div className="QArbolDocumentos-cargando">
+          <p>Cargando árbol de documentos...</p>
         </div>
-    );
+      )}
+      {ctx.estado !== "cargando" && (
+        <div className="QArbolDocumentos-cabecera">
+          <div className="QArbolDocumentos-titulo">
+            <span className="QArbolDocumentos-chevron-espaciador" />
+            <span className="QArbolDocumentos-raiz">/</span>
+          </div>
+          <div className="QArbolDocumentos-botones">
+            <QBoton
+              tamaño="pequeño"
+              variante="texto"
+              onClick={() => handleCrearCarpeta(null)}
+            >
+              <QIcono nombre="carpeta_nueva" tamaño="md" />
+            </QBoton>
+            <QBoton
+              tamaño="pequeño"
+              variante="texto"
+              onClick={() => handleAnadirDocumento(null)}
+            >
+              <QIcono nombre="documento_nuevo" tamaño="md" />
+            </QBoton>
+          </div>
+        </div>
+      )}
+      {ctx.estado === "cargado" && ctx.nodos.length === 0 && (
+        <div className="QArbolDocumentos-vacio">
+          <p>No hay documentos</p>
+        </div>
+      )}
+      {ctx.estado !== "cargando" && ctx.nodos.length > 0 && (
+        <div className="QArbolDocumentos-arbol">
+          {ctx.nodos.map((nodo) => (
+            <NodoArbolItem
+              key={nodo.id}
+              nodo={nodo}
+              nivel={0}
+              expandidos={expandidos}
+              onToggle={handleToggle}
+              onDescargar={handleDescargar}
+              onCrearCarpeta={handleCrearCarpeta}
+              onAnadirDocumento={handleAnadirDocumento}
+            />
+          ))}
+        </div>
+      )}
+      {ctx.estado === "creando_carpeta" && (
+        <CrearCarpeta
+          vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
+          vinculoId={ctx.carpetaPadreId ?? objetoId}
+          publicar={emitir}
+        />
+      )}
+      {ctx.estado === "anadiendo_documento" && (
+        <AnadirDocumento
+          vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
+          vinculoId={ctx.carpetaPadreId ?? objetoId}
+          publicar={emitir}
+        />
+      )}
+    </div>
+  );
 };

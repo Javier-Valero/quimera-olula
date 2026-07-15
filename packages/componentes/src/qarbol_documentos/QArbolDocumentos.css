@@ -6,8 +6,35 @@
 
 .QArbolDocumentos-cabecera {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+}
+
+.QArbolDocumentos-titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.QArbolDocumentos-chevron-espaciador {
+    width: 1rem;
+    flex-shrink: 0;
+}
+
+.QArbolDocumentos-raiz {
+    color: #333;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.QArbolDocumentos-botones {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
 }
 
 .QArbolDocumentos-cargando,
