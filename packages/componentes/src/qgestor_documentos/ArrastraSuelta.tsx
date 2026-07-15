@@ -1,4 +1,4 @@
-import { QBoton } from "@olula/componentes/index.js";
+import { QBoton, QIcono } from "@olula/componentes/index.js";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { useCallback, useRef, useState } from "react";
 import "./ArrastraSuelta.css";
@@ -64,7 +64,9 @@ export const ArrastraSuelta = ({ emitir }: { emitir: EmitirEvento }) => {
         onDrop={handleDrop}
       >
         <div className="ArrastraSuelta-contenido">
-          <div className="ArrastraSuelta-icono">📄</div>
+          <div className="ArrastraSuelta-icono">
+            <QIcono nombre="subir" tamaño="xl" />
+          </div>
           <p className="ArrastraSuelta-titulo">Arrastra archivos aquí</p>
           <p className="ArrastraSuelta-subtitulo">o</p>
           <QBoton onClick={() => inputRef.current?.click()}>

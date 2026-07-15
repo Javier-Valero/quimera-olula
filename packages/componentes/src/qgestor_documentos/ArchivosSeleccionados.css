@@ -52,7 +52,8 @@
 }
 
 .ArchivosSeleccionados-icono {
-    font-size: 1.25rem;
+    display: flex;
+    color: #666;
     flex-shrink: 0;
 }
 

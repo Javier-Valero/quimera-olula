@@ -35,7 +35,8 @@
 }
 
 .ArrastraSuelta-icono {
-    font-size: 48px;
+    display: flex;
+    color: #666;
     opacity: 0.6;
 }
 

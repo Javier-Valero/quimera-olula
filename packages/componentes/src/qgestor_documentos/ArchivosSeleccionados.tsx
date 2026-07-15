@@ -1,4 +1,4 @@
-import { QBoton } from "@olula/componentes/index.js";
+import { QBoton, QIcono } from "@olula/componentes/index.js";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { useCallback } from "react";
 import "./ArchivosSeleccionados.css";
@@ -43,7 +43,9 @@ export const ArchivosSeleccionados = ({
         {archivos.map((archivo, index) => (
           <div key={index} className="ArchivosSeleccionados-item">
             <div className="ArchivosSeleccionados-info">
-              <div className="ArchivosSeleccionados-icono">📄</div>
+              <div className="ArchivosSeleccionados-icono">
+                <QIcono nombre="fichero" tamaño="sm" />
+              </div>
               <div className="ArchivosSeleccionados-detalles">
                 <p className="ArchivosSeleccionados-nombre">{archivo.name}</p>
                 <p className="ArchivosSeleccionados-tamaño">
