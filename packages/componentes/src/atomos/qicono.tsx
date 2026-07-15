@@ -32,6 +32,8 @@ import {
   IconEdit,
   IconEye,
   IconFile,
+  IconFolder,
+  IconFolderOpen,
   IconHome,
   IconHourglass,
   IconLink,
@@ -63,6 +65,7 @@ import {
   IconTag,
   IconTool,
   IconTrash,
+  IconUpload,
   IconUser,
   IconUserCircle,
   IconUsers,
@@ -77,6 +80,7 @@ type QIconoProps = {
   nombre: string;
   tamaño?: "xs" | "sm" | "md" | "lg" | "xl";
   color?: string;
+  relleno?: boolean | string;
   style?: React.CSSProperties;
 };
 
@@ -100,6 +104,9 @@ const iconos: Record<string, Icon> = {
   cerrar: IconX,
   inicio: IconHome,
   fichero: IconFile,
+  carpeta: IconFolder,
+  carpeta_abierta: IconFolderOpen,
+  subir: IconUpload,
   grafico_barras: IconChartBar,
   candado: IconLock,
   candado_abierto: IconLockOpen,
@@ -172,14 +179,26 @@ export const QIcono = ({
   nombre,
   tamaño = "md",
   color,
+  relleno,
   style,
 }: QIconoProps) => {
   const Icono = iconos[nombre] ?? IconQuestionMark;
   const size = tamaños[tamaño] ?? 20;
+  const fill =
+    typeof relleno === "string"
+      ? relleno
+      : relleno
+        ? "var(--color-primario-claro)"
+        : undefined;
 
   return (
     <quimera-icono>
-      <Icono size={size} color={color} style={style} />
+      <Icono
+        size={size}
+        color={color}
+        style={style}
+        {...(fill ? { fill } : {})}
+      />
     </quimera-icono>
   );
 };
