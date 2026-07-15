@@ -86,13 +86,16 @@ export const QGestorDocumentos = ({
 
   return (
     <div className="QGestorDocumentos">
-      {ctx.estado === "lista" && <ArrastraSuelta emitir={emitir} />}
-      {ctx.estado === "archivos-seleccionados" && (
-        <ArchivosSeleccionados
-          archivos={ctx.archivosSeleccionados}
-          emitir={emitir}
-        />
+      {(ctx.estado === "lista" || ctx.estado === "archivos-seleccionados") && (
+        <ArrastraSuelta emitir={emitir} />
       )}
+      {ctx.estado === "archivos-seleccionados" &&
+        ctx.archivosSeleccionados.length > 0 && (
+          <ArchivosSeleccionados
+            archivos={ctx.archivosSeleccionados}
+            emitir={emitir}
+          />
+        )}
       {ctx.estado === "subiendo" && (
         <div className="QGestorDocumentos-subiendo">
           <p>Subiendo archivos...</p>

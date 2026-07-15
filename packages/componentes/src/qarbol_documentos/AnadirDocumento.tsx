@@ -1,5 +1,4 @@
 import { QGestorDocumentos, QModal } from "@olula/componentes/index.js";
-import { useEsMovil } from "@olula/componentes/maestro/useEsMovil.ts";
 import { EmitirEvento } from "@olula/lib/diseño.js";
 import { useCallback } from "react";
 import "./AnadirDocumento.css";
@@ -42,7 +41,7 @@ export const AnadirDocumento = ({
       titulo="Añadir documento"
       onCerrar={cancelar}
     >
-      <div className={`${useEsMovil() ? "" : "AnadirDocumento"}`}>
+      <div className={"AnadirDocumento"}>
         <QGestorDocumentos
           vinculo_tipo={vinculoTipo}
           vinculo_id={vinculoId}

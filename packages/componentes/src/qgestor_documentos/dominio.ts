@@ -34,12 +34,21 @@ export const cargarDocumentos: ProcesarGestorDocumentos = async (contexto) => {
     }
 };
 
-export const seleccionarArchivos: ProcesarGestorDocumentos = async (contexto, payload) => {
-    const archivos = payload as File[];
+export const agregarArchivosSeleccionados: ProcesarGestorDocumentos = async (contexto, payload) => {
+    const archivosNuevos = payload as File[];
 
     return {
         ...contexto,
-        archivosSeleccionados: archivos,
+        archivosSeleccionados: [...contexto.archivosSeleccionados, ...archivosNuevos],
+    };
+};
+
+export const eliminarArchivoSeleccionado: ProcesarGestorDocumentos = async (contexto, payload) => {
+    const indice = payload as number;
+
+    return {
+        ...contexto,
+        archivosSeleccionados: contexto.archivosSeleccionados.filter((_, i) => i !== indice),
     };
 };
 

@@ -18,6 +18,13 @@ export const ArchivosSeleccionados = ({
     emitir("subida_cancelada");
   }, [emitir]);
 
+  const handleEliminar = useCallback(
+    (index: number) => {
+      emitir("archivo_eliminado", index);
+    },
+    [emitir]
+  );
+
   const formatearTamaño = (bytes: number): string => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -44,13 +51,23 @@ export const ArchivosSeleccionados = ({
                 </p>
               </div>
             </div>
+            <QBoton
+              tamaño="pequeño"
+              variante="texto"
+              destructivo
+              onClick={() => handleEliminar(index)}
+            >
+              Quitar
+            </QBoton>
           </div>
         ))}
       </div>
 
       <div className="ArchivosSeleccionados-botones">
         <QBoton onClick={handleCancelar}>Cancelar</QBoton>
-        <QBoton onClick={handleGuardar}>Guardar</QBoton>
+        <QBoton onClick={handleGuardar} deshabilitado={archivos.length === 0}>
+          Guardar
+        </QBoton>
       </div>
     </div>
   );
