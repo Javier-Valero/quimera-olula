@@ -4,7 +4,7 @@ import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import ApiUrls from "../comun/urls.ts";
-import { GetNotas, Nota, PostNota } from "./detalle/tabs/notas/diseño.ts";
+import { DeleteNota, GetNotas, Nota, PostNota } from "./detalle/tabs/notas/diseño.ts";
 import { GetTareas, Tarea } from "./detalle/tabs/tareas/diseño.ts";
 import { CategoriaIncidencia, CrearPresupuestoIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
 
@@ -258,5 +258,9 @@ export const postNota: PostNota = async (nota) => {
     return await RestAPI.post(baseUrlNota, nota, "Error al guardar Nota").then(
         (respuesta) => respuesta.id
     );
+};
+
+export const deleteNota: DeleteNota = async (id) => {
+    await RestAPI.delete(`${baseUrlNota}/${id}`, "Error al borrar Nota");
 };
 

@@ -31,6 +31,12 @@
     color: #666;
 }
 
+.NotaMeta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .NotaAgente {
     font-weight: 500;
 }

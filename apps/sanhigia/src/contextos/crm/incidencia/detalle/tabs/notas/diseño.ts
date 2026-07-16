@@ -16,3 +16,5 @@ export type GetNotas = (
 export type PostNota = (
     nota: Omit<Nota, "id">
 ) => Promise<string>;
+
+export type DeleteNota = (id: string) => Promise<void>;

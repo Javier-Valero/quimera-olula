@@ -1,6 +1,6 @@
 import { Nota } from "../diseño.ts";
 
-export type EstadoNotas = "lista" | "creando";
+export type EstadoNotas = "lista" | "creando" | "borrando";
 
 export type ContextoNotas = {
     estado: EstadoNotas;
@@ -8,4 +8,5 @@ export type ContextoNotas = {
     cargando: boolean;
     incidenciaId: string;
     agenteId: string;
+    notaSeleccionada?: Nota;
 };

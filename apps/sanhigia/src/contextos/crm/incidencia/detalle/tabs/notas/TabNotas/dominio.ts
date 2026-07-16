@@ -1,5 +1,6 @@
 import { ProcesarContexto } from "@olula/lib/diseño.js";
 import { getNotas, postNota } from "../../../../infraestructura.ts";
+import { Nota } from "../diseño.ts";
 import { ContextoNotas, EstadoNotas } from "./diseño.ts";
 
 type ProcesarNotas = ProcesarContexto<EstadoNotas, ContextoNotas>;
@@ -14,6 +15,11 @@ export const cargarNotas: ProcesarNotas = async (contexto, payload) => {
         cargando: false,
     }
 }
+
+export const seleccionarNota: ProcesarNotas = async (contexto, payload) => ({
+    ...contexto,
+    notaSeleccionada: payload as Nota,
+});
 
 export const crearNota: ProcesarNotas = async (contexto, payload) => {
     const { texto } = payload as { texto: string };

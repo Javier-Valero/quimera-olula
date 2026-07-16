@@ -2,6 +2,7 @@ import { QBoton } from "@olula/componentes/atomos/qboton.js";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { useEffect } from "react";
 import { Nota } from "../diseño.ts";
+import { BorrarNota } from "./BorrarNota.tsx";
 import { CrearNota } from "./CrearNota.tsx";
 import { TabNotasLista } from "./TabNotasLista.tsx";
 import { getMaquina } from "./maquina.ts";
@@ -50,10 +51,14 @@ export const TabNotas = ({
           emitir={emitir}
         />
       )}
+      {ctx.estado === "borrando" && ctx.notaSeleccionada && (
+        <BorrarNota nota={ctx.notaSeleccionada} emitir={emitir} />
+      )}
       <TabNotasLista
         incidenciaId={incidenciaId}
         notas={ctx.notas}
         cargando={ctx.cargando}
+        onBorrar={(nota) => emitir("borrar_nota_solicitado", nota)}
       />
     </div>
   );
