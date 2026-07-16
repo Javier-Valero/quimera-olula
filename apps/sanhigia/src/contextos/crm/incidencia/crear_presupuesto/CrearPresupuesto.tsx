@@ -2,6 +2,7 @@ import { QModalConfirmacion } from "@olula/componentes/moleculas/qmodalconfirmac
 import { EmitirEvento } from "@olula/lib/diseño.js";
 import { useForm } from "@olula/lib/useForm.js";
 import { useCallback } from "react";
+import { useNavigate } from "react-router";
 import { Incidencia } from "../diseño.ts";
 import { crearPresupuestoIncidencia } from "../infraestructura.ts";
 
@@ -12,10 +13,13 @@ export const CrearPresupuesto = ({
   incidencia: Incidencia;
   publicar: EmitirEvento;
 }) => {
+  const navigate = useNavigate();
+
   const crearPresupuesto_ = useCallback(async () => {
-    await crearPresupuestoIncidencia(incidencia.id);
+    const idPresupuesto = await crearPresupuestoIncidencia(incidencia);
     publicar("presupuesto_creado", incidencia.id);
-  }, [publicar, incidencia.id]);
+    navigate(`/ventas/presupuestos/${idPresupuesto}`);
+  }, [publicar, incidencia, navigate]);
 
   const cancelar_ = useCallback(
     () => publicar("creacion_presupuesto_cancelada"),

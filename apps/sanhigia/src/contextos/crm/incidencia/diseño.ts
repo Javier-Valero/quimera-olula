@@ -40,3 +40,4 @@ export type GetAccionesIncidencia = (id: string) => Promise<Accion[]>;
 export type PostIncidencia = (incidencia: Partial<Incidencia>) => Promise<string>;
 export type PatchIncidencia = (id: string, incidencia: Partial<Incidencia>) => Promise<void>;
 export type DeleteIncidencia = (id: string) => Promise<void>;
+export type CrearPresupuestoIncidencia = (incidencia: Incidencia) => Promise<string>;

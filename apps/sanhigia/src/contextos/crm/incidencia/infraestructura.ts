@@ -1,11 +1,12 @@
 import { getAcciones } from "#/crm/accion/infraestructura.ts";
+import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
 import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import ApiUrls from "../comun/urls.ts";
 import { GetNotas, Nota, PostNota } from "./detalle/tabs/notas/diseño.ts";
 import { GetTareas, Tarea } from "./detalle/tabs/tareas/diseño.ts";
-import { CategoriaIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
+import { CategoriaIncidencia, CrearPresupuestoIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
 
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;
 const baseUrlTarea = new ApiUrls().TAREA;
@@ -182,9 +183,48 @@ export const getSubCategorias = async (filtro: Filtro, orden: Orden, paginacion:
     return { datos: respuesta.datos, total: respuesta.total };
 };
 
-export const crearPresupuestoIncidencia = async (incidenciaId: string) => {
-    await RestAPI.post(`${baseUrlIncidencia}/${incidenciaId}/crear_presupuesto`, {}, "Error al crear presupuesto");
+interface CrearPresupuestoIncidenciaBody {
+    codincidencia: string;
+    codcliente: string;
+    codagente: string;
+    coddir: string | null;
+    regimeniva: string | null;
 }
+
+const idPresupuestoDesdeRespuesta = (respuesta: unknown): string => {
+    if (typeof respuesta === "number" || typeof respuesta === "string") {
+        return String(respuesta);
+    }
+
+    if (respuesta && typeof respuesta === "object") {
+        const { pk, id, response } = respuesta as { pk?: unknown; id?: unknown; response?: unknown };
+        const valor = pk ?? id ?? response;
+        if (valor !== undefined && valor !== null) {
+            return String(valor);
+        }
+    }
+
+    throw new Error("La API de crear_presupuesto_incidencia no devolvió un identificador válido");
+};
+
+export const crearPresupuestoIncidencia: CrearPresupuestoIncidencia = async (incidencia) => {
+    const respuesta = await LegacyAPI.post<CrearPresupuestoIncidenciaBody, unknown>(
+        legacyUrl("incidencias", {
+            action: "crear_presupuesto_incidencia",
+            staticAction: true,
+        }) + "?",
+        {
+            codincidencia: incidencia.id,
+            codcliente: incidencia.clienteId,
+            codagente: incidencia.agenteId,
+            coddir: null,
+            regimeniva: null,
+        },
+        "Error al crear presupuesto"
+    );
+
+    return idPresupuestoDesdeRespuesta(respuesta);
+};
 
 interface NotaAPI {
     id: string;
