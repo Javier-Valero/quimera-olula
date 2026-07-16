@@ -1,4 +1,4 @@
-import { MetaModelo } from "@olula/lib/dominio.js";
+import { MetaModelo, stringNoVacio } from "@olula/lib/dominio.js";
 
 export type NuevaCarpeta = {
     nombre: string;
@@ -6,7 +6,7 @@ export type NuevaCarpeta = {
 
 export const metaNuevaCarpeta: MetaModelo<NuevaCarpeta> = {
     campos: {
-        nombre: { requerido: true },
+        nombre: { requerido: true, validacion: (carpeta: NuevaCarpeta) => stringNoVacio(carpeta.nombre) },
     },
 };
 

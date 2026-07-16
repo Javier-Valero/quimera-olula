@@ -2,9 +2,12 @@ import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { DocumentosAPI } from "@olula/lib/api/documentos.ts";
 import { ContextoError } from "@olula/lib/contexto.js";
 import { useCallback, useContext, useEffect, useRef } from "react";
-import { ArchivosSeleccionados } from "./ArchivosSeleccionados";
+import { ArchivosSeleccionados } from "./ArchivosSeleccionados.tsx";
 import { ArrastraSuelta } from "./ArrastraSuelta.tsx";
-import { ConfiguracionGestorDocumentos, EstadoGestorDocumentos } from "./diseño.ts";
+import {
+  ConfiguracionGestorDocumentos,
+  EstadoGestorDocumentos,
+} from "./diseño.ts";
 import { getMaquinaGestorDocumentos } from "./maquina.ts";
 import "./QGestorDocumentos.css";
 
@@ -68,7 +71,10 @@ export const QGestorDocumentos = ({
 
   useEffect(() => {
     // Solo el botón "Cancelar" de la selección de archivos produce esta transición
-    if (estadoAnteriorRef.current === "archivos-seleccionados" && ctx.estado === "lista") {
+    if (
+      estadoAnteriorRef.current === "archivos-seleccionados" &&
+      ctx.estado === "lista"
+    ) {
       handleCancelar();
     }
     estadoAnteriorRef.current = ctx.estado;

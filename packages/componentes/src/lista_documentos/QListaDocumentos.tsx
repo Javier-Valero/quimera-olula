@@ -2,7 +2,7 @@ import { MetaTabla, QTabla } from "@olula/componentes/atomos/qtabla.tsx";
 import { DocumentoGenerico, DocumentosAPI } from "@olula/lib/api/documentos.ts";
 import { Filtro } from "@olula/lib/diseño.ts";
 import { useEffect, useMemo, useState } from "react";
-import { descargarDocumento } from "../qgestor_documentos/dominio.ts";
+import { descargarDocumento } from "../gestor_documentos/dominio.ts";
 import { QListaDocumentosProps } from "./diseño.ts";
 import "./QListaDocumentos.css";
 
