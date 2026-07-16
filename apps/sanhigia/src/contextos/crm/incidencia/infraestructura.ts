@@ -1,4 +1,4 @@
-import { getAcciones } from "#/crm/accion/infraestructura.ts";
+// import { getAcciones } from "#/crm/accion/infraestructura.ts";
 import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
 import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
@@ -111,9 +111,9 @@ export const deleteIncidencia: DeleteIncidencia = async (id) => {
     await RestAPI.delete(`${baseUrlIncidencia}/${id}`, "Error al borrar Incidencia");
 }
 
-export const getAccionesIncidencia = async (incidenciaId: string) => {
-    return getAcciones([['incidencia_id', incidenciaId]], [], { limite: 50, pagina: 1 });
-};
+// export const getAccionesIncidencia = async (incidenciaId: string) => {
+//     return getAcciones([['incidencia_id', incidenciaId]], [], { limite: 50, pagina: 1 });
+// };
 
 interface TareaAPI {
     id: string;

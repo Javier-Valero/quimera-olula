@@ -20,6 +20,7 @@ export const incidenciaVacia: Incidencia = {
     facturaId: "",
     codigoFactura: "",
     articuloId: "",
+    agenteId: "",
 };
 
 export const metaIncidencia: MetaModelo<Incidencia> = {

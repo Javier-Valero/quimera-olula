@@ -1,5 +1,5 @@
 import { Entidad, Filtro, Orden, Paginacion, RespuestaLista } from "@olula/lib/diseño.ts";
-import { Accion } from "../accion/diseño.ts";
+// import { Accion } from "../accion/diseño.ts";
 
 export type PrioridadIncidencia = 'Baja' | 'Media' | 'Alta';
 export type EstadoIncidencia = 'Pendiente' | 'Nueva' | 'Pendiente de datos' | 'Asignada' | 'Rechazada' | 'Cerrada';
@@ -35,7 +35,7 @@ export type GetIncidencias = (
     paginacion: Paginacion
 ) => RespuestaLista<Incidencia>;
 
-export type GetAccionesIncidencia = (id: string) => Promise<Accion[]>;
+// export type GetAccionesIncidencia = (id: string) => Promise<Accion[]>;
 
 export type PostIncidencia = (incidencia: Partial<Incidencia>) => Promise<string>;
 export type PatchIncidencia = (id: string, incidencia: Partial<Incidencia>) => Promise<void>;
