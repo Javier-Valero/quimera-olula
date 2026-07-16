@@ -1,8 +1,8 @@
 import { Paginacion } from "@olula/lib/diseño.ts";
 
 export interface QListaDocumentosProps {
-    vinculo_tipo: string;
-    vinculo_id: string;
+    vinculoTipo: string;
+    vinculoId: string;
     paginacion?: Paginacion;
     refreshCounter?: number;
     onError?: (error: Error) => void;

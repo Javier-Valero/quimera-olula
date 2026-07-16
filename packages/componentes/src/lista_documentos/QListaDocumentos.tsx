@@ -1,14 +1,17 @@
 import { MetaTabla, QTabla } from "@olula/componentes/atomos/qtabla.tsx";
-import { DocumentoGenerico, DocumentosAPI } from "@olula/lib/api/documentos.ts";
-import { Filtro } from "@olula/lib/diseño.ts";
+import {
+  DocumentoGenerico,
+  DocumentosAPI,
+  filtroVinculoDocumentos,
+} from "@olula/lib/api/documentos.ts";
 import { useEffect, useMemo, useState } from "react";
 import { descargarDocumento } from "../gestor_documentos/dominio.ts";
 import { QListaDocumentosProps } from "./diseño.ts";
 import "./QListaDocumentos.css";
 
 export const QListaDocumentos = ({
-  vinculo_tipo,
-  vinculo_id,
+  vinculoTipo,
+  vinculoId,
   paginacion = { limite: 50, pagina: 1 },
   refreshCounter,
   onError,
@@ -30,11 +33,7 @@ export const QListaDocumentos = ({
     const cargarDocumentos = async () => {
       try {
         setCargando(true);
-        // Agregar _id al vinculo_tipo para el filtro si no lo tiene
-        const vinculo_tipo_filtro = vinculo_tipo.endsWith("_id")
-          ? vinculo_tipo
-          : `${vinculo_tipo}_id`;
-        const filtro: Filtro = [[vinculo_tipo_filtro, vinculo_id]];
+        const filtro = filtroVinculoDocumentos(vinculoTipo, vinculoId);
         const resultado = await DocumentosAPI.obtener(
           filtro,
           [],
@@ -52,7 +51,7 @@ export const QListaDocumentos = ({
     };
 
     cargarDocumentos();
-  }, [vinculo_id, paginacionMemoizada, vinculo_tipo, refreshCounter]);
+  }, [vinculoId, paginacionMemoizada, vinculoTipo, refreshCounter]);
 
   const handleOrdenar = (columna: string) => {
     if (ordenActual[0] === columna) {

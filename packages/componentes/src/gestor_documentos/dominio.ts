@@ -1,20 +1,15 @@
-import { DocumentosAPI } from "@olula/lib/api/documentos.ts";
+import { DocumentosAPI, filtroVinculoDocumentos } from "@olula/lib/api/documentos.ts";
 import { ProcesarContexto } from "@olula/lib/diseño.js";
-import { Filtro } from "@olula/lib/diseño.ts";
 import { ContextoGestorDocumentos, EstadoGestorDocumentos } from "./diseño.ts";
 
 type ProcesarGestorDocumentos = ProcesarContexto<EstadoGestorDocumentos, ContextoGestorDocumentos>;
 
 export const cargarDocumentos: ProcesarGestorDocumentos = async (contexto) => {
     try {
-        // Agregar _id al vinculo_tipo para el filtro si no lo tiene
-        const vinculo_tipo_filtro = contexto.configuracion.vinculo_tipo.endsWith("_id")
-            ? contexto.configuracion.vinculo_tipo
-            : `${contexto.configuracion.vinculo_tipo}_id`;
-
-        const filtro: Filtro = [
-            [vinculo_tipo_filtro, contexto.configuracion.vinculo_id]
-        ];
+        const filtro = filtroVinculoDocumentos(
+            contexto.configuracion.vinculoTipo,
+            contexto.configuracion.vinculoId
+        );
 
         const resultado = await DocumentosAPI.obtener(
             filtro,

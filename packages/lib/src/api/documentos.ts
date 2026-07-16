@@ -5,6 +5,16 @@ import { RestAPI } from "./rest_api.ts";
 const DOCUMENTAL_BASE_URL = "/documental/documento";
 
 /**
+ * Filtro para documentos vinculados a un objeto de negocio.
+ * El campo de filtro necesita el sufijo "_id" (p.ej. "incidencia_id"); si vinculoTipo
+ * ya lo incluye (p.ej. al filtrar por carpeta padre con "gd_documentos") se usa tal cual.
+ */
+export const filtroVinculoDocumentos = (vinculoTipo: string, vinculoId: string): Filtro => {
+    const campo = vinculoTipo.endsWith("_id") ? vinculoTipo : `${vinculoTipo}_id`;
+    return [[campo, vinculoId]];
+};
+
+/**
  * Interfaz genérica para documentos
  */
 export interface DocumentoGenerico {

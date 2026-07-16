@@ -12,9 +12,9 @@ import { getMaquinaGestorDocumentos } from "./maquina.ts";
 import "./QGestorDocumentos.css";
 
 export interface QGestorDocumentosProps {
-  vinculo_tipo: string;
-  vinculo_id: string;
-  tipo_documento?: string;
+  vinculoTipo: string;
+  vinculoId: string;
+  tipoDocumento?: string;
   archivosIniciales?: File[];
   onDocumentoSubido?: () => void;
   onCancelar?: () => void;
@@ -22,9 +22,9 @@ export interface QGestorDocumentosProps {
 }
 
 export const QGestorDocumentos = ({
-  vinculo_tipo,
-  vinculo_id,
-  tipo_documento = "Documento",
+  vinculoTipo,
+  vinculoId,
+  tipoDocumento = "Documento",
   archivosIniciales,
   onDocumentoSubido,
   onCancelar,
@@ -38,9 +38,9 @@ export const QGestorDocumentos = ({
   const handleError = useCallback(onError || (() => {}), [onError]);
 
   const configuracion: ConfiguracionGestorDocumentos = {
-    vinculo_tipo,
-    vinculo_id,
-    tipo_documento,
+    vinculoTipo,
+    vinculoId,
+    tipoDocumento,
   };
 
   // Con archivos preseleccionados (selector nativo en móvil) se arranca directamente en
@@ -67,7 +67,7 @@ export const QGestorDocumentos = ({
       emitir("cargar_documentos");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vinculo_id]);
+  }, [vinculoId]);
 
   useEffect(() => {
     // Solo el botón "Cancelar" de la selección de archivos produce esta transición
@@ -85,19 +85,19 @@ export const QGestorDocumentos = ({
       (async () => {
         try {
           await intentar(async () => {
-            // Normalizar vinculo_tipo para guardar sin sufijo _id
-            const vinculo_tipo_normalizado = vinculo_tipo.endsWith("_id")
-              ? vinculo_tipo.slice(0, -3)
-              : vinculo_tipo;
+            // Normalizar vinculoTipo para guardar sin sufijo _id
+            const vinculoTipoNormalizado = vinculoTipo.endsWith("_id")
+              ? vinculoTipo.slice(0, -3)
+              : vinculoTipo;
 
             for (const file of ctx.archivosSeleccionados) {
               const formData = new FormData();
               formData.append("nombre", file.name);
-              formData.append("tipo_documento", tipo_documento);
+              formData.append("tipo_documento", tipoDocumento);
               formData.append("nombre_fichero", file.name);
               formData.append("fichero", file);
-              formData.append("vinculo_tipo", vinculo_tipo_normalizado);
-              formData.append("vinculo_id", vinculo_id);
+              formData.append("vinculo_tipo", vinculoTipoNormalizado);
+              formData.append("vinculo_id", vinculoId);
 
               await DocumentosAPI.crear(formData);
             }

@@ -47,9 +47,9 @@ export const AnadirDocumento = ({
     >
       <div className={"AnadirDocumento"}>
         <QGestorDocumentos
-          vinculo_tipo={vinculoTipo}
-          vinculo_id={vinculoId}
-          tipo_documento="Documento"
+          vinculoTipo={vinculoTipo}
+          vinculoId={vinculoId}
+          tipoDocumento="Documento"
           archivosIniciales={archivosIniciales}
           onDocumentoSubido={handleDocumentoSubido}
           onCancelar={cancelar}
