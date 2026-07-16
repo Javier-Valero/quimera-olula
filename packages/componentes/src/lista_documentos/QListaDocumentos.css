@@ -5,26 +5,6 @@
 .QListaDocumentos-sin-datos {
     padding: 20px;
     text-align: center;
-    color: #999;
+    color: var(--color-texto-secundario);
     font-size: 14px;
-}
-
-.QListaDocumentos-boton-descargar {
-    padding: 6px 12px;
-    background-color: var(--color-primario, #007bff);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s ease;
-}
-
-.QListaDocumentos-boton-descargar:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-.QListaDocumentos-boton-descargar:active {
-    transform: translateY(0);
 }

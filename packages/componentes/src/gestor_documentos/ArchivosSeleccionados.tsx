@@ -57,6 +57,7 @@ export const ArchivosSeleccionados = ({
               tamaño="pequeño"
               variante="texto"
               destructivo
+              props={{ "aria-label": `Eliminar ${archivo.name}` }}
               onClick={() => handleEliminar(index)}
             >
               <QIcono nombre="eliminar" tamaño="md" />

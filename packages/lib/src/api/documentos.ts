@@ -199,3 +199,38 @@ export const DocumentosAPI = {
         await RestAPI.delete(`${DOCUMENTAL_BASE_URL}/${documentoId}`, "Error al borrar documento");
     },
 };
+
+/**
+ * Descarga un Blob a través del navegador
+ */
+export const descargarDocumento = async (blob: Blob, nombreArchivo: string): Promise<void> => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nombreArchivo;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
+
+/**
+ * Abre un Blob en una nueva pestaña
+ */
+export const abrirDocumento = async (blob: Blob): Promise<void> => {
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => window.URL.revokeObjectURL(url), 100);
+};
+
+/**
+ * Descarga y abre un Blob directamente
+ */
+export const descargarYAbrirDocumento = async (blob: Blob, nombreArchivo: string): Promise<void> => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nombreArchivo;
+    link.click();
+    URL.revokeObjectURL(url);
+};

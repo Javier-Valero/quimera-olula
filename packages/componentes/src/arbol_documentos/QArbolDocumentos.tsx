@@ -28,7 +28,10 @@ export const QArbolDocumentos = ({
   onDescargar,
   onError,
 }: QArbolDocumentosProps) => {
-  const handleError = useCallback(onError || (() => {}), [onError]);
+  const handleError = useCallback(
+    (error: Error) => onError?.(error),
+    [onError]
+  );
 
   const configuracion: ConfiguracionArbolDocumentos = { tipoObjeto, objetoId };
 
@@ -165,7 +168,7 @@ export const QArbolDocumentos = ({
         </div>
       )}
       {ctx.estado !== "cargando" && ctx.nodos.length > 0 && (
-        <div className="QArbolDocumentos-arbol">
+        <div className="QArbolDocumentos-arbol" role="tree">
           {ctx.nodos.map((nodo) => (
             <NodoArbolItem
               key={nodo.id}

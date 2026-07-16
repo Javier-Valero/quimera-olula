@@ -41,12 +41,22 @@ export const NodoArbolItem = ({
 
   if (esCarpetaArbol(nodo)) {
     const abierta = expandidos.has(nodo.id);
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onToggle(nodo.id);
+      }
+    };
     return (
       <div className="NodoArbolItem">
         <div
           className="NodoArbolItem-fila NodoArbolItem-carpeta"
           style={sangria}
           onClick={() => onToggle(nodo.id)}
+          onKeyDown={handleKeyDown}
+          role="treeitem"
+          aria-expanded={abierta}
+          tabIndex={0}
         >
           <span className="NodoArbolItem-chevron">
             <QIcono nombre={abierta ? "abajo" : "derecha"} tamaño="md" />
@@ -62,24 +72,24 @@ export const NodoArbolItem = ({
           <QBoton
             tamaño="pequeño"
             variante="texto"
+            props={{ "aria-label": `Nueva carpeta dentro de ${nodo.nombre}` }}
             onClick={(e) => {
               e.stopPropagation();
               onCrearCarpeta(nodo.id);
             }}
           >
             <QIcono nombre="carpeta_nueva" tamaño="md" />
-            {/* Nueva carpeta */}
           </QBoton>
           <QBoton
             tamaño="pequeño"
             variante="texto"
+            props={{ "aria-label": `Añadir documento dentro de ${nodo.nombre}` }}
             onClick={(e) => {
               e.stopPropagation();
               handleClick();
             }}
           >
             <QIcono nombre="documento_nuevo" tamaño="md" />
-            {/* Añadir */}
           </QBoton>
         </div>
         {/*
@@ -117,6 +127,7 @@ export const NodoArbolItem = ({
       <div
         className="NodoArbolItem-fila NodoArbolItem-documento"
         style={sangria}
+        role="treeitem"
       >
         <span className="NodoArbolItem-chevron" />
         <span className="NodoArbolItem-icono">
@@ -130,6 +141,7 @@ export const NodoArbolItem = ({
         <QBoton
           tamaño="pequeño"
           variante="texto"
+          props={{ "aria-label": `Descargar ${nodo.nombre}` }}
           onClick={() => onDescargar(nodo)}
         >
           <QIcono nombre="descargar" tamaño="md" />

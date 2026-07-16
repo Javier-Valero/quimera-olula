@@ -1,11 +1,12 @@
+import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { MetaTabla, QTabla } from "@olula/componentes/atomos/qtabla.tsx";
 import {
+  descargarDocumento,
   DocumentoGenerico,
   DocumentosAPI,
   filtroVinculoDocumentos,
 } from "@olula/lib/api/documentos.ts";
 import { useEffect, useMemo, useState } from "react";
-import { descargarDocumento } from "../gestor_documentos/dominio.ts";
 import { QListaDocumentosProps } from "./diseño.ts";
 import "./QListaDocumentos.css";
 
@@ -23,9 +24,12 @@ export const QListaDocumentos = ({
     "DESC",
   ]);
 
-  // Memoizar paginación para evitar cambios innecesarios
+  // Memoizar paginación para evitar cambios innecesarios: se compara por limite/pagina
+  // en vez de por la identidad del objeto `paginacion`, que puede cambiar en cada render
+  // del padre aunque su contenido sea el mismo.
   const paginacionMemoizada = useMemo(
     () => ({ ...paginacion }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [paginacion.limite, paginacion.pagina]
   );
 
@@ -51,6 +55,9 @@ export const QListaDocumentos = ({
     };
 
     cargarDocumentos();
+    // onError se excluye a propósito: es un callback del padre que no se memoiza,
+    // y no debe disparar una recarga en cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vinculoId, paginacionMemoizada, vinculoTipo, refreshCounter]);
 
   const handleOrdenar = (columna: string) => {
@@ -113,12 +120,9 @@ export const QListaDocumentos = ({
       prioridad: "alta",
       ancho: "15%",
       render: (doc) => (
-        <button
-          onClick={() => handleDescargar(doc)}
-          className="QListaDocumentos-boton-descargar"
-        >
+        <QBoton tamaño="pequeño" onClick={() => handleDescargar(doc)}>
           Descargar
-        </button>
+        </QBoton>
       ),
     },
   ];

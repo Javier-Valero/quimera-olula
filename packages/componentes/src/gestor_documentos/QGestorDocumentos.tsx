@@ -31,11 +31,15 @@ export const QGestorDocumentos = ({
   onError,
 }: QGestorDocumentosProps) => {
   // Memoizar callbacks para evitar cambios referenciales innecesarios
-  const handleDocumentoSubido = useCallback(onDocumentoSubido || (() => {}), [
-    onDocumentoSubido,
-  ]);
-  const handleCancelar = useCallback(onCancelar || (() => {}), [onCancelar]);
-  const handleError = useCallback(onError || (() => {}), [onError]);
+  const handleDocumentoSubido = useCallback(
+    () => onDocumentoSubido?.(),
+    [onDocumentoSubido]
+  );
+  const handleCancelar = useCallback(() => onCancelar?.(), [onCancelar]);
+  const handleError = useCallback(
+    (error: Error) => onError?.(error),
+    [onError]
+  );
 
   const configuracion: ConfiguracionGestorDocumentos = {
     vinculoTipo,

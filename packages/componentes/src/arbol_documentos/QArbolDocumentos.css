@@ -25,7 +25,7 @@
 }
 
 .QArbolDocumentos-raiz {
-    color: #333;
+    color: var(--color-texto-primario);
     font-size: 0.9rem;
     font-weight: 600;
 }
@@ -41,7 +41,7 @@
 .QArbolDocumentos-vacio {
     padding: 20px;
     text-align: center;
-    background-color: #f5f5f5;
+    background-color: var(--color-superficie-sunken);
     border-radius: 8px;
     min-height: 100px;
     display: flex;
@@ -52,7 +52,7 @@
 .QArbolDocumentos-cargando p,
 .QArbolDocumentos-vacio p {
     margin: 0;
-    color: #333;
+    color: var(--color-texto-primario);
     font-size: 16px;
 }
 
