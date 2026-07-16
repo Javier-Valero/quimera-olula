@@ -140,15 +140,15 @@ const tareaDesdeApi = (api: TareaAPI): Tarea => ({
     hora: api.hora,
     tipo: api.tipo,
     completada: api.completada,
-    agente_id: api.agente_id || undefined,
+    agenteId: api.agente_id || undefined,
     nota: api.nota || undefined,
-    trato_id: api.trato_id || undefined,
-    incidencia_id: api.incidencia_id || undefined,
-    id_tarea_google: api.id_tarea_google || undefined,
-    fecha_fin: api.fecha_fin || undefined,
-    hora_fin: api.hora_fin || undefined,
-    latitud_fin: api.latitud_fin || undefined,
-    longitud_fin: api.longitud_fin || undefined,
+    tratoId: api.trato_id || undefined,
+    incidenciaId: api.incidencia_id || undefined,
+    idTareaGoogle: api.id_tarea_google || undefined,
+    fechaFin: api.fecha_fin || undefined,
+    horaFin: api.hora_fin || undefined,
+    latitudFin: api.latitud_fin || undefined,
+    longitudFin: api.longitud_fin || undefined,
 });
 
 export const getTareas: GetTareas = async (incidenciaId, paginacion) => {

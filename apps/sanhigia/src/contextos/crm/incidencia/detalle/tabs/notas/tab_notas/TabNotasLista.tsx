@@ -7,7 +7,6 @@ export const TabNotasLista = ({
   cargando,
   onBorrar,
 }: {
-  incidenciaId: string;
   notas: Nota[];
   cargando: boolean;
   onBorrar: (nota: Nota) => void;

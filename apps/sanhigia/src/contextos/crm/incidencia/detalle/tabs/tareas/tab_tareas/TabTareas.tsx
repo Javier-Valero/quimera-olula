@@ -20,7 +20,6 @@ export const TabTareas = ({ incidenciaId }: { incidenciaId: string }) => {
   return (
     <div className="TabTareas">
       <TabTareasLista
-        incidenciaId={incidenciaId}
         tareas={ctx.tareas}
         cargando={ctx.cargando}
       />

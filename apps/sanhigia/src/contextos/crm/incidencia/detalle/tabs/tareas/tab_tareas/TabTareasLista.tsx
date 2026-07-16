@@ -36,7 +36,6 @@ export const TabTareasLista = ({
   tareas,
   cargando,
 }: {
-  incidenciaId: string;
   tareas: Tarea[];
   cargando: boolean;
 }) => {

@@ -1,7 +1,7 @@
 import { QBoton, QTextArea } from "@olula/componentes/index.js";
-import { ContextoError } from "@olula/lib/contexto.js";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
-import { useCallback, useContext, useState } from "react";
+import { useForm } from "@olula/lib/useForm.js";
+import { useCallback, useState } from "react";
 import { postNota } from "../../../../infraestructura.ts";
 import "./CrearNota.css";
 
@@ -14,39 +14,26 @@ export const CrearNota = ({
   agenteId: string;
   emitir: EmitirEvento;
 }) => {
-  const { intentar } = useContext(ContextoError);
   const [texto, setTexto] = useState("");
-  const [creando, setCreando] = useState(false);
 
-  const handleAgregar = useCallback(async () => {
-    if (texto.trim()) {
-      setCreando(true);
-      const id = await intentar(async () => {
-        const ahora = new Date().toISOString().split("T")[0];
-        return await postNota({
-          texto,
-          fecha: ahora,
-          agenteId,
-          incidenciaId,
-        });
-      });
-      if (id) {
-        setTexto("");
-        emitir("nota_creada");
-      } else {
-        setCreando(false);
-      }
-    }
-  }, [texto, agenteId, incidenciaId, emitir, intentar]);
+  const agregar_ = useCallback(async () => {
+    const ahora = new Date().toISOString().split("T")[0];
+    await postNota({
+      texto,
+      fecha: ahora,
+      agenteId,
+      incidenciaId,
+    });
+    setTexto("");
+    emitir("nota_creada");
+  }, [texto, agenteId, incidenciaId, emitir]);
 
-  const handleCancelar = useCallback(() => {
-    if (!creando) {
-      setTexto("");
-      emitir("creacion_nota_cancelada");
-    }
-  }, [creando, emitir]);
+  const cancelar_ = useCallback(() => {
+    setTexto("");
+    emitir("creacion_nota_cancelada");
+  }, [emitir]);
 
-  // console.log("mimensaje_creando", creando);
+  const [agregar, cancelar] = useForm(agregar_, cancelar_);
 
   return (
     <div className="CrearNota">
@@ -59,15 +46,10 @@ export const CrearNota = ({
         rows={4}
       />
       <div className="CrearNota-Boton">
-        <QBoton
-          onClick={handleAgregar}
-          deshabilitado={!texto.trim() || creando}
-        >
+        <QBoton onClick={agregar} deshabilitado={!texto.trim()}>
           Añadir nota
         </QBoton>
-        <QBoton onClick={handleCancelar} deshabilitado={creando}>
-          Cancelar
-        </QBoton>
+        <QBoton onClick={cancelar}>Cancelar</QBoton>
       </div>
     </div>
   );

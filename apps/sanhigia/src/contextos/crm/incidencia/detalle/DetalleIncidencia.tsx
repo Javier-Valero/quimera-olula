@@ -10,10 +10,10 @@ import { CrearPresupuesto } from "../crear_presupuesto/CrearPresupuesto.tsx";
 import { incidenciaVacia, metaIncidencia } from "./detalle.ts";
 import "./DetalleIncidencia.css";
 import { getMaquina } from "./maquina.ts";
-import { TabDocumentos } from "./tabs/documentos/TabDocumentos/TabDocumentos.tsx";
-import { TabNotas } from "./tabs/notas/TabNotas/TabNotas.tsx";
+import { TabDocumentos } from "./tabs/documentos/tab_documentos/TabDocumentos.tsx";
+import { TabNotas } from "./tabs/notas/tab_notas/TabNotas.tsx";
 import { TabGeneral } from "./tabs/TabGeneral.tsx";
-import { TabTareas } from "./tabs/tareas/TabTareas/TabTareas.tsx";
+import { TabTareas } from "./tabs/tareas/tab_tareas/TabTareas.tsx";
 
 export const DetalleIncidencia = ({
   id,

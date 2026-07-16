@@ -7,15 +7,15 @@ export interface Tarea extends Entidad {
     hora: string;
     tipo: string;
     completada: boolean;
-    agente_id?: string | null;
+    agenteId?: string | null;
     nota?: string | null;
-    trato_id?: string | null;
-    incidencia_id?: string | null;
-    id_tarea_google?: string | null;
-    fecha_fin?: string | null;
-    hora_fin?: string | null;
-    latitud_fin?: string | null;
-    longitud_fin?: string | null;
+    tratoId?: string | null;
+    incidenciaId?: string | null;
+    idTareaGoogle?: string | null;
+    fechaFin?: string | null;
+    horaFin?: string | null;
+    latitudFin?: string | null;
+    longitudFin?: string | null;
 }
 
 export type GetTareas = (

@@ -55,7 +55,6 @@ export const TabNotas = ({
         <BorrarNota nota={ctx.notaSeleccionada} emitir={emitir} />
       )}
       <TabNotasLista
-        incidenciaId={incidenciaId}
         notas={ctx.notas}
         cargando={ctx.cargando}
         onBorrar={(nota) => emitir("borrar_nota_solicitado", nota)}
