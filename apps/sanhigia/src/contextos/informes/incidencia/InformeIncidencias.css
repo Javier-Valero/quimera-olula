@@ -1,0 +1,29 @@
+/* InformeIncidencias.css */
+.InformeIncidencias {
+    quimera-autocompletar[nombre="agente_id"] {
+        grid-column: 1 / span 4;
+    }
+
+    quimera-select[nombre="periodo"] {
+        grid-column: 1 / span 4;
+        justify-self: start;
+    }
+
+    quimera-input[nombre="fecha_desde"] {
+        grid-column: 1 / span 2;
+        justify-self: start;
+    }
+
+    quimera-input[nombre="fecha_hasta"] {
+        grid-column: span 2;
+        justify-self: end;
+    }
+
+    quimera-formulario>quimera-boton {
+        display: none;
+    }
+
+    .botones {
+        justify-content: flex-start;
+    }
+}
