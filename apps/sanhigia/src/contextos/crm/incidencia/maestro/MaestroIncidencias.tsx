@@ -137,12 +137,9 @@ const TarjetaCrmIncidencia = (incidencia: Incidencia) => {
           <QIcono nombre={iconoEstadoAccion(incidencia.estado)} tamaño="sm" />
         </QAvatar>
       }
-      arribaIzquierda={incidencia.nombreCliente}
+      arribaIzquierda={incidencia.descripcion}
       arribaDerecha={formatearFechaDate(incidencia.fecha)}
-      abajoIzquierda={
-        incidencia.estado.at(0)?.toUpperCase() +
-        incidencia.estado.slice(1).replace("_", " ")
-      }
+      abajoIzquierda={incidencia.nombreCausante}
       abajoDerecha={
         incidencia.tipoIncidencia === "Transportista"
           ? "Transporte"

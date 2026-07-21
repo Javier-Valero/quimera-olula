@@ -20,6 +20,7 @@ interface IncidenciaAPI {
     descripcion: string;
     descripcion_larga?: string | null;
     nombre_cliente: string;
+    nombre_causante: string;
     cliente_id: string;
     prioridad: string;
     estado: string;
@@ -41,6 +42,7 @@ export const incidenciaDesdeApi = (api: IncidenciaAPI): Incidencia => ({
     fecha: new Date(Date.parse(api.fecha)),
     descripcion: api.descripcion,
     observaciones: api.descripcion_larga || "",
+    nombreCausante: api.nombre_causante,
     clienteId: api.cliente_id || "",
     nombreCliente: api.nombre_cliente,
     prioridad: (api.prioridad as PrioridadIncidencia),
