@@ -120,7 +120,7 @@ export default parent => ({
       },
       incidencia: {
         title: "Incidencias",
-        icons: ["error_outline"],
+        icons: ["error_outline", "article"],
         color: "primary",
         variant: "main",
         rule: "crm.informe",
