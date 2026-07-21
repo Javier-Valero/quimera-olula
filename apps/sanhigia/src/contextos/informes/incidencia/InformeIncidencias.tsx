@@ -4,13 +4,14 @@ import { QDateInterval } from "@olula/componentes/atomos/qdateinterval.tsx";
 import { QFechaHora } from "@olula/componentes/atomos/qfechahora.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { useCallback, useContext, useState } from "react";
-import { extensionDesdeTipoMime, rangoFechaHoraDesdeAtajo } from "./dominio.ts";
+import { extensionDesdeTipoMime, nombreFicheroInformeIncidencias, rangoFechaHoraDesdeAtajo } from "./dominio.ts";
 import "./InformeIncidencias.css";
 import { getInformeIncidencias } from "./infraestructura.ts";
 
 export const InformeIncidencias = () => {
   const { intentar } = useContext(ContextoError);
   const [agenteId, setAgenteId] = useState("");
+  const [agenteNombre, setAgenteNombre] = useState("");
   const [periodo, setPeriodo] = useState("");
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
@@ -50,13 +51,16 @@ export const InformeIncidencias = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `informe_incidencias.${extensionDesdeTipoMime(blob.type)}`;
+      link.download = nombreFicheroInformeIncidencias(
+        { agenteNombre, fechaDesde, fechaHasta },
+        extensionDesdeTipoMime(blob.type)
+      );
       link.click();
       URL.revokeObjectURL(url);
     } finally {
       setCargando(false);
     }
-  }, [agenteId, fechaDesde, fechaHasta, cargando, intentar]);
+  }, [agenteId, agenteNombre, fechaDesde, fechaHasta, cargando, intentar]);
 
   return (
     <div className="InformeIncidencias" style={{ margin: "20px" }}>
@@ -65,7 +69,10 @@ export const InformeIncidencias = () => {
       <quimera-formulario>
         <Agente
           valor={agenteId}
-          onChange={(opcion) => setAgenteId(opcion?.valor ?? "")}
+          onChange={(opcion) => {
+            setAgenteId(opcion?.valor ?? "");
+            setAgenteNombre(opcion?.descripcion ?? "");
+          }}
           label="Agente asociado"
           deshabilitado={cargando}
         />

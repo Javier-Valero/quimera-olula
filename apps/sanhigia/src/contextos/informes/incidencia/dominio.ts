@@ -33,3 +33,36 @@ export const extensionDesdeTipoMime = (tipo: string): string => {
     if (tipo.includes("csv")) return "csv";
     return "xlsx";
 };
+
+const soloFecha = (fechaHora: string): string => fechaHora.split("T")[0];
+
+const normalizarParaFichero = (texto: string): string =>
+    texto
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+export type FiltroNombreFicheroInformeIncidencias = Omit<FiltroInformeIncidencias, "agenteId"> & {
+    agenteNombre: string;
+};
+
+export const nombreFicheroInformeIncidencias = (
+    filtro: FiltroNombreFicheroInformeIncidencias,
+    extension: string
+): string => {
+    const partes: string[] = ["informe_incidencias"];
+
+    if (filtro.agenteNombre) partes.push(`agente-${normalizarParaFichero(filtro.agenteNombre)}`);
+
+    if (filtro.fechaDesde && filtro.fechaHasta) {
+        partes.push(soloFecha(filtro.fechaDesde), soloFecha(filtro.fechaHasta));
+    } else if (filtro.fechaDesde) {
+        partes.push(soloFecha(filtro.fechaDesde));
+    } else if (filtro.fechaHasta) {
+        partes.push(soloFecha(filtro.fechaHasta));
+    }
+
+    return `${partes.join("_")}.${extension}`;
+};
