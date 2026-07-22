@@ -138,6 +138,7 @@ export const TabGeneral = ({
     <div className="TabGeneral">
       <quimera-formulario>
         <QInput label="Descripción" {...uiProps("descripcion")} />
+        <QInput label="Causante" {...uiProps("nombreCausante")} deshabilitado />
         <Cliente
           valor={modelo.clienteId}
           descripcion={modelo.nombreCliente}
