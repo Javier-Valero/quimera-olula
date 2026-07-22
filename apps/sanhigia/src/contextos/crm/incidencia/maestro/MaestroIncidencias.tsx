@@ -1,4 +1,3 @@
-import { EstadoIncidencia } from "#/crm/comun/componentes/EstadoIncidencia.tsx";
 import { PrioridadIncidencia } from "#/crm/comun/componentes/PrioridadIncidencia.tsx";
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
@@ -10,7 +9,8 @@ import {
   filtroTextos,
   getMetaFiltroDefecto,
 } from "@olula/componentes/maestro/maestroFiltros/MaestroFiltrosActivoControlado.js";
-import { formatearFechaDate } from "@olula/lib/dominio.js";
+import { ClausulaFiltro } from "@olula/lib/diseño.ts";
+import { criteriaDefecto, formatearFechaDate } from "@olula/lib/dominio.js";
 import { listaActivaEntidadesInicial } from "@olula/lib/ListaActivaEntidades.js";
 import { getUrlParams, useUrlParams } from "@olula/lib/url-params.js";
 import { useEffect } from "react";
@@ -26,12 +26,30 @@ const opcionesTipoIncidenciaSanhigia = [
   { valor: "transportista", descripcion: "Transporte" },
 ];
 
+const opcionesEstadoIncidenciaSanhigia = [
+  { valor: "Nueva", descripcion: "Nueva" },
+  { valor: "Pendiente", descripcion: "Pendiente" },
+  { valor: "Pendiente de datos", descripcion: "Pendiente de datos" },
+  { valor: "Asignada", descripcion: "Asignada" },
+  { valor: "Rechazada", descripcion: "Rechazada" },
+  { valor: "Cerrada", descripcion: "Cerrada" },
+];
+
+const FILTRO_NO_CERRADAS: ClausulaFiltro = ["estado", "!", "Cerrada"];
+
+const criteriaInicialIncidencias = {
+  ...criteriaDefecto,
+  filtro: [FILTRO_NO_CERRADAS],
+};
+
 export const MaestroIncidencias = () => {
   const { id, criteria } = getUrlParams();
+  const criteriaBase =
+    criteria.filtro.length > 0 ? criteria : criteriaInicialIncidencias;
 
   const { ctx, emitir } = useMaquina(getMaquina, {
     estado: "INICIAL",
-    incidencias: listaActivaEntidadesInicial<Incidencia>(id, criteria),
+    incidencias: listaActivaEntidadesInicial<Incidencia>(id, criteriaBase),
   });
 
   useUrlParams(ctx.incidencias.activo, ctx.incidencias.criteria);
@@ -55,11 +73,25 @@ export const MaestroIncidencias = () => {
                 estado: {
                   id: "estado",
                   label: "Estado",
-                  filtro: (v) => filtroTextos("estado", v),
+                  filtro: (v) => {
+                    const valor = (v as string) || "";
+                    return valor
+                      ? (["estado", "~", valor] as ClausulaFiltro)
+                      : FILTRO_NO_CERRADAS;
+                  },
+                  fromFiltro: (filtro) => {
+                    const clausula = filtro.find(([campo]) => campo === "estado");
+                    if (!clausula) return "";
+                    const [, operador, valor] = clausula;
+                    return operador === "!" ? "" : (valor ?? "");
+                  },
                   render: (valor, onChange) => (
-                    <EstadoIncidencia
+                    <QSelect
+                      label="Estado"
+                      nombre="estado"
                       valor={(valor as string) ?? ""}
                       onChange={(opcion) => onChange(opcion?.valor ?? "")}
+                      opciones={opcionesEstadoIncidenciaSanhigia}
                     />
                   ),
                 },
@@ -89,6 +121,7 @@ export const MaestroIncidencias = () => {
                   ),
                 },
               }}
+              criteriaInicial={criteriaInicialIncidencias}
               criteria={ctx.incidencias.criteria}
               tarjeta={TarjetaCrmIncidencia}
               entidades={ctx.incidencias.lista}
