@@ -1,7 +1,7 @@
 import { EstadoIncidencia } from "#/crm/comun/componentes/EstadoIncidencia.tsx";
 import { PrioridadIncidencia } from "#/crm/comun/componentes/PrioridadIncidencia.tsx";
-import { TipoIncidencia } from "#/crm/comun/componentes/TipoIncidencia.tsx";
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { QAvatar, QIcono, QTarjetaGenerica } from "@olula/componentes/index.js";
 import { Listado } from "@olula/componentes/maestro/Listado.js";
@@ -20,6 +20,11 @@ import { Incidencia } from "../diseño.ts";
 import { metaTablaIncidencia } from "./maestro.ts";
 import "./MaestroIncidencias.css";
 import { getMaquina } from "./maquina.ts";
+
+const opcionesTipoIncidenciaSanhigia = [
+  { valor: "proveedor", descripcion: "Producto" },
+  { valor: "transportista", descripcion: "Transporte" },
+];
 
 export const MaestroIncidencias = () => {
   const { id, criteria } = getUrlParams();
@@ -74,9 +79,12 @@ export const MaestroIncidencias = () => {
                   label: "Tipo",
                   filtro: (v) => filtroTextos("tipo_incidencia", v),
                   render: (valor, onChange) => (
-                    <TipoIncidencia
+                    <QSelect
+                      label="Tipo"
+                      nombre="tipo_incidencia"
                       valor={(valor as string) ?? ""}
                       onChange={(opcion) => onChange(opcion?.valor ?? "")}
+                      opciones={opcionesTipoIncidenciaSanhigia}
                     />
                   ),
                 },
@@ -123,7 +131,7 @@ const iconoEstadoAccion = (estado: string) => {
     "Pendiente de datos": "informacion",
     Asignada: "usuario",
     Rechazada: "cerrar",
-    Cerrada: "checkdoble",
+    Cerrada: "check",
   };
 
   return icono[estado as keyof typeof icono];

@@ -11,11 +11,11 @@ import { ContextoMaestroIncidencias, EstadoMaestroIncidencias } from "./diseño.
 export const metaTablaIncidencia: MetaTabla<Incidencia> = [
     { id: "fecha", cabecera: "Fecha", tipo: "fecha" },
     { id: "nombreCausante", cabecera: "Causante" },
-    {
-        id: "tipoIncidencia",
-        cabecera: "Tipo",
-        render: (i: Incidencia) => i.tipoIncidencia === "Transportista" ? "Transporte" : "Producto",
-    },
+    // {
+    //     id: "tipoIncidencia",
+    //     cabecera: "Tipo",
+    //     render: (i: Incidencia) => i.tipoIncidencia === "Transportista" ? "Transporte" : "Producto",
+    // },
 ];
 
 type ProcesarIncidencias = ProcesarContexto<EstadoMaestroIncidencias, ContextoMaestroIncidencias>;
