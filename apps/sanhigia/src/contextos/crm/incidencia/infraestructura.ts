@@ -9,7 +9,7 @@ import { GetTareas, Tarea } from "./detalle/tabs/tareas/diseño.ts";
 import { CategoriaIncidencia, CrearPresupuestoIncidencia, DeleteIncidencia, EstadoIncidencia, GetIncidencia, GetIncidencias, Incidencia, PatchIncidencia, PostIncidencia, PrioridadIncidencia, TipoIncidencia } from "./diseño.ts";
 
 const baseUrlIncidencia = new ApiUrls().INCIDENCIA;
-const baseUrlTarea = new ApiUrls().TAREA;
+const baseUrlTarea = new ApiUrls().TAREA_INCIDENCIA;
 const baseUrlNota = new ApiUrls().NOTA_INCIDENCIA;
 const baseUrlCategoria = new ApiUrls().CATEGORIA_INCIDENCIA;
 const baseUrlSubCategoria = new ApiUrls().SUBCATEGORIA_INCIDENCIA;

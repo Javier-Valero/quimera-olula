@@ -6,6 +6,7 @@
 class CRM_Urls {
     readonly INCIDENCIA = `/crm/incidencia`;
     readonly TAREA = `/crm/tarea`;
+    readonly TAREA_INCIDENCIA = `/crm/tarea_de_incidencia`;
     readonly NOTA_INCIDENCIA = `/crm/notaincidencia`;
     readonly DOCUMENTO_INCIDENCIA = `/documental/documento`;
     readonly CATEGORIA_INCIDENCIA = `/crm/catincidencia`;

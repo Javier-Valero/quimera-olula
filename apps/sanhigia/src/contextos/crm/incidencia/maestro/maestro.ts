@@ -10,7 +10,7 @@ import { ContextoMaestroIncidencias, EstadoMaestroIncidencias } from "./diseño.
 
 export const metaTablaIncidencia: MetaTabla<Incidencia> = [
     { id: "fecha", cabecera: "Fecha", tipo: "fecha" },
-    { id: "nombreCausante", cabecera: "Causante" },
+    { id: "nombre_causante", cabecera: "Causante" },
     // {
     //     id: "tipoIncidencia",
     //     cabecera: "Tipo",
