@@ -10,6 +10,7 @@ export const incidenciaVacia: Incidencia = {
     descripcion: "",
     observaciones: "",
     nombreCliente: "",
+    nombreCausante: "",
     prioridad: "Media",
     fecha: new Date(),
     estado: "Nueva",
