@@ -170,11 +170,24 @@ const iconoEstadoAccion = (estado: string) => {
   return icono[estado as keyof typeof icono];
 };
 
+const claseEstadoAccion = (estado: string) => {
+  const clase = {
+    Pendiente: "pendiente",
+    Nueva: "nueva",
+    "Pendiente de datos": "pendiente-de-datos",
+    Asignada: "asignada",
+    Rechazada: "rechazada",
+    Cerrada: "cerrada",
+  };
+
+  return clase[estado as keyof typeof clase] ?? "";
+};
+
 const TarjetaCrmIncidencia = (incidencia: Incidencia) => {
   return (
     <QTarjetaGenerica
       avatar={
-        <QAvatar className={incidencia.prioridad}>
+        <QAvatar className={claseEstadoAccion(incidencia.estado)}>
           <QIcono nombre={iconoEstadoAccion(incidencia.estado)} tamaño="sm" />
         </QAvatar>
       }

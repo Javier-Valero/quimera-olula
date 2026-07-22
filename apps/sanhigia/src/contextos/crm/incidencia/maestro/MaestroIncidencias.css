@@ -1,13 +1,22 @@
 .q-avatar {
-    &.baja {
-        background-color: var(--color-exito-claro);
+    &.nueva {
+        background-color: var(--rosa-4);
     }
 
-    &.media {
+    &.pendiente,
+    &.pendiente-de-datos {
         background-color: var(--color-advertencia-claro);
     }
 
-    &.alta {
+    &.asignada {
+        background-color: var(--azul-4);
+    }
+
+    &.rechazada {
         background-color: var(--color-error-claro);
+    }
+
+    &.cerrada {
+        background-color: var(--color-exito-claro);
     }
 }
