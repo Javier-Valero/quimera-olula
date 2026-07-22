@@ -8,6 +8,7 @@ import {
   ConfiguracionGestorDocumentos,
   EstadoGestorDocumentos,
 } from "./diseño.ts";
+import { superaTamanioMaximo } from "./dominio.ts";
 import { getMaquinaGestorDocumentos } from "./maquina.ts";
 import "./QGestorDocumentos.css";
 
@@ -15,6 +16,7 @@ export interface QGestorDocumentosProps {
   vinculoTipo: string;
   vinculoId: string;
   tipoDocumento?: string;
+  tamanioMaximoBytes?: number;
   archivosIniciales?: File[];
   onDocumentoSubido?: () => void;
   onCancelar?: () => void;
@@ -25,6 +27,7 @@ export const QGestorDocumentos = ({
   vinculoTipo,
   vinculoId,
   tipoDocumento = "Documento",
+  tamanioMaximoBytes,
   archivosIniciales,
   onDocumentoSubido,
   onCancelar,
@@ -45,6 +48,7 @@ export const QGestorDocumentos = ({
     vinculoTipo,
     vinculoId,
     tipoDocumento,
+    tamanioMaximoBytes,
   };
 
   // Con archivos preseleccionados (selector nativo en móvil) se arranca directamente en
@@ -94,7 +98,11 @@ export const QGestorDocumentos = ({
               ? vinculoTipo.slice(0, -3)
               : vinculoTipo;
 
+            let subidoAlguno = false;
+
             for (const file of ctx.archivosSeleccionados) {
+              if (superaTamanioMaximo(file, tamanioMaximoBytes)) continue;
+
               const formData = new FormData();
               formData.append("nombre", file.name);
               formData.append("tipo_documento", tipoDocumento);
@@ -104,6 +112,13 @@ export const QGestorDocumentos = ({
               formData.append("vinculo_id", vinculoId);
 
               await DocumentosAPI.crear(formData);
+              subidoAlguno = true;
+            }
+
+            if (!subidoAlguno) {
+              throw new Error(
+                "Ningún archivo se ha subido: todos superan el tamaño máximo permitido"
+              );
             }
           });
           emitir("documentos_subidos");
@@ -128,6 +143,7 @@ export const QGestorDocumentos = ({
         ctx.archivosSeleccionados.length > 0 && (
           <ArchivosSeleccionados
             archivos={ctx.archivosSeleccionados}
+            tamanioMaximoBytes={tamanioMaximoBytes}
             emitir={emitir}
           />
         )}

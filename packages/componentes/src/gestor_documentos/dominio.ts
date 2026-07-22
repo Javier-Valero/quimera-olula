@@ -38,6 +38,9 @@ export const agregarArchivosSeleccionados: ProcesarGestorDocumentos = async (con
     };
 };
 
+export const superaTamanioMaximo = (archivo: File, tamanioMaximoBytes?: number): boolean =>
+    tamanioMaximoBytes !== undefined && archivo.size > tamanioMaximoBytes;
+
 export const eliminarArchivoSeleccionado: ProcesarGestorDocumentos = async (contexto, payload) => {
     const indice = payload as number;
 

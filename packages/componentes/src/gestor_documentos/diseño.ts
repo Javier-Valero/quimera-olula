@@ -5,6 +5,7 @@ export type ConfiguracionGestorDocumentos = {
     vinculoTipo: string;
     vinculoId: string;
     tipoDocumento?: string;
+    tamanioMaximoBytes?: number;
 };
 
 export type EstadoGestorDocumentos = "lista" | "archivos-seleccionados" | "subiendo";

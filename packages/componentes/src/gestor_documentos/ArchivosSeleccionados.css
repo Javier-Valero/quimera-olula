@@ -43,6 +43,14 @@
     border-color: var(--color-borde-fuerte);
 }
 
+.ArchivosSeleccionados-item--excede {
+    opacity: 0.6;
+}
+
+.ArchivosSeleccionados-item--excede .ArchivosSeleccionados-icono {
+    color: var(--color-error);
+}
+
 .ArchivosSeleccionados-info {
     display: flex;
     align-items: center;
@@ -78,6 +86,12 @@
 .ArchivosSeleccionados-tamaño {
     margin: 0;
     color: var(--color-texto-secundario);
+    font-size: 0.8rem;
+}
+
+.ArchivosSeleccionados-aviso {
+    margin: 0;
+    color: var(--color-error);
     font-size: 0.8rem;
 }
 

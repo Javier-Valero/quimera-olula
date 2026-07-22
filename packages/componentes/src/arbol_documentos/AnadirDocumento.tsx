@@ -20,6 +20,7 @@ export interface AnadirDocumentoProps {
   vinculoTipo: string;
   vinculoId: string;
   archivosIniciales?: File[];
+  tamanioMaximoBytes?: number;
   publicar: EmitirEvento;
 }
 
@@ -27,6 +28,7 @@ export const AnadirDocumento = ({
   vinculoTipo,
   vinculoId,
   archivosIniciales,
+  tamanioMaximoBytes,
   publicar,
 }: AnadirDocumentoProps) => {
   const handleDocumentoSubido = useCallback(() => {
@@ -51,6 +53,7 @@ export const AnadirDocumento = ({
           vinculoId={vinculoId}
           tipoDocumento="Documento"
           archivosIniciales={archivosIniciales}
+          tamanioMaximoBytes={tamanioMaximoBytes}
           onDocumentoSubido={handleDocumentoSubido}
           onCancelar={cancelar}
         />

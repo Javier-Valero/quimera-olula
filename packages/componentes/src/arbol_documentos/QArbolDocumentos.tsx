@@ -18,6 +18,7 @@ import "./QArbolDocumentos.css";
 export interface QArbolDocumentosProps {
   tipoObjeto: string;
   objetoId: string;
+  tamanioMaximoBytes?: number;
   onDescargar?: (documento: DocumentoArbol) => void;
   onError?: (error: Error) => void;
 }
@@ -25,6 +26,7 @@ export interface QArbolDocumentosProps {
 export const QArbolDocumentos = ({
   tipoObjeto,
   objetoId,
+  tamanioMaximoBytes,
   onDescargar,
   onError,
 }: QArbolDocumentosProps) => {
@@ -195,6 +197,7 @@ export const QArbolDocumentos = ({
           vinculoTipo={ctx.carpetaPadreId ? "gd_documentos" : tipoObjeto}
           vinculoId={ctx.carpetaPadreId ?? objetoId}
           archivosIniciales={archivosPendientes}
+          tamanioMaximoBytes={tamanioMaximoBytes}
           publicar={emitir}
         />
       )}
