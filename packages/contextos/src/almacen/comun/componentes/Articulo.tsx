@@ -12,6 +12,8 @@ interface ArticuloProps {
   nombre?: string;
   label?: string;
   autoFocus?: boolean;
+  deshabilitado?: boolean;
+  opcional?: boolean;
   ref?: React.RefObject<HTMLInputElement | null>;
   onChange: (opcion: { valor: string; descripcion: string } | null) => void;
 }

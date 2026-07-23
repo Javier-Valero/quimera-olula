@@ -14,6 +14,7 @@ interface SubCategoriaIncidenciaProps {
   nombre?: string;
   categoriaIncidencia?: string;
   deshabilitado?: boolean;
+  opcional?: boolean;
   onChange?: (
     opcion: {
       valor: string;

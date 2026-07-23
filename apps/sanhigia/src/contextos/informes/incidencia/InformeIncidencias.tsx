@@ -1,10 +1,22 @@
+import { Articulo } from "#/almacen/comun/componentes/Articulo.tsx";
+import { Proveedor } from "#/compras/comun/componentes/proveedor.tsx";
 import { Agente } from "#/ventas/comun/componentes/agente.tsx";
+import { Cliente } from "#/ventas/comun/componentes/cliente.tsx";
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QDateInterval } from "@olula/componentes/atomos/qdateinterval.tsx";
 import { QFechaHora } from "@olula/componentes/atomos/qfechahora.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { useCallback, useContext, useState } from "react";
-import { extensionDesdeTipoMime, nombreFicheroInformeIncidencias, rangoFechaHoraDesdeAtajo } from "./dominio.ts";
+import { CategoriaIncidencia } from "../../../componentes/CategoriaIncidencia.tsx";
+import { EstadoIncidenciaSanhigia } from "../../../componentes/EstadoIncidenciaSanhigia.tsx";
+import { PrioridadIncidenciaSanhigia } from "../../../componentes/PrioridadIncidenciaSanhigia.tsx";
+import { SubCategoriaIncidencia } from "../../../componentes/SubCategoriaIncidencia.tsx";
+import { TipoIncidenciaSanhigia } from "../../../componentes/TipoIncidenciaSanhigia.tsx";
+import {
+  extensionDesdeTipoMime,
+  nombreFicheroInformeIncidencias,
+  rangoFechaHoraDesdeAtajo,
+} from "./dominio.ts";
 import "./InformeIncidencias.css";
 import { getInformeIncidencias } from "./infraestructura.ts";
 
@@ -15,7 +27,23 @@ export const InformeIncidencias = () => {
   const [periodo, setPeriodo] = useState("");
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
+  const [estado, setEstado] = useState("");
+  const [prioridad, setPrioridad] = useState("");
+  const [tipoIncidencia, setTipoIncidencia] = useState("");
+  const [categoriaId, setCategoriaId] = useState("");
+  const [subcategoriaId, setSubcategoriaId] = useState("");
+  const [clienteId, setClienteId] = useState("");
+  const [clienteNombre, setClienteNombre] = useState("");
+  const [codigoCausante, setCodigoCausante] = useState("");
+  const [proveedorNombre, setProveedorNombre] = useState("");
+  const [articuloId, setArticuloId] = useState("");
+  const [articuloDescripcion, setArticuloDescripcion] = useState("");
   const [cargando, setCargando] = useState(false);
+
+  const cambiarCategoria = useCallback((categoria: string) => {
+    setCategoriaId(categoria);
+    setSubcategoriaId("");
+  }, []);
 
   const cambiarPeriodo = useCallback((atajo: string) => {
     const rango = rangoFechaHoraDesdeAtajo(atajo);
@@ -39,13 +67,44 @@ export const InformeIncidencias = () => {
     setPeriodo("");
   }, []);
 
+  const limpiar = useCallback(() => {
+    setAgenteId("");
+    setAgenteNombre("");
+    setPeriodo("");
+    setFechaDesde("");
+    setFechaHasta("");
+    setEstado("");
+    setPrioridad("");
+    setTipoIncidencia("");
+    setCategoriaId("");
+    setSubcategoriaId("");
+    setClienteId("");
+    setClienteNombre("");
+    setCodigoCausante("");
+    setProveedorNombre("");
+    setArticuloId("");
+    setArticuloDescripcion("");
+  }, []);
+
   const lanzar = useCallback(async () => {
     if (cargando) return;
 
     setCargando(true);
     try {
       const blob = await intentar(() =>
-        getInformeIncidencias({ agenteId, fechaDesde, fechaHasta })
+        getInformeIncidencias({
+          agenteId,
+          fechaDesde,
+          fechaHasta,
+          estado,
+          prioridad,
+          tipoIncidencia,
+          categoriaId,
+          subcategoriaId,
+          clienteId,
+          codigoCausante,
+          articuloId,
+        })
       );
 
       const url = URL.createObjectURL(blob);
@@ -60,7 +119,22 @@ export const InformeIncidencias = () => {
     } finally {
       setCargando(false);
     }
-  }, [agenteId, agenteNombre, fechaDesde, fechaHasta, cargando, intentar]);
+  }, [
+    agenteId,
+    agenteNombre,
+    fechaDesde,
+    fechaHasta,
+    estado,
+    prioridad,
+    tipoIncidencia,
+    categoriaId,
+    subcategoriaId,
+    clienteId,
+    codigoCausante,
+    articuloId,
+    cargando,
+    intentar,
+  ]);
 
   return (
     <div className="InformeIncidencias" style={{ margin: "20px" }}>
@@ -88,7 +162,6 @@ export const InformeIncidencias = () => {
           nombre="fecha_desde"
           valor={fechaDesde}
           onChange={(v) => cambiarFechaDesde(v)}
-          opcional={true}
           deshabilitado={cargando}
         />
         <QFechaHora
@@ -96,7 +169,60 @@ export const InformeIncidencias = () => {
           nombre="fecha_hasta"
           valor={fechaHasta}
           onChange={(v) => cambiarFechaHasta(v)}
-          opcional={true}
+          deshabilitado={cargando}
+        />
+        <PrioridadIncidenciaSanhigia
+          valor={prioridad}
+          onChange={(opcion) => setPrioridad(opcion?.valor ?? "")}
+          deshabilitado={cargando}
+        />
+        <EstadoIncidenciaSanhigia
+          valor={estado}
+          onChange={(opcion) => setEstado(opcion?.valor ?? "")}
+          deshabilitado={cargando}
+        />
+        <TipoIncidenciaSanhigia
+          valor={tipoIncidencia}
+          onChange={(opcion) => setTipoIncidencia(opcion?.valor ?? "")}
+          deshabilitado={cargando}
+        />
+        <CategoriaIncidencia
+          valor={categoriaId}
+          onChange={(opcion) => cambiarCategoria(opcion?.valor ?? "")}
+          deshabilitado={cargando}
+        />
+        <SubCategoriaIncidencia
+          valor={subcategoriaId}
+          categoriaIncidencia={categoriaId}
+          onChange={(opcion) => setSubcategoriaId(opcion?.valor ?? "")}
+          deshabilitado={cargando}
+        />
+        <Proveedor
+          label="Causante"
+          valor={codigoCausante}
+          descripcion={proveedorNombre}
+          onChange={(opcion) => {
+            setCodigoCausante(opcion?.valor ?? "");
+            setProveedorNombre(opcion?.descripcion ?? "");
+          }}
+          deshabilitado={cargando}
+        />
+        <Cliente
+          valor={clienteId}
+          descripcion={clienteNombre}
+          onChange={(opcion) => {
+            setClienteId(opcion?.valor ?? "");
+            setClienteNombre(opcion?.descripcion ?? "");
+          }}
+          deshabilitado={cargando}
+        />
+        <Articulo
+          valor={articuloId}
+          descripcion={articuloDescripcion}
+          onChange={(opcion) => {
+            setArticuloId(opcion?.valor ?? "");
+            setArticuloDescripcion(opcion?.descripcion ?? "");
+          }}
           deshabilitado={cargando}
         />
       </quimera-formulario>
@@ -112,6 +238,9 @@ export const InformeIncidencias = () => {
           props={{ disabled: cargando, "aria-busy": cargando }}
         >
           {cargando ? "Generando..." : "Lanzar"}
+        </QBoton>
+        <QBoton onClick={limpiar} variante="texto" deshabilitado={cargando}>
+          Limpiar
         </QBoton>
       </div>
     </div>

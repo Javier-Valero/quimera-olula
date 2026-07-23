@@ -14,6 +14,7 @@ interface CategoriaIncidenciaProps {
   label?: string;
   nombre?: string;
   deshabilitado?: boolean;
+  opcional?: boolean;
   onChange?: (
     opcion: {
       valor: string;

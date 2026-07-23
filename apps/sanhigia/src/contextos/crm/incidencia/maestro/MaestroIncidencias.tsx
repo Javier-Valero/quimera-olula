@@ -1,6 +1,5 @@
 import { PrioridadIncidencia } from "#/crm/comun/componentes/PrioridadIncidencia.tsx";
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
-import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { QAvatar, QIcono, QTarjetaGenerica } from "@olula/componentes/index.js";
 import { Listado } from "@olula/componentes/maestro/Listado.js";
@@ -14,26 +13,14 @@ import { criteriaDefecto, formatearFechaDate } from "@olula/lib/dominio.js";
 import { listaActivaEntidadesInicial } from "@olula/lib/ListaActivaEntidades.js";
 import { getUrlParams, useUrlParams } from "@olula/lib/url-params.js";
 import { useEffect } from "react";
+import { EstadoIncidenciaSanhigia } from "../../../../componentes/EstadoIncidenciaSanhigia.tsx";
+import { TipoIncidenciaSanhigia } from "../../../../componentes/TipoIncidenciaSanhigia.tsx";
 import { CrearIncidencia } from "../crear/CrearIncidencia.tsx";
 import { DetalleIncidencia } from "../detalle/DetalleIncidencia.tsx";
 import { Incidencia } from "../diseño.ts";
 import { metaTablaIncidencia } from "./maestro.ts";
 import "./MaestroIncidencias.css";
 import { getMaquina } from "./maquina.ts";
-
-const opcionesTipoIncidenciaSanhigia = [
-  { valor: "proveedor", descripcion: "Producto" },
-  { valor: "transportista", descripcion: "Transporte" },
-];
-
-const opcionesEstadoIncidenciaSanhigia = [
-  { valor: "Nueva", descripcion: "Nueva" },
-  { valor: "Pendiente", descripcion: "Pendiente" },
-  { valor: "Pendiente de datos", descripcion: "Pendiente de datos" },
-  { valor: "Asignada", descripcion: "Asignada" },
-  { valor: "Rechazada", descripcion: "Rechazada" },
-  { valor: "Cerrada", descripcion: "Cerrada" },
-];
 
 const FILTRO_NO_CERRADAS: ClausulaFiltro = ["estado", "!", "Cerrada"];
 
@@ -86,12 +73,9 @@ export const MaestroIncidencias = () => {
                     return operador === "!" ? "" : (valor ?? "");
                   },
                   render: (valor, onChange) => (
-                    <QSelect
-                      label="Estado"
-                      nombre="estado"
+                    <EstadoIncidenciaSanhigia
                       valor={(valor as string) ?? ""}
                       onChange={(opcion) => onChange(opcion?.valor ?? "")}
-                      opciones={opcionesEstadoIncidenciaSanhigia}
                     />
                   ),
                 },
@@ -111,12 +95,9 @@ export const MaestroIncidencias = () => {
                   label: "Tipo",
                   filtro: (v) => filtroTextos("tipo_incidencia", v),
                   render: (valor, onChange) => (
-                    <QSelect
-                      label="Tipo"
-                      nombre="tipo_incidencia"
+                    <TipoIncidenciaSanhigia
                       valor={(valor as string) ?? ""}
                       onChange={(opcion) => onChange(opcion?.valor ?? "")}
-                      opciones={opcionesTipoIncidenciaSanhigia}
                     />
                   ),
                 },
