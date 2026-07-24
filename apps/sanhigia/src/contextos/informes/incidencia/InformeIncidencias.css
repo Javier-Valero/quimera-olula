@@ -3,7 +3,7 @@
 
     /* Línea 1: agente */
     quimera-autocompletar[nombre="agente_id"] {
-        grid-column: 1 / span 2;
+        grid-column: 1 / span 3;
     }
 
     /* Línea 2: periodo, fecha desde, fecha hasta */
