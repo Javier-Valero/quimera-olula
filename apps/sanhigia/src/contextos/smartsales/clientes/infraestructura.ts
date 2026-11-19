@@ -42,7 +42,7 @@ type ContactoAPI = {
 export const getContactos = async (texto: string): Promise<ContactoLista[]> => {
     const respuesta = await LegacyAPI.get<{ data: ContactoAPI[] }>(
         legacyUrl("contactos", {
-            action: "get_contactos_smartsales",
+            action: "get_contactos_visibles_agente",
             staticAction: true,
             params: { filter: filtroTexto("nombre", texto), page: { limit: LIMITE } },
         })
