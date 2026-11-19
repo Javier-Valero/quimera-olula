@@ -9,7 +9,7 @@ import { QModal } from "@olula/componentes/moleculas/qmodal.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { puede } from "@olula/lib/dominio.js";
 import { ReactNode, useCallback, useContext, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { Tarea } from "../../comun/diseño.ts";
 import { fechaIso } from "../../comun/dominio.ts";
 import { rutasSmartsales } from "../../comun/rutas.ts";
@@ -34,17 +34,15 @@ import {
 } from "../diseño.ts";
 import {
     accionGanar,
+    accionInicialDesdeTexto,
     cambioEstado,
-    documentoParaAPI,
     edicionParaAPI,
     erroresDocumento,
     erroresEdicion,
     erroresLicencia,
     esTratoFarma,
-    EVENTO_VENTA_REGULAR,
     formularioEdicion,
     licenciaParaAPI,
-    ORIGENES_MERCANCIA,
     puedeAsociarPedido,
     puedeBorrar,
     puedeCrearPresupuesto,
@@ -59,18 +57,16 @@ import {
     asociarPedido,
     borrarLicencia,
     borrarTrato,
-    buscarEventos,
     buscarPedidosCliente,
+    crearDocumentoTrato,
     crearLicencia,
-    crearPedidoTrato,
-    crearPresupuestoTrato,
     esDireccionCanarias,
     getCausasPerdida,
-    getDireccionesEnvio,
     getNotas,
     getTrato,
-    tieneDireccionAutomatica,
+    prepararDocumento,
 } from "../infraestructura.ts";
+import { DialogoDocumentoTrato } from "../componentes/DialogoDocumentoTrato.tsx";
 import "./DetalleTrato.css";
 
 const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
@@ -90,6 +86,15 @@ const Errores = ({ errores }: { errores: string[] }) =>
         </ul>
     ) : null;
 
+// Lanza una sola vez, ya cargado el trato, la acción pedida en ?accion=.
+const AccionAlEntrar = ({ lanzar }: { lanzar: () => void }) => {
+    useEffect(() => {
+        lanzar();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    return null;
+};
+
 const Dato = ({ titulo, children }: { titulo: string; children: ReactNode }) => (
     <div className="dato">
         <span className="secundario">{titulo}</span>
@@ -101,8 +106,11 @@ export const DetalleTrato = () => {
     const { id = "" } = useParams();
     const navigate = useNavigate();
     const { intentar } = useContext(ContextoError);
+    const [parametros, setParametros] = useSearchParams();
     const { usuario, agentePropio } = useAgenteSeguido();
     const tipoTratoFarma = usuario?.tipoTratoFarma ?? null;
+    const tipoTratoTareaUnica = usuario?.tipoTratoTareaUnica ?? null;
+    const accionInicial = accionInicialDesdeTexto(parametros.get("accion"));
 
     const [trato, setTrato] = useState<TratoDetalle | null>(null);
     const [tareas, setTareas] = useState<Tarea[]>([]);
@@ -187,17 +195,16 @@ export const DetalleTrato = () => {
             return;
         }
         const codCliente = trato.codCliente;
-        const automatica = await intentar(() => tieneDireccionAutomatica(codCliente));
-        const direcciones = automatica ? [] : await intentar(() => getDireccionesEnvio(codCliente));
+        const { conDireccion, direcciones } = await intentar(() => prepararDocumento(codCliente));
         setDatosDocumento(datosVacios);
         setDirCanarias(false);
         setErrores([]);
-        setDialogo({ tipo: "documento", documento, conDireccion: !automatica, direcciones });
+        setDialogo({ tipo: "documento", documento, conDireccion, direcciones });
     };
 
     const pulsarGanado = async () => {
         if (trato.estado === "Ganado") return quitarEstado().catch(() => undefined);
-        const accion = accionGanar(trato, tipoTratoFarma);
+        const accion = accionGanar(trato, tipoTratoFarma, tipoTratoTareaUnica);
         if (accion === "ganar") return ejecutar(() => cambiarEstado("Ganado")).catch(() => undefined);
         if (accion === "aprobar_presupuesto") {
             return ejecutar(async () => {
@@ -211,6 +218,13 @@ export const DetalleTrato = () => {
             return;
         }
         return abrirDocumento("pedido");
+    };
+
+    const lanzarAccionInicial = () => {
+        setParametros({}, { replace: true });
+        if (accionInicial === "presupuesto" && puedeCrearPresupuesto(trato)) abrirDocumento("presupuesto").catch(() => undefined);
+        if (accionInicial === "pedido" && !trato.idPedido) abrirDocumento("pedido").catch(() => undefined);
+        if (accionInicial === "ganar" && trato.estado === "-") pulsarGanado().catch(() => undefined);
     };
 
     const confirmarCausa = () => {
@@ -239,17 +253,11 @@ export const DetalleTrato = () => {
         const encontrados = erroresDocumento(datosDocumento, dialogo.conDireccion);
         setErrores(encontrados);
         if (encontrados.length > 0) return;
-        const datos = documentoParaAPI(dialogo.documento, trato, datosDocumento, fechaIso(new Date()));
+        const documento = dialogo.documento;
         setProcesando(true);
         try {
-            if (dialogo.documento === "presupuesto") {
-                const idPresupuesto = await intentar(() => crearPresupuestoTrato(datos));
-                navigate(rutasSmartsales.presupuesto(String(idPresupuesto)));
-            } else {
-                const idPedido = await intentar(() => crearPedidoTrato(datos));
-                await intentar(() => cambiarEstado("Ganado"));
-                navigate(rutasSmartsales.pedido(String(idPedido)));
-            }
+            const idDocumento = await intentar(() => crearDocumentoTrato(documento, trato, datosDocumento));
+            navigate(documento === "presupuesto" ? rutasSmartsales.presupuesto(idDocumento) : rutasSmartsales.pedido(idDocumento));
         } finally {
             setProcesando(false);
         }
@@ -315,6 +323,7 @@ export const DetalleTrato = () => {
     return (
         <LayoutSmartsales>
             <div className="DetalleTrato">
+                {accionInicial && usuario && <AccionAlEntrar lanzar={lanzarAccionInicial} />}
                 <header>
                     <div>
                         <h1>{trato.titulo}</h1>
@@ -444,7 +453,7 @@ export const DetalleTrato = () => {
                         disabled={procesando || bloqueadoFarma}
                         onClick={() => pulsarGanado().catch(() => undefined)}
                     >
-                        {procesando ? "Procesando…" : textoBotonGanar(trato, tipoTratoFarma)}
+                        {procesando ? "Procesando…" : textoBotonGanar(trato, tipoTratoFarma, tipoTratoTareaUnica)}
                     </button>
                 </section>
                 {trato.estado === "Perdido" && trato.causaPerdida && <p className="causa">Causa: {trato.causaPerdida}</p>}
@@ -572,51 +581,20 @@ export const DetalleTrato = () => {
                     </div>
                 </QModal>
 
-                <QModal
-                    nombre="documento_trato"
-                    titulo={dialogo.tipo === "documento" && dialogo.documento === "pedido" ? "Crear pedido" : "Crear presupuesto"}
+                <DialogoDocumentoTrato
                     abierto={dialogo.tipo === "documento"}
-                    onCerrar={cerrarDialogo}
-                >
-                    {dialogo.tipo === "documento" && (
-                        <div className="dialogo">
-                            {dialogo.conDireccion && (
-                                <QSelect
-                                    label="Dirección de envío"
-                                    nombre="direccion"
-                                    valor={datosDocumento.codDireccion ?? ""}
-                                    opciones={dialogo.direcciones}
-                                    onChange={(opcion) => cambiarDireccion(opcion?.valor || null).catch(() => undefined)}
-                                />
-                            )}
-                            {dirCanarias && (
-                                <QSelect
-                                    label="Origen de salida"
-                                    nombre="regimen_iva"
-                                    valor={datosDocumento.regimenIva ?? ""}
-                                    opciones={ORIGENES_MERCANCIA}
-                                    onChange={(opcion) => setDatosDocumento((actual) => ({ ...actual, regimenIva: opcion?.valor || null }))}
-                                />
-                            )}
-                            <QAutocompletar
-                                label="Evento"
-                                nombre="evento"
-                                valor={datosDocumento.codEvento ?? ""}
-                                obtenerOpciones={async (texto) => [EVENTO_VENTA_REGULAR, ...(await buscarEventos(texto))]}
-                                onChange={(opcion) => setDatosDocumento((actual) => ({ ...actual, codEvento: opcion?.valor ?? null }))}
-                            />
-                            <Errores errores={errores} />
-                            <div className="acciones">
-                                <QBoton variante="borde" onClick={cerrarDialogo}>
-                                    Cancelar
-                                </QBoton>
-                                <QBoton deshabilitado={procesando} onClick={() => confirmarDocumento().catch(() => undefined)}>
-                                    Crear
-                                </QBoton>
-                            </div>
-                        </div>
-                    )}
-                </QModal>
+                    documento={dialogo.tipo === "documento" ? dialogo.documento : "presupuesto"}
+                    conDireccion={dialogo.tipo === "documento" && dialogo.conDireccion}
+                    direcciones={dialogo.tipo === "documento" ? dialogo.direcciones : []}
+                    datos={datosDocumento}
+                    dirCanarias={dirCanarias}
+                    errores={errores}
+                    procesando={procesando}
+                    onCambiarDireccion={(codDireccion) => cambiarDireccion(codDireccion).catch(() => undefined)}
+                    onCambiar={(cambios) => setDatosDocumento((actual) => ({ ...actual, ...cambios }))}
+                    onCancelar={cerrarDialogo}
+                    onConfirmar={() => confirmarDocumento().catch(() => undefined)}
+                />
 
                 <QModal nombre="asociar_pedido" titulo="Asociar pedido" abierto={dialogo.tipo === "asociar_pedido"} onCerrar={cerrarDialogo}>
                     <div className="dialogo">

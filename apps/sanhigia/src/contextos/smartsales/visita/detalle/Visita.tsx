@@ -9,9 +9,12 @@ import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { textoTipoTarea } from "../../comun/dominio.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
+import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { NotaDictada } from "../../comun/componentes/NotaDictada.tsx";
-import { CambioVisita, EstadoTrato, SiguientePaso } from "../diseño.ts";
-import { contextoInicial, destinoAlTerminar, esVisita, MAX_NOTA } from "../dominio.ts";
+import { DialogoDocumentoTrato } from "../../trato/componentes/DialogoDocumentoTrato.tsx";
+import { textoBotonGanar } from "../../trato/dominio.ts";
+import { CambioVisita, SiguientePaso, TiposTratoUsuario } from "../diseño.ts";
+import { contextoInicial, destinoAlTerminar, esVisita, MAX_NOTA, puedeGenerarSiguiente } from "../dominio.ts";
 import { getMaquina } from "../maquina.ts";
 import "./Visita.css";
 
@@ -25,6 +28,11 @@ export const Visita = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { ctx, emitir } = useMaquina(getMaquina, contextoInicial);
+    const { usuario } = useAgenteSeguido();
+    const tiposTrato: TiposTratoUsuario = {
+        tipoTratoFarma: usuario?.tipoTratoFarma ?? null,
+        tipoTratoTareaUnica: usuario?.tipoTratoTareaUnica ?? null,
+    };
     const { estado, tarea, errores } = ctx;
 
     const cambiar = (cambio: CambioVisita) => emitir("cambiar", cambio);
@@ -142,7 +150,7 @@ export const Visita = () => {
                                 </div>
                             </>
                         )}
-                        {estado === "FINALIZANDO" && (
+                        {estado === "FINALIZANDO" && puedeGenerarSiguiente(ctx) && (
                             <QCheckbox
                                 label="Generar siguiente tarea"
                                 nombre="generar_siguiente"
@@ -170,37 +178,60 @@ export const Visita = () => {
                     </section>
                 )}
 
-                {estado === "CERRANDO_TRATO" && (
+                {estado === "CERRANDO_TRATO" && ctx.trato && (
                     <section className="tarjeta formulario">
-                        <p>Era la última tarea pendiente del trato. ¿Cómo ha terminado?</p>
-                        <QSelect
-                            label="Estado del trato"
-                            nombre="estado_trato"
-                            valor={ctx.estadoTrato ?? ""}
-                            opciones={[
-                                { valor: "Ganado", descripcion: "Ganado" },
-                                { valor: "Perdido", descripcion: "Perdido" },
-                            ]}
-                            onChange={(opcion) => cambiar({ estadoTrato: (opcion?.valor || null) as EstadoTrato | null })}
-                        />
-                        {ctx.estadoTrato === "Perdido" && (
-                            <QSelect
-                                label="Causa de la pérdida"
-                                nombre="causa"
-                                valor={ctx.idCausa ?? ""}
-                                opciones={ctx.causas.map((c) => ({ valor: c.id, descripcion: c.descripcion }))}
-                                onChange={(opcion) => cambiar({ idCausa: opcion?.valor || null })}
-                            />
+                        <p>
+                            Era la última tarea pendiente del trato <strong>{ctx.trato.titulo}</strong>. ¿Cómo ha terminado?
+                        </p>
+                        {ctx.estadoTrato === "Perdido" ? (
+                            <>
+                                <QSelect
+                                    label="Causa de la pérdida"
+                                    nombre="causa"
+                                    valor={ctx.idCausa ?? ""}
+                                    opciones={ctx.causas.map((c) => ({ valor: c.id, descripcion: c.descripcion }))}
+                                    onChange={(opcion) => cambiar({ idCausa: opcion?.valor || null })}
+                                />
+                                <div className="acciones">
+                                    <QBoton variante="borde" ancho onClick={() => cambiar({ estadoTrato: null, idCausa: null })}>
+                                        Volver
+                                    </QBoton>
+                                    <QBoton ancho onClick={() => emitir("perder_trato")}>
+                                        Marcar perdido
+                                    </QBoton>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="acciones">
+                                <QBoton variante="borde" ancho onClick={() => cambiar({ estadoTrato: "Perdido" })}>
+                                    Perdido
+                                </QBoton>
+                                <QBoton ancho deshabilitado={!usuario} onClick={() => emitir("ganar_trato", tiposTrato)}>
+                                    {textoBotonGanar(ctx.trato, tiposTrato.tipoTratoFarma, tiposTrato.tipoTratoTareaUnica)}
+                                </QBoton>
+                            </div>
                         )}
-                        <div className="acciones">
-                            <QBoton variante="borde" ancho onClick={() => emitir("mantener_abierto")}>
-                                Dejar abierto
-                            </QBoton>
-                            <QBoton ancho onClick={() => emitir("cerrar_trato")}>
-                                Cerrar trato
-                            </QBoton>
-                        </div>
+                        <QBoton variante="texto" ancho onClick={() => emitir("mantener_abierto")}>
+                            Dejar el trato abierto
+                        </QBoton>
                     </section>
+                )}
+
+                {estado === "DOCUMENTO" && ctx.documento && (
+                    <DialogoDocumentoTrato
+                        abierto
+                        documento={ctx.documento.tipo}
+                        conDireccion={ctx.documento.conDireccion}
+                        direcciones={ctx.documento.direcciones}
+                        datos={ctx.documento.datos}
+                        dirCanarias={ctx.documento.dirCanarias}
+                        errores={errores}
+                        procesando={false}
+                        onCambiarDireccion={(codDireccion) => emitir("cambiar_direccion", codDireccion)}
+                        onCambiar={(cambios) => emitir("cambiar_documento", cambios)}
+                        onCancelar={() => emitir("cancelar_documento")}
+                        onConfirmar={() => emitir("confirmar_documento")}
+                    />
                 )}
 
                 {errores.length > 0 && (

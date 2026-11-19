@@ -1,7 +1,7 @@
 import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
 import { fechaIso } from "../comun/dominio.ts";
-import { CambiosTratoAPI, Nota, Opcion, TratoDetalle, TratoDetalleAPI } from "./diseño.ts";
-import { tratoDesdeAPI } from "./dominio.ts";
+import { CambiosTratoAPI, DatosDocumento, Nota, Opcion, TipoDocumentoTrato, TratoDetalle, TratoDetalleAPI } from "./diseño.ts";
+import { cambioEstado, documentoParaAPI, tratoDesdeAPI } from "./dominio.ts";
 
 const camposTrato = [
     "idtrato",
@@ -148,7 +148,24 @@ export const aprobarPresupuesto = async (trato: TratoDetalle) => {
     await LegacyAPI.patch(legacyUrl("pedidoscli", { id: String(idPedido), action: "enviar_pda" }), {});
 };
 
-export const crearLicencia = (licencia: object) => LegacyAPI.post(legacyUrl("licenciascli"), licencia);
+export type PreparacionDocumento = { conDireccion: boolean; direcciones: Opcion[] };
+
+// Si el cliente no tiene dirección automática hay que elegir la de envío, como en legacy.
+export const prepararDocumento = async (codCliente: string): Promise<PreparacionDocumento> => {
+    const automatica = await tieneDireccionAutomatica(codCliente);
+    return { conDireccion: !automatica, direcciones: automatica ? [] : await getDireccionesEnvio(codCliente) };
+};
+
+// Crea el presupuesto o el pedido del trato y devuelve su id. Crear el pedido gana el trato.
+export const crearDocumentoTrato = async (documento: TipoDocumentoTrato, trato: TratoDetalle, datos: DatosDocumento): Promise<string> => {
+    const api = documentoParaAPI(documento, trato, datos, fechaIso(new Date()));
+    if (documento === "presupuesto") return String(await crearPresupuestoTrato(api));
+    const idPedido = await crearPedidoTrato(api);
+    await actualizarTrato(trato.id, cambioEstado("Ganado"));
+    return String(idPedido);
+};
+
+export const crearLicencia =(licencia: object) => LegacyAPI.post(legacyUrl("licenciascli"), licencia);
 
 export const borrarLicencia = (idLicencia: string) => LegacyAPI.delete(legacyUrl("licenciascli", { id: idLicencia }));
 

@@ -1,6 +1,7 @@
 import { Contexto } from "@olula/lib/diseño.ts";
 import { TipoTarea } from "../comun/diseño.ts";
 import { Posicion } from "../comun/geolocalizacion.ts";
+import { AccionInicialTrato, DatosDocumento, Opcion, TipoDocumentoTrato, TratoDetalle } from "../trato/diseño.ts";
 
 export type TareaVisita = {
     id: string;
@@ -54,10 +55,29 @@ export type SiguientePaso = "ninguno" | "presupuesto" | "pedido";
 
 export type EstadoTrato = "Ganado" | "Perdido";
 
-export type EstadoVisita = "CARGANDO" | "PENDIENTE" | "EN_CURSO" | "FINALIZANDO" | "CERRANDO_TRATO" | "TERMINADA";
+export type EstadoVisita =
+    | "CARGANDO"
+    | "PENDIENTE"
+    | "EN_CURSO"
+    | "FINALIZANDO"
+    | "DOCUMENTO"
+    | "CERRANDO_TRATO"
+    | "TERMINADA";
+
+// Presupuesto o pedido que se está pidiendo crear: el siguiente paso elegido
+// o el pedido que exige el tipo de trato para ganarlo (ganaTrato).
+export type DocumentoEnCurso = {
+    tipo: TipoDocumentoTrato;
+    conDireccion: boolean;
+    direcciones: Opcion[];
+    datos: DatosDocumento;
+    dirCanarias: boolean;
+    ganaTrato: boolean;
+};
 
 export type ContextoVisita = Contexto<EstadoVisita> & {
     tarea: TareaVisita | null;
+    trato: TratoDetalle | null;
     contactos: Contacto[];
     causas: CausaPerdida[];
     nota: string;
@@ -68,7 +88,16 @@ export type ContextoVisita = Contexto<EstadoVisita> & {
     estadoTrato: EstadoTrato | null;
     idCausa: string | null;
     tratoCerrado: boolean;
+    documento: DocumentoEnCurso | null;
+    documentoCreado: { tipo: TipoDocumentoTrato; id: string } | null;
+    // Lo que no se puede resolver aquí (licencia farma, trato sin cliente o sin agente) se termina en la ficha.
+    accionEnFicha: AccionInicialTrato | null;
     errores: string[];
+};
+
+export type TiposTratoUsuario = {
+    tipoTratoFarma: string | null;
+    tipoTratoTareaUnica: string | null;
 };
 
 export type CambioVisita = Partial<

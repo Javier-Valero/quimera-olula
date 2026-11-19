@@ -1,11 +1,13 @@
 import { ContextoVisita, TareaVisita } from "./diseño.ts";
 import {
+    cambiarProceso,
     contextoInicial,
     destinoAlTerminar,
-    erroresCierreTrato,
     erroresFinalizacion,
+    erroresPerdida,
     estadoSegunTarea,
     finalizacionParaAPI,
+    puedeGenerarSiguiente,
 } from "./dominio.ts";
 
 const tarea = (datos: Partial<TareaVisita> = {}): TareaVisita => ({
@@ -50,10 +52,9 @@ describe("validaciones", () => {
         expect(erroresFinalizacion(contexto({ nota: "x".repeat(1001) }))).toHaveLength(1);
     });
 
-    test("cerrar como perdido exige causa", () => {
-        expect(erroresCierreTrato(contexto({ estadoTrato: "Ganado" }))).toEqual([]);
-        expect(erroresCierreTrato(contexto({ estadoTrato: "Perdido" }))).toEqual(["Indica la causa de la pérdida"]);
-        expect(erroresCierreTrato(contexto({ estadoTrato: "Perdido", idCausa: "3" }))).toEqual([]);
+    test("marcar el trato como perdido exige causa", () => {
+        expect(erroresPerdida(contexto({ estadoTrato: "Perdido" }))).toEqual(["Indica la causa de la pérdida"]);
+        expect(erroresPerdida(contexto({ estadoTrato: "Perdido", idCausa: "3" }))).toEqual([]);
     });
 });
 
@@ -76,9 +77,34 @@ describe("finalizacionParaAPI", () => {
     });
 });
 
+describe("siguiente tarea", () => {
+    test("no se puede generar si el siguiente paso es crear pedido, y elegirlo la desmarca", async () => {
+        expect(puedeGenerarSiguiente(contexto({ siguientePaso: "pedido" }))).toBe(false);
+        expect(puedeGenerarSiguiente(contexto({ siguientePaso: "presupuesto" }))).toBe(true);
+        const ctx = (await cambiarProceso(contexto({ generarSiguiente: true }), { siguientePaso: "pedido" })) as ContextoVisita;
+        expect(ctx.generarSiguiente).toBe(false);
+    });
+});
+
 describe("destinoAlTerminar", () => {
-    test("presupuesto o pedido llevan al trato", () => {
-        expect(destinoAlTerminar(contexto({ siguientePaso: "pedido" }))).toBe("/ss/mi-trato/40");
+    test("el presupuesto o pedido creado lleva a su ficha para añadir líneas", () => {
+        expect(destinoAlTerminar(contexto({ documentoCreado: { tipo: "pedido", id: "88" } }))).toBe("/ventas/pedidos/88");
+        expect(destinoAlTerminar(contexto({ documentoCreado: { tipo: "presupuesto", id: "12" } }))).toBe("/ventas/presupuestos/12");
+    });
+
+    test("generar la siguiente tarea va antes que el documento creado", () => {
+        expect(
+            destinoAlTerminar(contexto({ documentoCreado: { tipo: "presupuesto", id: "12" }, generarSiguiente: true }))
+        ).toBe("/ss/mi-tarea/nueva?cliente=000123&trato=40");
+    });
+
+    test("lo que no se resuelve en la visita se termina en la ficha del trato", () => {
+        expect(destinoAlTerminar(contexto({ accionEnFicha: "ganar" }))).toBe("/ss/mi-trato/40?accion=ganar");
+        expect(destinoAlTerminar(contexto({ accionEnFicha: "presupuesto" }))).toBe("/ss/mi-trato/40?accion=presupuesto");
+    });
+
+    test("elegir un siguiente paso sin llegar a crear el documento no cambia el destino", () => {
+        expect(destinoAlTerminar(contexto({ siguientePaso: "pedido" }))).toBe("/ss/mi-agenda");
     });
 
     test("generar siguiente tarea precarga cliente y, si sigue abierto, el trato", () => {

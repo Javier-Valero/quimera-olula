@@ -1,6 +1,7 @@
 import { TratoDetalle, TratoDetalleAPI } from "./diseño.ts";
 import {
     accionGanar,
+    accionInicialDesdeTexto,
     cambioEstado,
     documentoParaAPI,
     edicionParaAPI,
@@ -74,6 +75,17 @@ describe("accionGanar", () => {
     test("en el resto de casos se gana directamente", () => {
         expect(accionGanar(trato(), FARMA)).toBe("ganar");
     });
+
+    test("el trato de una tarea única se gana directamente aunque su tipo exija pedido", () => {
+        expect(accionGanar(trato({ idtipotrato: 9, exigirgenerarpedido: true }), FARMA, "9")).toBe("ganar");
+        expect(textoBotonGanar(trato({ idtipotrato: 9, exigirgenerarpedido: true }), FARMA, "9")).toBe("Ganado");
+    });
+});
+
+test("accionInicialDesdeTexto solo acepta las acciones conocidas", () => {
+    expect(accionInicialDesdeTexto("pedido")).toBe("pedido");
+    expect(accionInicialDesdeTexto("borrar")).toBeNull();
+    expect(accionInicialDesdeTexto(null)).toBeNull();
 });
 
 describe("textoBotonGanar", () => {

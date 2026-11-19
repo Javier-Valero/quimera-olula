@@ -79,6 +79,9 @@ export type Nota = {
 
 export type AccionGanar = "ganar" | "licencia" | "aprobar_presupuesto" | "crear_pedido";
 
+// Acción que la ficha lanza al abrirse con ?accion=, p. ej. desde "Finalizar visita".
+export type AccionInicialTrato = "presupuesto" | "pedido" | "ganar";
+
 export type TipoDocumentoTrato = "presupuesto" | "pedido";
 
 export type DatosDocumento = {

@@ -17,6 +17,7 @@ const usuario = (datos: Partial<UsuarioSmartsales> = {}): UsuarioSmartsales => (
     superusuario: false,
     tipoTratoFarma: null,
     tipoTratoVentaProducto: null,
+    tipoTratoTareaUnica: null,
     grupo: "Comerciales",
     empresa: 1,
     ...datos,

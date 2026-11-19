@@ -2,7 +2,10 @@ import { ProcesarContexto } from "@olula/lib/diseño.ts";
 import { fechaIso } from "../comun/dominio.ts";
 import { posicionActual } from "../comun/geolocalizacion.ts";
 import { rutasSmartsales } from "../comun/rutas.ts";
-import { CambioVisita, ContextoVisita, EstadoVisita, FinalizacionAPI, TareaVisita } from "./diseño.ts";
+import { DatosDocumento, TipoDocumentoTrato } from "../trato/diseño.ts";
+import { accionGanar, erroresDocumento, puedeCrearPresupuesto } from "../trato/dominio.ts";
+import { aprobarPresupuesto, crearDocumentoTrato, esDireccionCanarias, getTrato, prepararDocumento } from "../trato/infraestructura.ts";
+import { CambioVisita, ContextoVisita, EstadoVisita, FinalizacionAPI, TareaVisita, TiposTratoUsuario } from "./diseño.ts";
 import {
     cerrarTrato,
     finalizarTarea,
@@ -17,9 +20,12 @@ type ProcesarVisita = ProcesarContexto<EstadoVisita, ContextoVisita>;
 
 export const MAX_NOTA = 1000;
 
+const datosDocumentoVacios: DatosDocumento = { codDireccion: null, regimenIva: null, codEvento: null };
+
 export const contextoInicial: ContextoVisita = {
     estado: "CARGANDO",
     tarea: null,
+    trato: null,
     contactos: [],
     causas: [],
     nota: "",
@@ -30,6 +36,9 @@ export const contextoInicial: ContextoVisita = {
     estadoTrato: null,
     idCausa: null,
     tratoCerrado: false,
+    documento: null,
+    documentoCreado: null,
+    accionEnFicha: null,
     errores: [],
 };
 
@@ -49,11 +58,7 @@ export const erroresFinalizacion = (ctx: ContextoVisita): string[] =>
         ctx.nota.length > MAX_NOTA && `La nota no puede pasar de ${MAX_NOTA} caracteres`,
     ].filter((e): e is string => !!e);
 
-export const erroresCierreTrato = (ctx: ContextoVisita): string[] =>
-    [
-        !ctx.estadoTrato && "Indica si el trato se ha ganado o perdido",
-        ctx.estadoTrato === "Perdido" && !ctx.idCausa && "Indica la causa de la pérdida",
-    ].filter((e): e is string => !!e);
+export const erroresPerdida = (ctx: ContextoVisita): string[] => (ctx.idCausa ? [] : ["Indica la causa de la pérdida"]);
 
 export const finalizacionParaAPI = (
     ctx: ContextoVisita,
@@ -69,13 +74,48 @@ export const finalizacionParaAPI = (
     interlocutor: ctx.interlocutor,
 });
 
+// Generar la siguiente tarea tiene prioridad sobre ir al documento creado.
 export const destinoAlTerminar = (ctx: ContextoVisita): string => {
     const tarea = ctx.tarea;
-    if (tarea?.idTrato && ctx.siguientePaso !== "ninguno") return rutasSmartsales.trato(tarea.idTrato);
+    if (tarea?.idTrato && ctx.accionEnFicha) return rutasSmartsales.tratoConAccion(tarea.idTrato, ctx.accionEnFicha);
     if (ctx.generarSiguiente && tarea?.codCliente) {
         return rutasSmartsales.nuevaTareaPara(tarea.codCliente, ctx.tratoCerrado ? null : tarea.idTrato);
     }
+    if (ctx.documentoCreado) {
+        const { tipo, id } = ctx.documentoCreado;
+        return tipo === "presupuesto" ? rutasSmartsales.presupuesto(id) : rutasSmartsales.pedido(id);
+    }
     return rutasSmartsales.agenda;
+};
+
+export const documentoYaCreado = (tipo: TipoDocumentoTrato, trato: NonNullable<ContextoVisita["trato"]>) =>
+    tipo === "presupuesto" ? !puedeCrearPresupuesto(trato) : !!trato.idPedido;
+
+// Como en legacy: si era la última tarea pendiente de un trato abierto, se pregunta cómo ha terminado.
+const comprobarCierreTrato = async (ctx: ContextoVisita): Promise<ContextoVisita> => {
+    const tarea = ctx.tarea!;
+    const terminada: ContextoVisita = { ...ctx, estado: "TERMINADA", documento: null, errores: [] };
+    if (!tarea.idTrato || ctx.tratoCerrado || (await quedanTareasPendientes(tarea.idTrato, tarea.id))) return terminada;
+    const trato = await getTrato(tarea.idTrato);
+    if (trato.estado !== "-") return terminada;
+    return { ...terminada, estado: "CERRANDO_TRATO", trato, causas: await getCausasPerdida(tarea.idTrato) };
+};
+
+const abrirDocumento = async (ctx: ContextoVisita, tipo: TipoDocumentoTrato, ganaTrato: boolean): Promise<ContextoVisita> => {
+    const trato = await getTrato(ctx.tarea!.idTrato!);
+    if (!trato.codCliente || !trato.codAgente) {
+        return { ...ctx, trato, estado: "TERMINADA", accionEnFicha: ganaTrato ? "ganar" : tipo };
+    }
+    if (documentoYaCreado(tipo, trato)) return comprobarCierreTrato({ ...ctx, trato });
+
+    const { conDireccion, direcciones } = await prepararDocumento(trato.codCliente);
+    return {
+        ...ctx,
+        trato,
+        estado: "DOCUMENTO",
+        errores: [],
+        documento: { tipo, conDireccion, direcciones, datos: datosDocumentoVacios, dirCanarias: false, ganaTrato },
+    };
 };
 
 export const cargarProceso: ProcesarVisita = async (_ctx, payload) => {
@@ -91,7 +131,13 @@ export const cargarProceso: ProcesarVisita = async (_ctx, payload) => {
     };
 };
 
-export const cambiarProceso: ProcesarVisita = async (ctx, payload) => ({ ...ctx, ...(payload as CambioVisita), errores: [] });
+// Crear el pedido gana el trato: no tiene sentido generar otra tarea tras él.
+export const puedeGenerarSiguiente = (ctx: ContextoVisita) => ctx.siguientePaso !== "pedido";
+
+export const cambiarProceso: ProcesarVisita = async (ctx, payload) => {
+    const cambiado = { ...ctx, ...(payload as CambioVisita), errores: [] };
+    return puedeGenerarSiguiente(cambiado) ? cambiado : { ...cambiado, generarSiguiente: false };
+};
 
 export const iniciarProceso: ProcesarVisita = async (ctx) => {
     const tarea = ctx.tarea!;
@@ -119,16 +165,63 @@ export const guardarProceso: ProcesarVisita = async (ctx) => {
     const tarea = ctx.tarea!;
     await finalizarTarea(tarea.id, finalizacionParaAPI(ctx, await posicionActual()));
 
-    if (!tarea.idTrato || (await quedanTareasPendientes(tarea.idTrato, tarea.id))) {
-        return { ...ctx, estado: "TERMINADA" };
-    }
-    return { ...ctx, estado: "CERRANDO_TRATO", causas: await getCausasPerdida(tarea.idTrato) };
+    if (tarea.idTrato && ctx.siguientePaso !== "ninguno") return abrirDocumento(ctx, ctx.siguientePaso, false);
+    return comprobarCierreTrato(ctx);
 };
 
-export const cerrarTratoProceso: ProcesarVisita = async (ctx) => {
-    const errores = erroresCierreTrato(ctx);
+export const cambiarDocumentoProceso: ProcesarVisita = async (ctx, payload) => {
+    const documento = ctx.documento!;
+    return { ...ctx, documento: { ...documento, datos: { ...documento.datos, ...(payload as Partial<DatosDocumento>) } }, errores: [] };
+};
+
+export const cambiarDireccionDocumentoProceso: ProcesarVisita = async (ctx, payload) => {
+    const codDireccion = (payload as string | null) || null;
+    const canarias = codDireccion ? await esDireccionCanarias(codDireccion) : false;
+    const documento = ctx.documento!;
+    return {
+        ...ctx,
+        errores: [],
+        documento: {
+            ...documento,
+            dirCanarias: canarias,
+            datos: { ...documento.datos, codDireccion, regimenIva: canarias ? "Exportaciones" : null },
+        },
+    };
+};
+
+export const confirmarDocumentoProceso: ProcesarVisita = async (ctx) => {
+    const documento = ctx.documento!;
+    const errores = erroresDocumento(documento.datos, documento.conDireccion);
     if (errores.length > 0) return { ...ctx, errores };
 
-    await cerrarTrato(ctx.tarea!.idTrato!, ctx.estadoTrato!, ctx.idCausa);
+    const id = await crearDocumentoTrato(documento.tipo, ctx.trato!, documento.datos);
+    const conDocumento: ContextoVisita = { ...ctx, documento: null, documentoCreado: { tipo: documento.tipo, id }, errores: [] };
+    // Crear el pedido gana el trato: ya no hay que preguntar por su cierre.
+    if (documento.tipo === "pedido") return { ...conDocumento, estado: "TERMINADA", tratoCerrado: true };
+    return comprobarCierreTrato(conDocumento);
+};
+
+export const cancelarDocumentoProceso: ProcesarVisita = async (ctx) => {
+    if (ctx.documento?.ganaTrato) return { ...ctx, estado: "CERRANDO_TRATO", documento: null, errores: [] };
+    return comprobarCierreTrato({ ...ctx, documento: null });
+};
+
+// Ganar sigue las mismas reglas que la ficha del trato (accionGanar).
+export const ganarTratoProceso: ProcesarVisita = async (ctx, payload) => {
+    const { tipoTratoFarma, tipoTratoTareaUnica } = payload as TiposTratoUsuario;
+    const trato = ctx.trato!;
+    const accion = accionGanar(trato, tipoTratoFarma, tipoTratoTareaUnica);
+    if (accion === "crear_pedido") return abrirDocumento(ctx, "pedido", true);
+    if (accion === "licencia") return { ...ctx, estado: "TERMINADA", accionEnFicha: "ganar" };
+    if (accion === "aprobar_presupuesto") await aprobarPresupuesto(trato);
+    await cerrarTrato(trato.id, "Ganado", null);
+    return { ...ctx, estado: "TERMINADA", tratoCerrado: true };
+};
+
+export const perderTratoProceso: ProcesarVisita = async (ctx) => {
+    const errores = erroresPerdida(ctx);
+    if (errores.length > 0) return { ...ctx, errores };
+
+    await cerrarTrato(ctx.trato!.id, "Perdido", ctx.idCausa);
     return { ...ctx, estado: "TERMINADA", tratoCerrado: true };
 };

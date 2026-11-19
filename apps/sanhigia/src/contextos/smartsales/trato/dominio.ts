@@ -1,6 +1,7 @@
 import { familiasATexto, familiasDesdeTexto } from "../tratos/dominio.ts";
 import {
     AccionGanar,
+    AccionInicialTrato,
     CambiosTratoAPI,
     DatosDocumento,
     EstadoTrato,
@@ -50,13 +51,23 @@ export const tratoDesdeAPI = (trato: TratoDetalleAPI): TratoDetalle => ({
 export const esTratoFarma = (trato: TratoDetalle, tipoTratoFarma: string | null) =>
     !!tipoTratoFarma && trato.idTipoTrato === tipoTratoFarma;
 
-export const accionGanar = (trato: TratoDetalle, tipoTratoFarma: string | null): AccionGanar => {
+export const esTratoTareaUnica = (trato: TratoDetalle, tipoTratoTareaUnica: string | null) =>
+    !!tipoTratoTareaUnica && trato.idTipoTrato === tipoTratoTareaUnica;
+
+// El trato implícito de una tarea única nunca es farma ni exige pedido: se gana directamente.
+export const accionGanar = (trato: TratoDetalle, tipoTratoFarma: string | null, tipoTratoTareaUnica: string | null = null): AccionGanar => {
+    if (esTratoTareaUnica(trato, tipoTratoTareaUnica)) return "ganar";
     if (esTratoFarma(trato, tipoTratoFarma)) return "licencia";
     if (!trato.exigirPedido) return "ganar";
     return trato.idPresupuesto ? "aprobar_presupuesto" : "crear_pedido";
 };
 
-export const textoBotonGanar = (trato: TratoDetalle, tipoTratoFarma: string | null) => {
+const ACCIONES_INICIALES: AccionInicialTrato[] = ["presupuesto", "pedido", "ganar"];
+
+export const accionInicialDesdeTexto = (texto: string | null): AccionInicialTrato | null =>
+    ACCIONES_INICIALES.find((accion) => accion === texto) ?? null;
+
+export const textoBotonGanar = (trato: TratoDetalle, tipoTratoFarma: string | null, tipoTratoTareaUnica: string | null = null) => {
     if (trato.estado === "Ganado") return "Ganado";
     const textos: Record<AccionGanar, string> = {
         ganar: "Ganado",
@@ -64,7 +75,7 @@ export const textoBotonGanar = (trato: TratoDetalle, tipoTratoFarma: string | nu
         aprobar_presupuesto: "Aprobar presupuesto",
         crear_pedido: "Crear pedido",
     };
-    return textos[accionGanar(trato, tipoTratoFarma)];
+    return textos[accionGanar(trato, tipoTratoFarma, tipoTratoTareaUnica)];
 };
 
 export const puedePerder = (trato: TratoDetalle) => !trato.idPedido && !trato.idLicencia;

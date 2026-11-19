@@ -1,0 +1,17 @@
+.DialogoDocumentoTrato {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.DialogoDocumentoTrato .errores {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--color-error);
+}
+
+.DialogoDocumentoTrato .acciones {
+    display: flex;
+    justify-content: end;
+    gap: 0.5rem;
+}

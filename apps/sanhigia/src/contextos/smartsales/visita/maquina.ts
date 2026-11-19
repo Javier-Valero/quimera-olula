@@ -1,12 +1,17 @@
 import { Maquina } from "@olula/lib/diseño.ts";
 import { ContextoVisita, EstadoVisita } from "./diseño.ts";
 import {
+    cambiarDireccionDocumentoProceso,
+    cambiarDocumentoProceso,
     cambiarProceso,
+    cancelarDocumentoProceso,
     cargarProceso,
-    cerrarTratoProceso,
+    confirmarDocumentoProceso,
+    ganarTratoProceso,
     guardarProceso,
     iniciarProceso,
     pedirFinalizacionProceso,
+    perderTratoProceso,
     volverProceso,
 } from "./dominio.ts";
 
@@ -28,9 +33,16 @@ export const getMaquina = (): Maquina<EstadoVisita, ContextoVisita> => ({
         volver: volverProceso,
         guardar: guardarProceso,
     },
+    DOCUMENTO: {
+        cambiar_documento: cambiarDocumentoProceso,
+        cambiar_direccion: cambiarDireccionDocumentoProceso,
+        confirmar_documento: confirmarDocumentoProceso,
+        cancelar_documento: cancelarDocumentoProceso,
+    },
     CERRANDO_TRATO: {
         cambiar: cambiarProceso,
-        cerrar_trato: cerrarTratoProceso,
+        ganar_trato: ganarTratoProceso,
+        perder_trato: perderTratoProceso,
         mantener_abierto: "TERMINADA",
     },
     TERMINADA: {},
