@@ -73,4 +73,9 @@ export type NuevoTratoAPI = {
     referencia: string | null;
     codfamilia: string | null;
     codsubfamilia: string | null;
+    codagente: string | null;
+    estado: string;
+    estadoasigagente: string;
+    fecha: string;
+    horaalta: string;
 };

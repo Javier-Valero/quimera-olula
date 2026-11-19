@@ -43,7 +43,7 @@ export const NuevoTrato = () => {
     const { intentar } = useContext(ContextoError);
     const navigate = useNavigate();
     const [parametros] = useSearchParams();
-    const { usuario } = useAgenteSeguido();
+    const { usuario, agentePropio } = useAgenteSeguido();
 
     const [formulario, setFormulario] = useState<FormularioTrato>(formularioVacio);
     const [tipos, setTipos] = useState<TipoTrato[]>([]);
@@ -96,7 +96,7 @@ export const NuevoTrato = () => {
 
         setGuardando(true);
         try {
-            const { pk } = await intentar(() => crearTrato(tratoParaAPI(formulario)));
+            const { pk } = await intentar(() => crearTrato(tratoParaAPI(formulario, agentePropio)));
             navigate(rutasSmartsales.trato(String(pk)));
         } catch {
             setGuardando(false);

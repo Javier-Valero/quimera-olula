@@ -73,7 +73,13 @@ describe("alta de trato", () => {
     });
 
     test("manda las familias como en legacy y el producto en su campo", () => {
-        expect(tratoParaAPI(formulario)).toEqual({
+        const ahora = new Date(2026, 10, 19, 9, 7, 5);
+        expect(tratoParaAPI(formulario, "A1", ahora)).toEqual({
+            codagente: "A1",
+            estado: "-",
+            estadoasigagente: "Publicado",
+            fecha: "2026-11-19",
+            horaalta: "09:07:05",
             titulo: "PTE para Clínica",
             codcliente: "000123",
             idtipotrato: 4,
@@ -83,5 +89,9 @@ describe("alta de trato", () => {
             codfamilia: null,
             codsubfamilia: "PTE",
         });
+    });
+
+    test("sin agente propio manda codagente vacío para que el backend asigne el del cliente", () => {
+        expect(tratoParaAPI(formulario, "").codagente).toBeNull();
     });
 });

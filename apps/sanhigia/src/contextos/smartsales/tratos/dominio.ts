@@ -7,6 +7,7 @@ import {
     OrigenTrato,
     TratoListaAPI,
 } from "./diseño.ts";
+import { fechaIso } from "../comun/dominio.ts";
 
 export const CUENTA_CAMPANIAS_COMERCIAL = "comercial";
 
@@ -66,9 +67,19 @@ export const familiasDesdeTexto = (texto: string | null): FamiliaTrato[] =>
             }
         });
 
-export const tratoParaAPI = (formulario: FormularioTrato): NuevoTratoAPI => {
+const horaConSegundos = (ahora: Date) =>
+    [ahora.getHours(), ahora.getMinutes(), ahora.getSeconds()].map((n) => String(n).padStart(2, "0")).join(":");
+
+// Mismos campos que manda el alta de trato legacy: el backend asigna el agente
+// del cliente si codagente llega vacío.
+export const tratoParaAPI = (formulario: FormularioTrato, codAgente: string | null, ahora: Date = new Date()): NuevoTratoAPI => {
     const producto = formulario.producto;
     return {
+        codagente: codAgente || null,
+        estado: "-",
+        estadoasigagente: "Publicado",
+        fecha: fechaIso(ahora),
+        horaalta: horaConSegundos(ahora),
         titulo: formulario.titulo.trim().slice(0, 100),
         codcliente: formulario.cliente!.codigo,
         idtipotrato: formulario.idTipoTrato ? Number(formulario.idTipoTrato) : null,
