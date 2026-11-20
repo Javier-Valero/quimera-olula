@@ -4,11 +4,12 @@ import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
 import { QTextArea } from "@olula/componentes/atomos/qtextarea.tsx";
 import { QAutocompletar } from "@olula/componentes/moleculas/qautocompletar.tsx";
-import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
-import { useEffect, useState } from "react";
+import { QCargando } from "@olula/componentes/atomos/qcargando.tsx";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
+import { useMaquinaConProceso } from "../../comun/useMaquinaConProceso.ts";
 import { EtiquetaAfinidad } from "../../comun/componentes/EtiquetaAfinidad.tsx";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { ListaArticulos } from "../../comun/componentes/ListaArticulos.tsx";
@@ -19,7 +20,9 @@ import { contextoInicial, textoTipoCampania, tipoProductoDe } from "../dominio.t
 import { getMaquina } from "../maquina.ts";
 import "../maestro/Campanias.css";
 
-const TIPOS = (Object.keys(textoTipoCampania) as TipoCampania[]).map((valor) => ({ valor, descripcion: textoTipoCampania[valor] }));
+const EVENTOS_SIN_BLOQUEO = ["cambiar", "fijar_agente"];
+
+const TIPOS =(Object.keys(textoTipoCampania) as TipoCampania[]).map((valor) => ({ valor, descripcion: textoTipoCampania[valor] }));
 
 const Errores = ({ errores }: { errores: string[] }) =>
     errores.length > 0 ? (
@@ -33,15 +36,11 @@ const Errores = ({ errores }: { errores: string[] }) =>
 export const NuevaCampania = () => {
     const navigate = useNavigate();
     const { agenteSeguido } = useAgenteSeguido();
-    const { ctx, emitir } = useMaquina(getMaquina, contextoInicial);
+    const { ctx, emitir, procesando: enviando } = useMaquinaConProceso(getMaquina, contextoInicial, EVENTOS_SIN_BLOQUEO);
     const { estado, formulario, clientes, errores } = ctx;
-    const [enviando, setEnviando] = useState(false);
 
     const enviar = (evento: string) => {
-        setEnviando(true);
-        emitir(evento)
-            .catch(() => undefined)
-            .finally(() => setEnviando(false));
+        emitir(evento).catch(() => undefined);
     };
 
     const cambiar = (cambios: Partial<FormularioCampania>) => emitir("cambiar", cambios);
@@ -62,6 +61,7 @@ export const NuevaCampania = () => {
         return (
             <LayoutSmartsales>
                 <div className="Campanias">
+                    <QCargando visible={enviando} mensaje="Procesando…" />
                     <header>
                         <h1>{formulario.nombre}</h1>
                     </header>
@@ -97,6 +97,7 @@ export const NuevaCampania = () => {
     return (
         <LayoutSmartsales>
             <div className="Campanias">
+                <QCargando visible={enviando} mensaje="Procesando…" />
                 <header>
                     <h1>Nueva campaña</h1>
                 </header>

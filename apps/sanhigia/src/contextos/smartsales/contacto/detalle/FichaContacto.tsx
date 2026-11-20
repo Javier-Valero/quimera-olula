@@ -1,9 +1,10 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { QCargando } from "@olula/componentes/atomos/qcargando.tsx";
 import { QCheckbox } from "@olula/componentes/atomos/qcheckbox.tsx";
 import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QTextArea } from "@olula/componentes/atomos/qtextarea.tsx";
-import { QModal } from "@olula/componentes/moleculas/qmodal.tsx";
+import { ModalProcesando } from "../../comun/componentes/ModalProcesando.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { puede } from "@olula/lib/dominio.js";
 import { ReactNode, useCallback, useContext, useEffect, useState } from "react";
@@ -165,6 +166,7 @@ export const FichaContacto = () => {
     return (
         <LayoutSmartsales>
             <div className="Contacto">
+                <QCargando visible={procesando} mensaje="Procesando…" />
                 <header>
                     <h1>{contacto.nombre}</h1>
                 </header>
@@ -323,7 +325,7 @@ export const FichaContacto = () => {
                     </div>
                 )}
 
-                <QModal nombre="borrar_contacto" titulo="Borrar contacto" abierto={confirmarBorrado} onCerrar={() => setConfirmarBorrado(false)}>
+                <ModalProcesando procesando={procesando} nombre="borrar_contacto" titulo="Borrar contacto" abierto={confirmarBorrado} onCerrar={() => setConfirmarBorrado(false)}>
                     <div className="dialogo">
                         <p>El contacto se eliminará definitivamente.</p>
                         <div className="acciones">
@@ -335,7 +337,7 @@ export const FichaContacto = () => {
                             </QBoton>
                         </div>
                     </div>
-                </QModal>
+                </ModalProcesando>
             </div>
         </LayoutSmartsales>
     );
