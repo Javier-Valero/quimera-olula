@@ -1,19 +1,27 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { QCargando } from "@olula/componentes/atomos/qcargando.tsx";
 import { QEtiqueta } from "@olula/componentes/atomos/qetiqueta.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
 import { QAutocompletar } from "@olula/componentes/moleculas/qautocompletar.tsx";
+import { QModal } from "@olula/componentes/moleculas/qmodal.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
+import { puede } from "@olula/lib/dominio.ts";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
+import { ModalProcesando } from "../../comun/componentes/ModalProcesando.tsx";
+import { FormularioNuevoContacto } from "../../contacto/crear/FormularioNuevoContacto.tsx";
 import { TipoProducto } from "../../nueva_tarea/diseño.ts";
 import { buscarClientes, buscarProductos, getNombreCliente } from "../../nueva_tarea/infraestructura.ts";
 import { FormularioTrato, TipoTrato } from "../diseño.ts";
-import { erroresTrato, tratoParaAPI } from "../dominio.ts";
+import { debePreguntarAsociar, erroresTrato, tratoParaAPI } from "../dominio.ts";
 import {
+    asociarContactoAgente,
+    buscarContactos,
+    contactoEnListaAgente,
     crearTrato,
     getDescripcionProducto,
     getFamilia,
@@ -26,6 +34,7 @@ import "../maestro/Tratos.css";
 const formularioVacio: FormularioTrato = {
     titulo: "",
     cliente: null,
+    contacto: null,
     idTipoTrato: null,
     valor: 0,
     familias: [],
@@ -49,6 +58,8 @@ export const NuevoTrato = () => {
     const [tipos, setTipos] = useState<TipoTrato[]>([]);
     const [errores, setErrores] = useState<string[]>([]);
     const [guardando, setGuardando] = useState(false);
+    const [creandoContacto, setCreandoContacto] = useState(false);
+    const [asociacion, setAsociacion] = useState<{ idTrato: string; email: string; nombre: string } | null>(null);
 
     const cambiar = (cambios: Partial<FormularioTrato>) => setFormulario((actual) => ({ ...actual, ...cambios }));
 
@@ -90,22 +101,42 @@ export const NuevoTrato = () => {
     }, [parametros, usuario?.tipoTratoVentaProducto]);
 
     const guardar = async () => {
-        const encontrados = erroresTrato(formulario);
+        const encontrados = erroresTrato(formulario, usuario?.tipoTratoFarma ?? null, puede("crm.trato.farma"));
         setErrores(encontrados);
         if (encontrados.length > 0) return;
 
         setGuardando(true);
         try {
             const { pk } = await intentar(() => crearTrato(tratoParaAPI(formulario, agentePropio)));
-            navigate(rutasSmartsales.trato(String(pk)));
+            const idTrato = String(pk);
+            const contacto = formulario.contacto;
+            if (contacto && agentePropio) {
+                const { asociado, email } = await intentar(() => contactoEnListaAgente(contacto.codigo, agentePropio));
+                if (email && debePreguntarAsociar(usuario?.grupo ?? null, asociado)) {
+                    setGuardando(false);
+                    setAsociacion({ idTrato, email, nombre: contacto.nombre });
+                    return;
+                }
+            }
+            navigate(rutasSmartsales.trato(idTrato));
         } catch {
             setGuardando(false);
         }
     };
 
+    const terminarAsociacion = async (asociar: boolean) => {
+        if (!asociacion) return;
+        if (asociar && agentePropio) {
+            setGuardando(true);
+            await intentar(() => asociarContactoAgente(asociacion.email, agentePropio)).catch(() => undefined);
+        }
+        navigate(rutasSmartsales.trato(asociacion.idTrato));
+    };
+
     return (
         <LayoutSmartsales>
             <div className="NuevoTrato">
+                <QCargando visible={guardando} mensaje="Guardando…" />
                 <header>
                     <h1>Nuevo trato</h1>
                 </header>
@@ -118,8 +149,27 @@ export const NuevoTrato = () => {
                     valor={formulario.cliente?.codigo ?? ""}
                     descripcion={formulario.cliente?.nombre}
                     obtenerOpciones={async (texto) => (await buscarClientes(texto)).map((c) => ({ valor: c.codigo, descripcion: c.nombre }))}
-                    onChange={(opcion) => cambiar({ cliente: opcion ? { codigo: opcion.valor, nombre: opcion.descripcion } : null })}
+                    onChange={(opcion) =>
+                        cambiar({ cliente: opcion ? { codigo: opcion.valor, nombre: opcion.descripcion } : null, contacto: null })
+                    }
                 />
+
+                {/* La key vuelve a montar el selector al cambiar de cliente: sin ella conserva las opciones del cliente anterior. */}
+                <QAutocompletar
+                    key={formulario.cliente?.codigo ?? "sin-cliente"}
+                    label={formulario.cliente ? "Contacto del cliente" : "Contacto"}
+                    nombre="contacto"
+                    opcional
+                    valor={formulario.contacto?.codigo ?? ""}
+                    descripcion={formulario.contacto?.nombre}
+                    obtenerOpciones={async (texto) =>
+                        (await buscarContactos(texto, formulario.cliente?.codigo ?? null)).map((c) => ({ valor: c.codigo, descripcion: c.nombre }))
+                    }
+                    onChange={(opcion) => cambiar({ contacto: opcion ? { codigo: opcion.valor, nombre: opcion.descripcion } : null })}
+                />
+                <QBoton variante="texto" tamaño="pequeño" onClick={() => setCreandoContacto(true)}>
+                    Crear nuevo contacto
+                </QBoton>
 
                 <QSelect
                     label="Tipo de trato"
@@ -192,6 +242,44 @@ export const NuevoTrato = () => {
                         Crear trato
                     </QBoton>
                 </div>
+
+                <QModal nombre="nuevo_contacto" titulo="Nuevo contacto" abierto={creandoContacto} onCerrar={() => setCreandoContacto(false)}>
+                    {creandoContacto && (
+                        <FormularioNuevoContacto
+                            cliente={formulario.cliente}
+                            onCreado={(contacto) => {
+                                cambiar({ contacto });
+                                setCreandoContacto(false);
+                            }}
+                            onCancelar={() => setCreandoContacto(false)}
+                        />
+                    )}
+                </QModal>
+
+                <ModalProcesando
+                    procesando={guardando}
+                    mensaje="Asociando…"
+                    nombre="asociar_contacto"
+                    titulo="Asociación de contactos"
+                    abierto={!!asociacion}
+                    onCerrar={() => terminarAsociacion(false).catch(() => undefined)}
+                >
+                    {asociacion && (
+                        <div className="dialogo">
+                            <p>
+                                No tienes a <strong>{asociacion.nombre}</strong> en tu lista de contactos. ¿Quieres asociarlo?
+                            </p>
+                            <div className="acciones">
+                                <QBoton variante="borde" onClick={() => terminarAsociacion(false).catch(() => undefined)}>
+                                    Cancelar
+                                </QBoton>
+                                <QBoton deshabilitado={guardando} onClick={() => terminarAsociacion(true).catch(() => undefined)}>
+                                    Asociar
+                                </QBoton>
+                            </div>
+                        </div>
+                    )}
+                </ModalProcesando>
             </div>
         </LayoutSmartsales>
     );

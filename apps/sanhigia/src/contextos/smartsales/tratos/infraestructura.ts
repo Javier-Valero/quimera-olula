@@ -93,4 +93,35 @@ export const getDescripcionProducto = async (tipo: "articulo" | "familia" | "sub
     return respuesta.data[0]?.descripcion ?? codigo;
 };
 
+// Como el selector de contacto legacy: si hay cliente, solo sus contactos.
+export const buscarContactos = async (texto: string, codCliente: string | null): Promise<{ codigo: string; nombre: string }[]> => {
+    const clausulas = [
+        ...(texto ? [["nombre", "like", texto]] : []),
+        ...(codCliente ? [["codcliente", "eq", codCliente]] : []),
+    ];
+    const respuesta = await LegacyAPI.get<{ data: { codcontacto: string; nombre: string }[] }>(
+        legacyUrl("contactos", {
+            params: {
+                filter: clausulas.length ? { and: clausulas } : undefined,
+                fields: ["codcontacto", "nombre"],
+                order: { field: "nombre", direction: "ASC" },
+                page: { limit: 20 },
+            },
+        })
+    );
+    return respuesta.data.map((c) => ({ codigo: c.codcontacto, nombre: c.nombre }));
+};
+
+// Lista de contactos del agente (ss_contactos_agente), por email, como el alta de trato legacy.
+export const contactoEnListaAgente = async (codContacto: string, codAgente: string): Promise<{ asociado: boolean; email: string | null }> => {
+    const respuesta = await LegacyAPI.post<{ contacto: string; agente: string }, { data: unknown[]; email: string | null }>(
+        legacyUrl("ss_contactos_agente", { action: "are_associated", staticAction: true }),
+        { contacto: codContacto, agente: codAgente }
+    );
+    return { asociado: respuesta.data.length > 0, email: respuesta.email };
+};
+
+export const asociarContactoAgente = (email: string, codAgente: string) =>
+    LegacyAPI.post(legacyUrl("ss_contactos_agente"), { contacto: email, agente: codAgente });
+
 export const crearTrato = async (trato: NuevoTratoAPI) => LegacyAPI.post<NuevoTratoAPI, { pk: number }>(legacyUrl("ss_tratos"), trato);

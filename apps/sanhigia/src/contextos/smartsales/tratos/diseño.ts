@@ -58,6 +58,7 @@ export type FamiliaTrato = {
 export type FormularioTrato = {
     titulo: string;
     cliente: { codigo: string; nombre: string } | null;
+    contacto: { codigo: string; nombre: string } | null;
     idTipoTrato: string | null;
     valor: number;
     familias: FamiliaTrato[];
@@ -66,7 +67,8 @@ export type FormularioTrato = {
 
 export type NuevoTratoAPI = {
     titulo: string;
-    codcliente: string;
+    codcliente: string | null;
+    codcontacto: string | null;
     idtipotrato: number | null;
     valor: number;
     familias: string;

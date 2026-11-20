@@ -1,7 +1,7 @@
 import { UsuarioSmartsales } from "../comun/diseño.ts";
 import { CambiosContactoAPI, Contacto, ContactoAPI, FormularioContacto } from "./diseño.ts";
 
-const GRUPOS_MARKETING = ["MKT", "Responsable de marketing"];
+export const GRUPOS_MARKETING = ["MKT", "Responsable de marketing"];
 
 const PATRON_EMAIL = /^(?!\.)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}$/;
 

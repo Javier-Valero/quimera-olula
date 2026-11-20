@@ -1,5 +1,5 @@
 import { FiltrosTratos, FormularioTrato, TratoListaAPI } from "./diseño.ts";
-import { erroresTrato, filtroTratos, origenTrato, totalesDesdeAPI, tratoParaAPI } from "./dominio.ts";
+import { debePreguntarAsociar, erroresTrato, filtroTratos, origenTrato, totalesDesdeAPI, tratoParaAPI } from "./dominio.ts";
 
 const trato = (datos: Partial<TratoListaAPI> = {}): TratoListaAPI => ({
     idtrato: 1,
@@ -61,15 +61,44 @@ describe("alta de trato", () => {
     const formulario: FormularioTrato = {
         titulo: " PTE para Clínica ",
         cliente: { codigo: "000123", nombre: "Clínica" },
+        contacto: null,
         idTipoTrato: "4",
         valor: 0,
         familias: [{ codfamilia: "BIO", descripcion: "Biomateriales" }],
         producto: { tipo: "subfamilia", codigo: "PTE", descripcion: "PTE" },
     };
+    const contacto = { codigo: "C9", nombre: "Ana" };
 
-    test("valida título, cliente y tipo", () => {
+    test("valida título, cliente o contacto y tipo", () => {
         expect(erroresTrato(formulario)).toEqual([]);
-        expect(erroresTrato({ ...formulario, titulo: "", cliente: null, idTipoTrato: null })).toHaveLength(3);
+        expect(erroresTrato({ ...formulario, titulo: "", cliente: null, idTipoTrato: null })).toEqual([
+            "Indica el título",
+            "Elige un cliente o un contacto",
+            "Elige el tipo de trato",
+        ]);
+    });
+
+    test("basta con el contacto, sin cliente", () => {
+        expect(erroresTrato({ ...formulario, cliente: null, contacto })).toEqual([]);
+    });
+
+    test("un trato farma exige cliente, contacto y permiso, como en legacy", () => {
+        const farma = { ...formulario, idTipoTrato: "7" };
+        expect(erroresTrato(farma, "7")).toEqual(["Elige un contacto: este tipo de trato lo exige"]);
+        expect(erroresTrato({ ...farma, cliente: null, contacto }, "7")).toEqual(["Elige un cliente: este tipo de trato lo exige"]);
+        expect(erroresTrato({ ...farma, contacto }, "7", false)).toEqual(["No tienes permisos para usar este tipo de trato"]);
+        expect(erroresTrato({ ...farma, contacto }, "7")).toEqual([]);
+    });
+
+    test("tras crear el trato se pregunta por asociar el contacto si no está en la lista, salvo a Marketing", () => {
+        expect(debePreguntarAsociar("Comerciales", false)).toBe(true);
+        expect(debePreguntarAsociar("Comerciales", true)).toBe(false);
+        expect(debePreguntarAsociar("MKT", false)).toBe(false);
+        expect(debePreguntarAsociar("Responsable de marketing", false)).toBe(false);
+    });
+
+    test("manda el contacto y, sin cliente, codcliente vacío", () => {
+        expect(tratoParaAPI({ ...formulario, cliente: null, contacto }, "A1")).toMatchObject({ codcliente: null, codcontacto: "C9" });
     });
 
     test("manda las familias como en legacy y el producto en su campo", () => {
@@ -82,6 +111,7 @@ describe("alta de trato", () => {
             horaalta: "09:07:05",
             titulo: "PTE para Clínica",
             codcliente: "000123",
+            codcontacto: null,
             idtipotrato: 4,
             valor: 0,
             familias: '{"codfamilia":"BIO","descripcion":"Biomateriales"}',
