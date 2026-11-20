@@ -4,6 +4,12 @@
     gap: 0.75rem;
 }
 
+.DialogoDocumentoTrato .aviso {
+    margin: 0;
+    color: var(--color-texto-secundario);
+    font-size: 0.9rem;
+}
+
 .DialogoDocumentoTrato .errores {
     margin: 0;
     padding-left: 1.25rem;

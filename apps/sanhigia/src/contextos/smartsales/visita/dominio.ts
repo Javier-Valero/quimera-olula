@@ -2,8 +2,15 @@ import { ProcesarContexto } from "@olula/lib/diseño.ts";
 import { fechaIso } from "../comun/dominio.ts";
 import { posicionActual } from "../comun/geolocalizacion.ts";
 import { rutasSmartsales } from "../comun/rutas.ts";
-import { DatosDocumento, TipoDocumentoTrato } from "../trato/diseño.ts";
-import { accionGanar, erroresDocumento, puedeCrearPresupuesto } from "../trato/dominio.ts";
+import { DatosDocumento, Opcion, TipoDocumentoTrato } from "../trato/diseño.ts";
+import {
+    accionGanar,
+    datosConDireccionUnica,
+    datosDocumentoIniciales,
+    erroresDocumento,
+    puedeCrearPresupuesto,
+    SIN_DIRECCION,
+} from "../trato/dominio.ts";
 import { aprobarPresupuesto, crearDocumentoTrato, esDireccionCanarias, getTrato, prepararDocumento } from "../trato/infraestructura.ts";
 import { CambioVisita, ContextoVisita, EstadoVisita, FinalizacionAPI, TareaVisita, TiposTratoUsuario } from "./diseño.ts";
 import {
@@ -20,7 +27,6 @@ type ProcesarVisita = ProcesarContexto<EstadoVisita, ContextoVisita>;
 
 export const MAX_NOTA = 1000;
 
-const datosDocumentoVacios: DatosDocumento = { codDireccion: null, regimenIva: null, codEvento: null };
 
 export const contextoInicial: ContextoVisita = {
     estado: "CARGANDO",
@@ -103,18 +109,28 @@ const comprobarCierreTrato = async (ctx: ContextoVisita): Promise<ContextoVisita
 
 const abrirDocumento = async (ctx: ContextoVisita, tipo: TipoDocumentoTrato, ganaTrato: boolean): Promise<ContextoVisita> => {
     const trato = await getTrato(ctx.tarea!.idTrato!);
-    if (!trato.codCliente || !trato.codAgente) {
+    if (!trato.codAgente) {
         return { ...ctx, trato, estado: "TERMINADA", accionEnFicha: ganaTrato ? "ganar" : tipo };
     }
     if (documentoYaCreado(tipo, trato)) return comprobarCierreTrato({ ...ctx, trato });
 
-    const { conDireccion, direcciones } = await prepararDocumento(trato.codCliente);
+    // Trato de contacto sin cliente: el cliente se elige en el propio diálogo.
+    const pideCliente = !trato.codCliente;
+    const preparacion = trato.codCliente ? await prepararDocumento(trato.codCliente) : SIN_DIRECCION;
     return {
         ...ctx,
         trato,
         estado: "DOCUMENTO",
         errores: [],
-        documento: { tipo, conDireccion, direcciones, datos: datosDocumentoVacios, dirCanarias: false, ganaTrato },
+        documento: {
+            tipo,
+            pideCliente,
+            conDireccion: preparacion.conDireccion,
+            direcciones: preparacion.direcciones,
+            datos: datosConDireccionUnica(datosDocumentoIniciales, preparacion),
+            dirCanarias: preparacion.canarias,
+            ganaTrato,
+        },
     };
 };
 
@@ -189,12 +205,30 @@ export const cambiarDireccionDocumentoProceso: ProcesarVisita = async (ctx, payl
     };
 };
 
-export const confirmarDocumentoProceso: ProcesarVisita = async (ctx) => {
+export const cambiarClienteDocumentoProceso: ProcesarVisita = async (ctx, payload) => {
+    const cliente = (payload as Opcion | null) ?? null;
+    const preparacion = cliente ? await prepararDocumento(cliente.valor, true) : SIN_DIRECCION;
     const documento = ctx.documento!;
-    const errores = erroresDocumento(documento.datos, documento.conDireccion);
+    return {
+        ...ctx,
+        errores: [],
+        documento: {
+            ...documento,
+            conDireccion: preparacion.conDireccion,
+            direcciones: preparacion.direcciones,
+            dirCanarias: preparacion.canarias,
+            datos: datosConDireccionUnica({ ...documento.datos, cliente }, preparacion),
+        },
+    };
+};
+
+// payload: agente del usuario, que va como agente de marketing si el trato no tiene cliente.
+export const confirmarDocumentoProceso: ProcesarVisita = async (ctx, payload) => {
+    const documento = ctx.documento!;
+    const errores = erroresDocumento(documento.tipo, documento.datos, documento.conDireccion, documento.pideCliente);
     if (errores.length > 0) return { ...ctx, errores };
 
-    const id = await crearDocumentoTrato(documento.tipo, ctx.trato!, documento.datos);
+    const id = await crearDocumentoTrato(documento.tipo, ctx.trato!, documento.datos, (payload as string | null) ?? null);
     const conDocumento: ContextoVisita = { ...ctx, documento: null, documentoCreado: { tipo: documento.tipo, id }, errores: [] };
     // Crear el pedido gana el trato: ya no hay que preguntar por su cierre.
     if (documento.tipo === "pedido") return { ...conDocumento, estado: "TERMINADA", tratoCerrado: true };

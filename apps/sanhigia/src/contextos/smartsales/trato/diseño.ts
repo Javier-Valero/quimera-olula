@@ -85,6 +85,10 @@ export type AccionInicialTrato = "presupuesto" | "pedido" | "ganar";
 export type TipoDocumentoTrato = "presupuesto" | "pedido";
 
 export type DatosDocumento = {
+    // Solo si el trato no tiene cliente (trato de contacto): se elige al crear el documento.
+    cliente: Opcion | null;
+    // Presupuesto de un trato sin cliente para un cliente no registrado (como legacy): nombre y dirección libres.
+    noRegistrado: { nombre: string; direccion: string } | null;
     codDireccion: string | null;
     regimenIva: string | null;
     codEvento: string | null;
@@ -93,6 +97,14 @@ export type DatosDocumento = {
 export type Opcion = {
     valor: string;
     descripcion: string;
+};
+
+// Lo que hay que preguntar de la dirección al crear el presupuesto o el pedido.
+export type PreparacionDocumento = {
+    conDireccion: boolean;
+    direcciones: Opcion[];
+    direccionUnica: string | null;
+    canarias: boolean;
 };
 
 export type FechasLicencia = {
@@ -104,6 +116,6 @@ export type Dialogo =
     | { tipo: "ninguno" }
     | { tipo: "causa_perdida"; causas: Opcion[] }
     | { tipo: "licencia" }
-    | { tipo: "documento"; documento: TipoDocumentoTrato; conDireccion: boolean; direcciones: Opcion[] }
+    | { tipo: "documento"; documento: TipoDocumentoTrato; pideCliente: boolean; conDireccion: boolean; direcciones: Opcion[] }
     | { tipo: "asociar_pedido" }
     | { tipo: "borrar" };

@@ -3,13 +3,17 @@ import {
     accionGanar,
     accionInicialDesdeTexto,
     cambioEstado,
+    datosConDireccionUnica,
+    datosDocumentoIniciales,
     documentoParaAPI,
+    documentoSinClienteParaAPI,
     edicionParaAPI,
     erroresDocumento,
     puedeAsociarPedido,
     puedeBorrar,
     puedeCrearPresupuesto,
     puedePerder,
+    SIN_DIRECCION,
     textoBotonGanar,
     textoConfirmarBorrado,
     tratoDesdeAPI,
@@ -161,14 +165,69 @@ test("edicionParaAPI recorta el título y guarda las familias como en legacy", (
 });
 
 describe("documentos del trato", () => {
-    test("la dirección solo es obligatoria si el cliente no tiene una automática", () => {
-        const datos = { codDireccion: null, regimenIva: null, codEvento: "ventaregular" };
-        expect(erroresDocumento(datos, false)).toEqual([]);
-        expect(erroresDocumento(datos, true)).toEqual(["Elige la dirección de envío"]);
+    const cliente = { valor: "000777", descripcion: "Clínica nueva" };
+
+    test("el diálogo arranca con Venta regular, que pasa la validación del evento", () => {
+        expect(datosDocumentoIniciales.codEvento).toBe("ventaregular");
+        expect(erroresDocumento("presupuesto", datosDocumentoIniciales, false)).toEqual([]);
+    });
+
+    test("si se pide la dirección es obligatoria, en pedido y en presupuesto", () => {
+        expect(erroresDocumento("pedido", datosDocumentoIniciales, true)).toEqual(["Elige la dirección de envío"]);
+        expect(erroresDocumento("presupuesto", datosDocumentoIniciales, true)).toEqual(["Elige la dirección de envío"]);
+        expect(erroresDocumento("pedido", datosDocumentoIniciales, false)).toEqual([]);
+    });
+
+    test("con una sola dirección de envío viene elegida, con el origen si es de Canarias", () => {
+        const unica = { conDireccion: true, direcciones: [{ valor: "9", descripcion: "C/ Mayor" }], direccionUnica: "9", canarias: false };
+        expect(datosConDireccionUnica(datosDocumentoIniciales, unica)).toMatchObject({ codDireccion: "9", regimenIva: null });
+        expect(datosConDireccionUnica(datosDocumentoIniciales, { ...unica, canarias: true })).toMatchObject({
+            codDireccion: "9",
+            regimenIva: "Exportaciones",
+        });
+        expect(datosConDireccionUnica(datosDocumentoIniciales, SIN_DIRECCION).codDireccion).toBeNull();
+    });
+
+    test("sin cliente en el trato hay que elegir cliente y dirección, también en el presupuesto", () => {
+        expect(erroresDocumento("pedido", datosDocumentoIniciales, false, true)).toEqual(["Elige el cliente"]);
+        const conCliente = { ...datosDocumentoIniciales, cliente };
+        expect(erroresDocumento("presupuesto", conCliente, true, true)).toEqual(["Elige la dirección de envío"]);
+        expect(erroresDocumento("presupuesto", { ...conCliente, codDireccion: "9" }, true, true)).toEqual([]);
+    });
+
+    test("presupuesto sin cliente para un cliente no registrado: basta el nombre", () => {
+        const noRegistrado = { ...datosDocumentoIniciales, noRegistrado: { nombre: "", direccion: "" } };
+        expect(erroresDocumento("presupuesto", noRegistrado, true, true)).toEqual(["Indica el nombre del cliente"]);
+        const conNombre = { ...noRegistrado, noRegistrado: { nombre: "Clínica Sol", direccion: "" } };
+        expect(erroresDocumento("presupuesto", conNombre, true, true)).toEqual([]);
+        expect(documentoSinClienteParaAPI("presupuesto", trato({ codcliente: null }), conNombre, "A9", "2026-11-20")).toEqual({
+            idtrato: 40,
+            codagente: "A1",
+            codagentemkt: "A9",
+            nombrecliente: "Clínica Sol",
+            direccion: "-",
+            cifnif: "-",
+            sh_codevento: "ventaregular",
+        });
+    });
+
+    test("pedido sin cliente: alta normal con el agente del trato y el usuario como agente de marketing", () => {
+        const datos = { ...datosDocumentoIniciales, cliente, codDireccion: "9" };
+        expect(documentoSinClienteParaAPI("pedido", trato({ codcliente: null }), datos, "A9", "2026-11-20")).toEqual({
+            idtrato: 40,
+            codagente: "A1",
+            codagentemkt: "A9",
+            codcliente: "000777",
+            coddir: "9",
+            regimeniva: null,
+            codevento: "ventaregular",
+            fechasalida: "2026-11-20",
+            sh_ctrlestadoborr: true,
+        });
     });
 
     test("el presupuesto manda el evento en sh_codevento y el pedido como borrador", () => {
-        const datos = { codDireccion: "9", regimenIva: null, codEvento: "C1" };
+        const datos = { ...datosDocumentoIniciales, codDireccion: "9", codEvento: "C1" };
         expect(documentoParaAPI("presupuesto", trato(), datos, "2026-10-28")).toMatchObject({ idtrato: 40, sh_codevento: "C1" });
         expect(documentoParaAPI("pedido", trato(), datos, "2026-10-28")).toMatchObject({
             codevento: "C1",

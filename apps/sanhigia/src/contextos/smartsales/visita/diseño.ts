@@ -68,6 +68,7 @@ export type EstadoVisita =
 // o el pedido que exige el tipo de trato para ganarlo (ganaTrato).
 export type DocumentoEnCurso = {
     tipo: TipoDocumentoTrato;
+    pideCliente: boolean;
     conDireccion: boolean;
     direcciones: Opcion[];
     datos: DatosDocumento;
@@ -90,7 +91,7 @@ export type ContextoVisita = Contexto<EstadoVisita> & {
     tratoCerrado: boolean;
     documento: DocumentoEnCurso | null;
     documentoCreado: { tipo: TipoDocumentoTrato; id: string } | null;
-    // Lo que no se puede resolver aquí (licencia farma, trato sin cliente o sin agente) se termina en la ficha.
+    // Lo que no se puede resolver aquí (licencia farma, trato sin agente) se termina en la ficha.
     accionEnFicha: AccionInicialTrato | null;
     errores: string[];
 };

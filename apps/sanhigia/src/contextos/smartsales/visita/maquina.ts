@@ -1,6 +1,7 @@
 import { Maquina } from "@olula/lib/diseño.ts";
 import { ContextoVisita, EstadoVisita } from "./diseño.ts";
 import {
+    cambiarClienteDocumentoProceso,
     cambiarDireccionDocumentoProceso,
     cambiarDocumentoProceso,
     cambiarProceso,
@@ -36,6 +37,7 @@ export const getMaquina = (): Maquina<EstadoVisita, ContextoVisita> => ({
     DOCUMENTO: {
         cambiar_documento: cambiarDocumentoProceso,
         cambiar_direccion: cambiarDireccionDocumentoProceso,
+        cambiar_cliente: cambiarClienteDocumentoProceso,
         confirmar_documento: confirmarDocumentoProceso,
         cancelar_documento: cancelarDocumentoProceso,
     },

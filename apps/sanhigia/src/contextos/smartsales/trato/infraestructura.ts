@@ -1,7 +1,16 @@
 import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
 import { fechaIso } from "../comun/dominio.ts";
-import { CambiosTratoAPI, DatosDocumento, Nota, Opcion, TipoDocumentoTrato, TratoDetalle, TratoDetalleAPI } from "./diseño.ts";
-import { cambioEstado, documentoParaAPI, tratoDesdeAPI } from "./dominio.ts";
+import {
+    CambiosTratoAPI,
+    DatosDocumento,
+    Nota,
+    Opcion,
+    PreparacionDocumento,
+    TipoDocumentoTrato,
+    TratoDetalle,
+    TratoDetalleAPI,
+} from "./diseño.ts";
+import { cambioEstado, documentoParaAPI, documentoSinClienteParaAPI, SIN_DIRECCION, tratoDesdeAPI } from "./dominio.ts";
 
 const camposTrato = [
     "idtrato",
@@ -148,21 +157,39 @@ export const aprobarPresupuesto = async (trato: TratoDetalle) => {
     await LegacyAPI.patch(legacyUrl("pedidoscli", { id: String(idPedido), action: "enviar_pda" }), {});
 };
 
-export type PreparacionDocumento = { conDireccion: boolean; direcciones: Opcion[] };
 
-// Si el cliente no tiene dirección automática hay que elegir la de envío, como en legacy.
-export const prepararDocumento = async (codCliente: string): Promise<PreparacionDocumento> => {
-    const automatica = await tieneDireccionAutomatica(codCliente);
-    return { conDireccion: !automatica, direcciones: automatica ? [] : await getDireccionesEnvio(codCliente) };
+// Como legacy: si el cliente es el del trato, la dirección solo se pide si no hay automática
+// (una sola de envío y no de Canarias); si se acaba de elegir el cliente, se pide siempre.
+// Si solo tiene una dirección de envío viene ya elegida (con su origen si es de Canarias).
+export const prepararDocumento = async (codCliente: string, siempreDireccion = false): Promise<PreparacionDocumento> => {
+    const automatica = !siempreDireccion && (await tieneDireccionAutomatica(codCliente));
+    if (automatica) return SIN_DIRECCION;
+    const direcciones = await getDireccionesEnvio(codCliente);
+    const direccionUnica = direcciones.length === 1 ? direcciones[0].valor : null;
+    const canarias = direccionUnica ? await esDireccionCanarias(direccionUnica) : false;
+    return { conDireccion: true, direcciones, direccionUnica, canarias };
+};
+
+// Trato sin cliente: alta normal de pedido o presupuesto, como legacy (PedidosCliNuevo / PresupuestoCliNuevo).
+const crearDocumentoSinCliente = async (documento: TipoDocumentoTrato, datos: object): Promise<number> => {
+    const modelo = documento === "pedido" ? "pedidoscli" : "presupuestoscli";
+    const respuesta = await LegacyAPI.post<object, { pk: number }>(legacyUrl(modelo), datos);
+    return respuesta.pk;
 };
 
 // Crea el presupuesto o el pedido del trato y devuelve su id. Crear el pedido gana el trato.
-export const crearDocumentoTrato = async (documento: TipoDocumentoTrato, trato: TratoDetalle, datos: DatosDocumento): Promise<string> => {
-    const api = documentoParaAPI(documento, trato, datos, fechaIso(new Date()));
-    if (documento === "presupuesto") return String(await crearPresupuestoTrato(api));
-    const idPedido = await crearPedidoTrato(api);
-    await actualizarTrato(trato.id, cambioEstado("Ganado"));
-    return String(idPedido);
+export const crearDocumentoTrato = async (
+    documento: TipoDocumentoTrato,
+    trato: TratoDetalle,
+    datos: DatosDocumento,
+    codAgenteUsuario: string | null
+): Promise<string> => {
+    const hoy = fechaIso(new Date());
+    const id = trato.codCliente
+        ? await (documento === "presupuesto" ? crearPresupuestoTrato : crearPedidoTrato)(documentoParaAPI(documento, trato, datos, hoy))
+        : await crearDocumentoSinCliente(documento, documentoSinClienteParaAPI(documento, trato, datos, codAgenteUsuario, hoy));
+    if (documento === "pedido") await actualizarTrato(trato.id, cambioEstado("Ganado"));
+    return String(id);
 };
 
 export const crearLicencia =(licencia: object) => LegacyAPI.post(legacyUrl("licenciascli"), licencia);

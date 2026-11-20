@@ -7,12 +7,32 @@ import {
     EstadoTrato,
     FechasLicencia,
     FormularioEdicion,
+    PreparacionDocumento,
     TipoDocumentoTrato,
     TratoDetalle,
     TratoDetalleAPI,
 } from "./diseño.ts";
 
+// Código que legacy usa para "sin evento" (el backend lo guarda como nulo).
 export const EVENTO_VENTA_REGULAR = { valor: "ventaregular", descripcion: "Venta regular" };
+
+// El diálogo de presupuesto o pedido arranca con "Venta regular" elegido.
+export const datosDocumentoIniciales: DatosDocumento = {
+    cliente: null,
+    noRegistrado: null,
+    codDireccion: null,
+    regimenIva: null,
+    codEvento: EVENTO_VENTA_REGULAR.valor,
+};
+
+export const SIN_DIRECCION: PreparacionDocumento = { conDireccion: false, direcciones: [], direccionUnica: null, canarias: false };
+
+// Si el cliente solo tiene una dirección de envío viene ya elegida, con el origen si es de Canarias.
+export const datosConDireccionUnica = (datos: DatosDocumento, preparacion: PreparacionDocumento): DatosDocumento => ({
+    ...datos,
+    codDireccion: preparacion.direccionUnica,
+    regimenIva: preparacion.canarias ? "Exportaciones" : null,
+});
 
 export const ORIGENES_MERCANCIA = [
     { valor: "Exportaciones", descripcion: "Península" },
@@ -131,11 +151,58 @@ export const edicionParaAPI = (formulario: FormularioEdicion): CambiosTratoAPI =
     familias: familiasATexto(formulario.familias),
 });
 
-export const erroresDocumento = (datos: DatosDocumento, conDireccion: boolean) =>
-    [
-        conDireccion && !datos.codDireccion && "Elige la dirección de envío",
+// - La dirección es obligatoria siempre que se pide (legacy dejaba el presupuesto sin ella y el
+//   backend tomaba una de envío cualquiera del cliente; decidido exigirla, 20-11-2026).
+// - Trato sin cliente: el cliente (o, en presupuesto, el nombre de uno no registrado) es obligatorio.
+export const erroresDocumento = (documento: TipoDocumentoTrato, datos: DatosDocumento, conDireccion: boolean, pideCliente = false) => {
+    const noRegistrado = pideCliente && documento === "presupuesto" ? datos.noRegistrado : null;
+    const direccionObligatoria = conDireccion && !noRegistrado;
+    return [
+        pideCliente && !noRegistrado && !datos.cliente && "Elige el cliente",
+        noRegistrado && !noRegistrado.nombre.trim() && "Indica el nombre del cliente",
+        direccionObligatoria && !datos.codDireccion && "Elige la dirección de envío",
         !datos.codEvento && "Elige el evento o venta regular",
     ].filter((e): e is string => !!e);
+};
+
+// Trato sin cliente: legacy usa el alta normal de pedido o presupuesto (no crear_*_trato), con el
+// agente del trato y el usuario como agente de marketing, sin tocar el cliente del trato.
+export const documentoSinClienteParaAPI = (
+    documento: TipoDocumentoTrato,
+    trato: TratoDetalle,
+    datos: DatosDocumento,
+    codAgenteUsuario: string | null,
+    hoy: string
+) => {
+    const agentes = { idtrato: Number(trato.id), codagente: trato.codAgente, codagentemkt: codAgenteUsuario || null };
+    if (documento === "pedido") {
+        return {
+            ...agentes,
+            codcliente: datos.cliente?.valor ?? null,
+            coddir: datos.codDireccion,
+            regimeniva: datos.regimenIva,
+            codevento: datos.codEvento,
+            fechasalida: hoy,
+            sh_ctrlestadoborr: true,
+        };
+    }
+    if (datos.noRegistrado) {
+        return {
+            ...agentes,
+            nombrecliente: datos.noRegistrado.nombre.trim(),
+            direccion: datos.noRegistrado.direccion.trim() || "-",
+            cifnif: "-",
+            sh_codevento: datos.codEvento,
+        };
+    }
+    return {
+        ...agentes,
+        codcliente: datos.cliente?.valor ?? null,
+        coddir: datos.codDireccion,
+        regimeniva: datos.regimenIva,
+        sh_codevento: datos.codEvento,
+    };
+};
 
 export const documentoParaAPI = (
     documento: TipoDocumentoTrato,

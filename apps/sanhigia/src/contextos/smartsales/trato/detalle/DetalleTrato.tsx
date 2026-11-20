@@ -1,11 +1,12 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { QCargando } from "@olula/componentes/atomos/qcargando.tsx";
 import { QDate } from "@olula/componentes/atomos/qdate.tsx";
 import { QEtiqueta } from "@olula/componentes/atomos/qetiqueta.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
 import { QTextArea } from "@olula/componentes/atomos/qtextarea.tsx";
 import { QAutocompletar } from "@olula/componentes/moleculas/qautocompletar.tsx";
-import { QModal } from "@olula/componentes/moleculas/qmodal.tsx";
+import { ModalProcesando } from "../../comun/componentes/ModalProcesando.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { puede } from "@olula/lib/dominio.js";
 import { ReactNode, useCallback, useContext, useEffect, useState } from "react";
@@ -36,6 +37,8 @@ import {
     accionGanar,
     accionInicialDesdeTexto,
     cambioEstado,
+    datosConDireccionUnica,
+    datosDocumentoIniciales,
     edicionParaAPI,
     erroresDocumento,
     erroresEdicion,
@@ -47,6 +50,7 @@ import {
     puedeBorrar,
     puedeCrearPresupuesto,
     puedePerder,
+    SIN_DIRECCION,
     textoBotonGanar,
     textoConfirmarBorrado,
 } from "../dominio.ts";
@@ -75,7 +79,6 @@ const fecha = (iso: string | null) => (iso ? new Date(`${iso}T00:00:00`).toLocal
 
 const SIN_DIALOGO: Dialogo = { tipo: "ninguno" };
 
-const datosVacios: DatosDocumento = { codDireccion: null, regimenIva: null, codEvento: null };
 
 const Errores = ({ errores }: { errores: string[] }) =>
     errores.length > 0 ? (
@@ -125,7 +128,7 @@ export const DetalleTrato = () => {
     const [nuevaNota, setNuevaNota] = useState("");
     const [idCausa, setIdCausa] = useState<string | null>(null);
     const [fechasLicencia, setFechasLicencia] = useState<FechasLicencia>({ fin: "", caducidad: "" });
-    const [datosDocumento, setDatosDocumento] = useState<DatosDocumento>(datosVacios);
+    const [datosDocumento, setDatosDocumento] = useState<DatosDocumento>(datosDocumentoIniciales);
     const [dirCanarias, setDirCanarias] = useState(false);
     const [idPedidoAsociar, setIdPedidoAsociar] = useState<string | null>(null);
 
@@ -190,16 +193,27 @@ export const DetalleTrato = () => {
             setErrores([`No se puede crear el ${documento}: el trato no tiene un agente asignado`]);
             return;
         }
-        if (!trato.codCliente) {
-            navigate(rutasSmartsales.tratoLegacy(trato.id));
-            return;
-        }
-        const codCliente = trato.codCliente;
-        const { conDireccion, direcciones } = await intentar(() => prepararDocumento(codCliente));
-        setDatosDocumento(datosVacios);
+        setDatosDocumento(datosDocumentoIniciales);
         setDirCanarias(false);
         setErrores([]);
-        setDialogo({ tipo: "documento", documento, conDireccion, direcciones });
+        const codCliente = trato.codCliente;
+        // Trato de contacto sin cliente: el cliente se elige en el propio diálogo.
+        if (!codCliente) {
+            setDialogo({ tipo: "documento", documento, pideCliente: true, conDireccion: false, direcciones: [] });
+            return;
+        }
+        const preparacion = await intentar(() => prepararDocumento(codCliente));
+        setDatosDocumento(datosConDireccionUnica(datosDocumentoIniciales, preparacion));
+        setDirCanarias(preparacion.canarias);
+        setDialogo({ tipo: "documento", documento, pideCliente: false, conDireccion: preparacion.conDireccion, direcciones: preparacion.direcciones });
+    };
+
+    const cambiarClienteDocumento = async (cliente: Opcion | null) => {
+        if (dialogo.tipo !== "documento") return;
+        const preparacion = cliente ? await intentar(() => prepararDocumento(cliente.valor, true)) : SIN_DIRECCION;
+        setDirCanarias(preparacion.canarias);
+        setDatosDocumento((actual) => datosConDireccionUnica({ ...actual, cliente }, preparacion));
+        setDialogo({ ...dialogo, conDireccion: preparacion.conDireccion, direcciones: preparacion.direcciones });
     };
 
     const pulsarGanado = async () => {
@@ -250,13 +264,13 @@ export const DetalleTrato = () => {
 
     const confirmarDocumento = async () => {
         if (dialogo.tipo !== "documento") return;
-        const encontrados = erroresDocumento(datosDocumento, dialogo.conDireccion);
+        const encontrados = erroresDocumento(dialogo.documento, datosDocumento, dialogo.conDireccion, dialogo.pideCliente);
         setErrores(encontrados);
         if (encontrados.length > 0) return;
         const documento = dialogo.documento;
         setProcesando(true);
         try {
-            const idDocumento = await intentar(() => crearDocumentoTrato(documento, trato, datosDocumento));
+            const idDocumento = await intentar(() => crearDocumentoTrato(documento, trato, datosDocumento, agentePropio));
             navigate(documento === "presupuesto" ? rutasSmartsales.presupuesto(idDocumento) : rutasSmartsales.pedido(idDocumento));
         } finally {
             setProcesando(false);
@@ -323,6 +337,7 @@ export const DetalleTrato = () => {
     return (
         <LayoutSmartsales>
             <div className="DetalleTrato">
+                <QCargando visible={procesando} mensaje="Procesando…" />
                 {accionInicial && usuario && <AccionAlEntrar lanzar={lanzarAccionInicial} />}
                 <header>
                     <div>
@@ -532,7 +547,7 @@ export const DetalleTrato = () => {
                     </div>
                 )}
 
-                <QModal nombre="causa_perdida" titulo="Causa de pérdida" abierto={dialogo.tipo === "causa_perdida"} onCerrar={cerrarDialogo}>
+                <ModalProcesando procesando={procesando}nombre="causa_perdida" titulo="Causa de pérdida" abierto={dialogo.tipo === "causa_perdida"} onCerrar={cerrarDialogo}>
                     {dialogo.tipo === "causa_perdida" && (
                         <div className="dialogo">
                             <QSelect
@@ -553,9 +568,9 @@ export const DetalleTrato = () => {
                             </div>
                         </div>
                     )}
-                </QModal>
+                </ModalProcesando>
 
-                <QModal nombre="licencia" titulo="Fechas de la licencia" abierto={dialogo.tipo === "licencia"} onCerrar={cerrarDialogo}>
+                <ModalProcesando procesando={procesando}nombre="licencia" titulo="Fechas de la licencia" abierto={dialogo.tipo === "licencia"} onCerrar={cerrarDialogo}>
                     <div className="dialogo">
                         <QDate
                             label="Fecha de finalización del proceso"
@@ -579,24 +594,26 @@ export const DetalleTrato = () => {
                             </QBoton>
                         </div>
                     </div>
-                </QModal>
+                </ModalProcesando>
 
                 <DialogoDocumentoTrato
                     abierto={dialogo.tipo === "documento"}
                     documento={dialogo.tipo === "documento" ? dialogo.documento : "presupuesto"}
+                    pideCliente={dialogo.tipo === "documento" && dialogo.pideCliente}
                     conDireccion={dialogo.tipo === "documento" && dialogo.conDireccion}
                     direcciones={dialogo.tipo === "documento" ? dialogo.direcciones : []}
                     datos={datosDocumento}
                     dirCanarias={dirCanarias}
                     errores={errores}
                     procesando={procesando}
+                    onCambiarCliente={(cliente) => cambiarClienteDocumento(cliente).catch(() => undefined)}
                     onCambiarDireccion={(codDireccion) => cambiarDireccion(codDireccion).catch(() => undefined)}
                     onCambiar={(cambios) => setDatosDocumento((actual) => ({ ...actual, ...cambios }))}
                     onCancelar={cerrarDialogo}
                     onConfirmar={() => confirmarDocumento().catch(() => undefined)}
                 />
 
-                <QModal nombre="asociar_pedido" titulo="Asociar pedido" abierto={dialogo.tipo === "asociar_pedido"} onCerrar={cerrarDialogo}>
+                <ModalProcesando procesando={procesando}nombre="asociar_pedido" titulo="Asociar pedido" abierto={dialogo.tipo === "asociar_pedido"} onCerrar={cerrarDialogo}>
                     <div className="dialogo">
                         <QAutocompletar
                             label="Pedido"
@@ -615,9 +632,9 @@ export const DetalleTrato = () => {
                             </QBoton>
                         </div>
                     </div>
-                </QModal>
+                </ModalProcesando>
 
-                <QModal nombre="borrar_trato" titulo="¿Borrar trato?" abierto={dialogo.tipo === "borrar"} onCerrar={cerrarDialogo}>
+                <ModalProcesando procesando={procesando}nombre="borrar_trato" titulo="¿Borrar trato?" abierto={dialogo.tipo === "borrar"} onCerrar={cerrarDialogo}>
                     <div className="dialogo">
                         <p>{textoConfirmarBorrado(tareas.length > 0, !!trato.idPresupuesto)}</p>
                         <div className="acciones">
@@ -629,7 +646,7 @@ export const DetalleTrato = () => {
                             </QBoton>
                         </div>
                     </div>
-                </QModal>
+                </ModalProcesando>
             </div>
         </LayoutSmartsales>
     );

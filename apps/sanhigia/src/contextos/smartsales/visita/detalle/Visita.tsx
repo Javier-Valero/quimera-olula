@@ -4,12 +4,13 @@ import { QCheckbox } from "@olula/componentes/atomos/qcheckbox.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
 import { QMapa } from "@olula/componentes/mapa/qmapa.tsx";
-import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
+import { QCargando } from "@olula/componentes/atomos/qcargando.tsx";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { textoTipoTarea } from "../../comun/dominio.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
+import { useMaquinaConProceso } from "../../comun/useMaquinaConProceso.ts";
 import { NotaDictada } from "../../comun/componentes/NotaDictada.tsx";
 import { DialogoDocumentoTrato } from "../../trato/componentes/DialogoDocumentoTrato.tsx";
 import { textoBotonGanar } from "../../trato/dominio.ts";
@@ -18,7 +19,12 @@ import { contextoInicial, destinoAlTerminar, esVisita, MAX_NOTA, puedeGenerarSig
 import { getMaquina } from "../maquina.ts";
 import "./Visita.css";
 
-const siguientesPasos: { valor: SiguientePaso; descripcion: string }[] = [
+// Editar campos y la carga inicial (que ya muestra "Cargando…") no bloquean la pantalla.
+// Cambiar el cliente o la dirección del documento consulta al backend, pero es inmediato y no debe
+// mostrar el indicador.
+const EVENTOS_SIN_BLOQUEO = ["cambiar", "cambiar_documento", "cambiar_cliente", "cambiar_direccion", "cargar"];
+
+const siguientesPasos:{ valor: SiguientePaso; descripcion: string }[] = [
     { valor: "ninguno", descripcion: "Ninguno" },
     { valor: "presupuesto", descripcion: "Enviar presupuesto" },
     { valor: "pedido", descripcion: "Crear pedido" },
@@ -27,8 +33,8 @@ const siguientesPasos: { valor: SiguientePaso; descripcion: string }[] = [
 export const Visita = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { ctx, emitir } = useMaquina(getMaquina, contextoInicial);
-    const { usuario } = useAgenteSeguido();
+    const { ctx, emitir, procesando, eventoEnCurso } = useMaquinaConProceso(getMaquina, contextoInicial, EVENTOS_SIN_BLOQUEO);
+    const { usuario, agentePropio } = useAgenteSeguido();
     const tiposTrato: TiposTratoUsuario = {
         tipoTratoFarma: usuario?.tipoTratoFarma ?? null,
         tipoTratoTareaUnica: usuario?.tipoTratoTareaUnica ?? null,
@@ -60,6 +66,7 @@ export const Visita = () => {
     return (
         <LayoutSmartsales>
             <div className="Visita">
+                <QCargando visible={procesando} mensaje="Procesando…" />
                 <h1>
                     {estado === "FINALIZANDO"
                         ? `Finalizar ${visita ? "visita" : "tarea"}`
@@ -221,16 +228,18 @@ export const Visita = () => {
                     <DialogoDocumentoTrato
                         abierto
                         documento={ctx.documento.tipo}
+                        pideCliente={ctx.documento.pideCliente}
                         conDireccion={ctx.documento.conDireccion}
                         direcciones={ctx.documento.direcciones}
                         datos={ctx.documento.datos}
                         dirCanarias={ctx.documento.dirCanarias}
                         errores={errores}
-                        procesando={false}
+                        procesando={eventoEnCurso === "confirmar_documento"}
+                        onCambiarCliente={(cliente) => emitir("cambiar_cliente", cliente)}
                         onCambiarDireccion={(codDireccion) => emitir("cambiar_direccion", codDireccion)}
                         onCambiar={(cambios) => emitir("cambiar_documento", cambios)}
                         onCancelar={() => emitir("cancelar_documento")}
-                        onConfirmar={() => emitir("confirmar_documento")}
+                        onConfirmar={() => emitir("confirmar_documento", agentePropio)}
                     />
                 )}
 
