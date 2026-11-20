@@ -1,4 +1,5 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { QCargando } from "@olula/componentes/atomos/qcargando.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QSelect } from "@olula/componentes/atomos/qselect.tsx";
 import { QAutocompletar } from "@olula/componentes/moleculas/qautocompletar.tsx";
@@ -79,7 +80,8 @@ export const NuevaTarea = () => {
             setTratos(nuevosTratos);
             setSugerencias(nuevasSugerencias);
             const tratoPedido = parametros.get("trato");
-            const elegido = nuevosTratos.find((t) => t.id === tratoPedido) ?? nuevosTratos[0];
+            // Por defecto "Sin trato" (tarea única); solo se preselecciona el trato desde el que se abre.
+            const elegido = nuevosTratos.find((t) => t.id === tratoPedido);
             setFormulario((actual) => ({ ...actual, idTrato: elegido?.id ?? null }));
         };
         cargar().catch(() => undefined);
@@ -105,13 +107,14 @@ export const NuevaTarea = () => {
     };
 
     const opcionesTrato = [
-        ...tratos.map((trato) => ({ valor: trato.id, descripcion: trato.titulo })),
         { valor: SIN_TRATO, descripcion: "Sin trato: crear como tarea única" },
+        ...tratos.map((trato) => ({ valor: trato.id, descripcion: trato.titulo })),
     ];
 
     return (
         <LayoutSmartsales>
             <div className="NuevaTarea">
+                <QCargando visible={guardando} mensaje="Guardando…" />
                 <h1>Nueva visita o tarea</h1>
 
                 <section className="tarjeta formulario">

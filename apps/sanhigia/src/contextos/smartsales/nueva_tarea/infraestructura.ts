@@ -4,12 +4,12 @@ import { ClienteElegido, Motivo, NuevaTareaAPI, Producto, Sugerencia, TipoProduc
 
 const LIMITE_BUSQUEDA = 20;
 
-const buscar = async <T>(modelo: string, campo: string, texto: string, fields: string[]) =>
+const buscar = async <T>(modelo: string, campo: string, texto: string, fields: string[], filtrosExtra: unknown[] = []) =>
     (
         await LegacyAPI.get<{ data: T[] }>(
             legacyUrl(modelo, {
                 params: {
-                    filter: { and: [[campo, "like", texto]] },
+                    filter: { and: [[campo, "like", texto], ...filtrosExtra] },
                     fields,
                     page: { limit: LIMITE_BUSQUEDA },
                 },
@@ -17,10 +17,11 @@ const buscar = async <T>(modelo: string, campo: string, texto: string, fields: s
         )
     ).data;
 
+// Como el selector de cliente legacy (base-ventas Cliente): sin los clientes dados de baja.
 export const buscarClientes = async (texto: string): Promise<ClienteElegido[]> =>
-    (await buscar<{ codcliente: string; nombre: string }>("clientes", "nombre", texto, ["codcliente", "nombre"])).map(
-        (cliente) => ({ codigo: cliente.codcliente, nombre: cliente.nombre })
-    );
+    (
+        await buscar<{ codcliente: string; nombre: string }>("clientes", "nombre", texto, ["codcliente", "nombre"], [["debaja", "eq", false]])
+    ).map((cliente) => ({ codigo: cliente.codcliente, nombre: cliente.nombre }));
 
 const catalogos: Record<TipoProducto, { modelo: string; codigo: string }> = {
     articulo: { modelo: "articulos", codigo: "referencia" },
