@@ -5,6 +5,7 @@ import {
     FormularioTrato,
     NuevoTratoAPI,
     OrigenTrato,
+    TotalesTratos,
     TratoListaAPI,
 } from "./diseño.ts";
 import { fechaIso } from "../comun/dominio.ts";
@@ -45,7 +46,11 @@ export const filtroTratos = (filtros: FiltrosTratos, conEstado = true) => {
 export const debePreguntarAsociar = (grupo: string | null, yaAsociado: boolean) =>
     !yaAsociado && !GRUPOS_MARKETING.includes(grupo ?? "");
 
-export const totalesDesdeAPI =({ total, ganados, perdidos }: { total: number; ganados: number; perdidos: number }) => ({
+// Total de la lista según el estado filtrado ("Mostrando X de total").
+export const totalSegunEstado = (totales: TotalesTratos, estado: EstadoTratoFiltro): number =>
+    estado === "todos" ? totales.abiertos + totales.ganados + totales.perdidos : totales[estado];
+
+export const totalesDesdeAPI = ({ total, ganados, perdidos }: { total: number; ganados: number; perdidos: number }) => ({
     abiertos: Math.max(Number(total) - Number(ganados) - Number(perdidos), 0),
     ganados: Number(ganados),
     perdidos: Number(perdidos),

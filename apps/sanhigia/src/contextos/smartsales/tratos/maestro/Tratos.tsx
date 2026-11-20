@@ -3,7 +3,7 @@ import { QEtiqueta } from "@olula/componentes/atomos/qetiqueta.tsx";
 import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
@@ -11,12 +11,15 @@ import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { SelectorAgente } from "../../comun/componentes/SelectorAgente.tsx";
 import { textoEstadoTrato } from "../../clientes/dominio.ts";
 import { EstadoTratoFiltro, FiltrosTratos, OrigenTrato, TotalesTratos, TratoLista } from "../diseño.ts";
-import { getTotalesTratos, getTratos } from "../infraestructura.ts";
+import { getPaginaTratos, getTotalesTratos } from "../infraestructura.ts";
+import { totalSegunEstado } from "../dominio.ts";
+import { CargarPagina, useListaPaginada } from "../../comun/useListaPaginada.ts";
 import "./Tratos.css";
 
 type Pestaña = "mios" | "todos";
 
 const ESPERA_FILTROS = 400;
+const POR_PAGINA = 50;
 
 const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
@@ -47,8 +50,9 @@ export const Tratos = () => {
     const [pestaña, setPestaña] = useState<Pestaña>("mios");
     const [filtros, setFiltros] = useState(filtrosIniciales);
     const [verFiltros, setVerFiltros] = useState(false);
-    const [tratos, setTratos] = useState<TratoLista[]>([]);
     const [totales, setTotales] = useState<TotalesTratos | null>(null);
+    // Filtros ya aplicados: se fijan tras ESPERA_FILTROS para no consultar en cada tecla.
+    const [consulta, setConsulta] = useState<FiltrosTratos | null>(null);
 
     const cambiar = (cambios: Partial<typeof filtros>) => setFiltros((actual) => ({ ...actual, ...cambios }));
     const tipoTratoFarma = usuario?.tipoTratoFarma ?? null;
@@ -57,17 +61,18 @@ export const Tratos = () => {
         if (cargando) return;
         const completos: FiltrosTratos = { ...filtros, agente: pestaña === "mios" ? agenteSeguido : null };
         const temporizador = setTimeout(() => {
-            const cargar = async () => {
-                const [nuevosTratos, nuevosTotales] = await intentar(() =>
-                    Promise.all([getTratos(completos, tipoTratoFarma), getTotalesTratos(completos)])
-                );
-                setTratos(nuevosTratos);
-                setTotales(nuevosTotales);
-            };
+            setConsulta(completos);
+            const cargar = async () => setTotales(await intentar(() => getTotalesTratos(completos)));
             cargar().catch(() => undefined);
         }, ESPERA_FILTROS);
         return () => clearTimeout(temporizador);
-    }, [intentar, cargando, pestaña, agenteSeguido, filtros, tipoTratoFarma]);
+    }, [intentar, cargando, pestaña, agenteSeguido, filtros]);
+
+    const cargarPagina = useCallback<CargarPagina<TratoLista>>(
+        (siguiente) => getPaginaTratos(consulta!, tipoTratoFarma, POR_PAGINA, siguiente),
+        [consulta, tipoTratoFarma]
+    );
+    const { elementos: tratos, hayMas, cargando: cargandoMas, cargarMas } = useListaPaginada(consulta ? cargarPagina : null);
 
     const contador = (estado: EstadoTratoFiltro, texto: string, valor: number | undefined) => (
         <button type="button" aria-pressed={filtros.estado === estado} onClick={() => cambiar({ estado })}>
@@ -121,6 +126,11 @@ export const Tratos = () => {
                 )}
 
                 {tratos.length === 0 && <p className="vacio">No hay tratos con estos filtros</p>}
+                {tratos.length > 0 && totales && (
+                    <p className="secundario">
+                        Mostrando {tratos.length} de {totalSegunEstado(totales, filtros.estado)}
+                    </p>
+                )}
                 {tratos.length > 0 && (
                     <ul className="tarjeta lista">
                         {tratos.map((trato) => (
@@ -147,6 +157,11 @@ export const Tratos = () => {
                             </li>
                         ))}
                     </ul>
+                )}
+                {hayMas && (
+                    <QBoton variante="borde" ancho deshabilitado={cargandoMas} onClick={() => cargarMas().catch(() => undefined)}>
+                        {cargandoMas ? "Cargando…" : "Cargar más"}
+                    </QBoton>
                 )}
             </div>
         </LayoutSmartsales>

@@ -155,3 +155,12 @@
 .Agenda .tarjeta.tareas > .dia:first-child h3 {
     margin-top: 0;
 }
+
+.Agenda .aviso-limite {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--naranja-9);
+    background: var(--naranja-1);
+}

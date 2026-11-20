@@ -1,5 +1,5 @@
 import { FiltrosTratos, FormularioTrato, TratoListaAPI } from "./diseño.ts";
-import { debePreguntarAsociar, erroresTrato, filtroTratos, origenTrato, totalesDesdeAPI, tratoParaAPI } from "./dominio.ts";
+import { debePreguntarAsociar, erroresTrato, filtroTratos, origenTrato, totalesDesdeAPI, totalSegunEstado, tratoParaAPI } from "./dominio.ts";
 
 const trato = (datos: Partial<TratoListaAPI> = {}): TratoListaAPI => ({
     idtrato: 1,
@@ -55,6 +55,13 @@ describe("totales", () => {
     test("abiertos es el total menos ganados y perdidos", () => {
         expect(totalesDesdeAPI({ total: 10, ganados: 3, perdidos: 2 })).toEqual({ abiertos: 5, ganados: 3, perdidos: 2 });
     });
+});
+
+test("totalSegunEstado da el total de la lista para el estado filtrado", () => {
+    const totales = { abiertos: 5063, ganados: 700, perdidos: 257 };
+    expect(totalSegunEstado(totales, "abiertos")).toBe(5063);
+    expect(totalSegunEstado(totales, "perdidos")).toBe(257);
+    expect(totalSegunEstado(totales, "todos")).toBe(6020);
 });
 
 describe("alta de trato", () => {

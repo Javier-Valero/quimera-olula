@@ -18,9 +18,9 @@ import { IndicadorProgreso } from "../../comun/componentes/IndicadorProgreso.tsx
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { SelectorAgente } from "../../comun/componentes/SelectorAgente.tsx";
 import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
-import { getTareasRango } from "../../tareas/infraestructura.ts";
+import { contarTareasRango, getPaginaTareasRango, getTareasRango } from "../../tareas/infraestructura.ts";
 import { Avisos, ProgresoComercial, TratoAbierto } from "../diseño.ts";
-import { contarAtrasadas, saludo, separarTareasHoy } from "../dominio.ts";
+import { contarAtrasadas, DIAS_ATRASADAS, filtrosAtrasadas, saludo, separarTareasHoy } from "../dominio.ts";
 import { getAvisos, getProgresoComercial, getTratosAbiertos } from "../infraestructura.ts";
 import "./Hoy.css";
 import { ListaKpi } from "../../comun/componentes/ListaKpi.tsx";
@@ -41,7 +41,9 @@ export const Hoy = () => {
     const { agentes, agentePropio, agenteSeguido, cargando } = useAgenteSeguido();
     const [avisos, setAvisos] = useState<Avisos | null>(null);
     const [progreso, setProgreso] = useState<ProgresoComercial | null>(null);
-    const [tareas, setTareas] = useState<Tarea[]>([]);
+    const [tareasHoy, setTareasHoy] = useState<Tarea[]>([]);
+    const [anteriores, setAnteriores] = useState<Tarea[]>([]);
+    const [totalAnteriores, setTotalAnteriores] = useState(0);
     const [tratos, setTratos] = useState<TratoAbierto[]>([]);
 
     const trimestre = trimestreDe(new Date());
@@ -54,24 +56,30 @@ export const Hoy = () => {
 
     useEffect(() => {
         if (cargando) return;
+        // Las de hoy, y de las atrasadas de días anteriores (últimos 90 días) solo el total y las más recientes.
+        const { recientes } = filtrosAtrasadas(hoy, agenteSeguido);
         const cargar = async () => {
-            const [nuevoProgreso, nuevasTareas, nuevosTratos] = await intentar(() =>
+            const [nuevoProgreso, nuevasDeHoy, paginaAnteriores, nuevoTotalAnteriores, nuevosTratos] = await intentar(() =>
                 Promise.all([
                     getProgresoComercial(agenteSeguido, { año: trimestre.año, numero: trimestre.numero }),
-                    getTareasRango({ desde: hoy, hasta: hoy, agente: agenteSeguido, conAtrasadas: true }),
+                    getTareasRango({ desde: hoy, hasta: hoy, agente: agenteSeguido }),
+                    getPaginaTareasRango(recientes, MAX_ANTERIORES, null),
+                    contarTareasRango(recientes),
                     getTratosAbiertos(agenteSeguido),
                 ])
             );
             setProgreso(nuevoProgreso);
-            setTareas(nuevasTareas);
+            setTareasHoy(nuevasDeHoy);
+            setAnteriores(paginaAnteriores.elementos);
+            setTotalAnteriores(nuevoTotalAnteriores);
             setTratos(nuevosTratos);
         };
         cargar().catch(() => undefined);
     }, [intentar, cargando, agenteSeguido, hoy, trimestre.año, trimestre.numero]);
 
     const nombre = agentes.find((agente) => agente.codigo === agentePropio)?.nombre;
-    const { deHoy, anteriores } = separarTareasHoy(tareas, hoy);
-    const atrasadas = contarAtrasadas(tareas);
+    const { deHoy } = separarTareasHoy(tareasHoy, hoy);
+    const atrasadas = contarAtrasadas(tareasHoy) + totalAnteriores;
     const tiempoTrimestre = porcentajeTiempoTranscurrido(rangoTrimestre(trimestre));
 
     return (
@@ -155,12 +163,12 @@ export const Hoy = () => {
                         <TarjetaTarea key={tarea.id} tarea={tarea} />
                     ))}
                     {anteriores.length > 0 && <h3>Atrasadas de días anteriores</h3>}
-                    {anteriores.slice(0, MAX_ANTERIORES).map((tarea) => (
+                    {anteriores.map((tarea) => (
                         <TarjetaTarea key={tarea.id} tarea={tarea} conFecha />
                     ))}
-                    {anteriores.length > MAX_ANTERIORES && (
+                    {totalAnteriores > anteriores.length && (
                         <Link to={rutasSmartsales.tareasAtrasadas} className="ver-todas">
-                            Ver las {anteriores.length} atrasadas
+                            Ver las {totalAnteriores} atrasadas de los últimos {DIAS_ATRASADAS} días
                         </Link>
                     )}
                 </section>

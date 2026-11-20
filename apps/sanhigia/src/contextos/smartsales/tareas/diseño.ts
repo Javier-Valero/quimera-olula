@@ -16,5 +16,7 @@ export type FiltroTareasRango = {
     desde: string;
     hasta: string;
     agente: string | null;
+    // Incluye las anteriores a desde; atrasadasDesde (opcional) pone el límite inferior.
     conAtrasadas?: boolean;
+    atrasadasDesde?: string;
 };

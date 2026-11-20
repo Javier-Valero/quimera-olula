@@ -61,3 +61,9 @@ export type RangoFechas = {
     desde: string;
     hasta: string;
 };
+
+// Página de una lista de la API legacy: siguiente es el cursor (page.next) o null si no hay más.
+export type Pagina<T> = {
+    elementos: T[];
+    siguiente: unknown | null;
+};

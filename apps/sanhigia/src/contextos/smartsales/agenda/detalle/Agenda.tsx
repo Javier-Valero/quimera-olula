@@ -10,7 +10,7 @@ import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { SelectorAgente } from "../../comun/componentes/SelectorAgente.tsx";
 import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
-import { getTareasCompletadas, getTareasRango } from "../../tareas/infraestructura.ts";
+import { getTareasCompletadas, getTareasRango, LIMITE_RANGO } from "../../tareas/infraestructura.ts";
 import { VistaAgenda } from "../diseño.ts";
 import {
     agruparPorDia,
@@ -180,6 +180,12 @@ export const Agenda = () => {
                         Hoy
                     </QBoton>
                 </div>
+
+                {tareas.length >= LIMITE_RANGO && (
+                    <p className="aviso-limite">
+                        Este periodo tiene más de {LIMITE_RANGO} tareas pendientes y solo se muestran las {LIMITE_RANGO} primeras. Elige una vista más corta.
+                    </p>
+                )}
 
                 {vista !== "mes" && (
                     <TiraSemana

@@ -1,5 +1,23 @@
 import { Tarea } from "../comun/diseño.ts";
-import { contarAtrasadas, separarTareasHoy } from "./dominio.ts";
+import { contarAtrasadas, filtrosAtrasadas, separarTareasHoy } from "./dominio.ts";
+
+describe("filtrosAtrasadas", () => {
+    test("recientes: de hace 90 días a ayer; antiguas: hasta el día 91 hacia atrás", () => {
+        const { recientes, antiguas } = filtrosAtrasadas("2026-11-21", "13");
+        expect(recientes).toEqual({
+            desde: "2026-11-20",
+            hasta: "2026-11-20",
+            agente: "13",
+            conAtrasadas: true,
+            atrasadasDesde: "2026-08-23",
+        });
+        expect(antiguas).toEqual({ desde: "2026-08-22", hasta: "2026-08-22", agente: "13", conAtrasadas: true });
+    });
+
+    test("cruza el cambio de año", () => {
+        expect(filtrosAtrasadas("2026-01-01", null).recientes).toMatchObject({ hasta: "2025-12-31", atrasadasDesde: "2025-10-03" });
+    });
+});
 
 const tarea = (id: string, fecha: string, hora: string | null): Tarea => ({
     id,

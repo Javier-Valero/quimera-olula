@@ -23,6 +23,12 @@ export const fechaIso = (fecha: Date): string =>
         String(fecha.getDate()).padStart(2, "0"),
     ].join("-");
 
+export const sumarDias = (iso: string, dias: number): string => {
+    const fecha = fechaLocal(iso);
+    fecha.setDate(fecha.getDate() + dias);
+    return fechaIso(fecha);
+};
+
 const inicioDia = (fecha: Date): Date => new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
 
 const diasEntre = (desde: Date, hasta: Date): number =>

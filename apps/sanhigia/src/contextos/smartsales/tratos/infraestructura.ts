@@ -1,4 +1,5 @@
 import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
+import { Pagina } from "../comun/diseño.ts";
 import { FamiliaTrato, FiltrosTratos, NuevoTratoAPI, TipoTrato, TotalesTratos, TratoLista, TratoListaAPI } from "./diseño.ts";
 import { filtroTratos, origenTrato, totalesDesdeAPI } from "./dominio.ts";
 
@@ -15,27 +16,36 @@ const camposLista = [
     "cuentamarketing",
 ];
 
-export const getTratos = async (filtros: FiltrosTratos, tipoTratoFarma: string | null, limite = 100): Promise<TratoLista[]> => {
-    const respuesta = await LegacyAPI.get<{ data: TratoListaAPI[] }>(
+// Una página de tratos, del más reciente al más antiguo (la API desempata por idtrato).
+export const getPaginaTratos = async (
+    filtros: FiltrosTratos,
+    tipoTratoFarma: string | null,
+    limite: number,
+    siguiente: unknown | null
+): Promise<Pagina<TratoLista>> => {
+    const respuesta = await LegacyAPI.get<{ data: TratoListaAPI[]; page?: { next: unknown | null } }>(
         legacyUrl("ss_tratos", {
             params: {
                 filter: filtroTratos(filtros),
                 fields: camposLista,
                 order: { field: "fecha", direction: "DESC" },
-                page: { limit: limite },
+                page: siguiente ? { limit: limite, next: siguiente } : { limit: limite },
             },
         })
     );
-    return respuesta.data.map((trato) => ({
-        id: String(trato.idtrato),
-        titulo: trato.titulo,
-        cliente: trato.nombrecliente,
-        contacto: trato.nombrecontacto,
-        valor: Number(trato.valor) || 0,
-        estado: trato.estado,
-        fecha: trato.fecha,
-        origen: origenTrato(trato, tipoTratoFarma),
-    }));
+    return {
+        elementos: respuesta.data.map((trato) => ({
+            id: String(trato.idtrato),
+            titulo: trato.titulo,
+            cliente: trato.nombrecliente,
+            contacto: trato.nombrecontacto,
+            valor: Number(trato.valor) || 0,
+            estado: trato.estado,
+            fecha: trato.fecha,
+            origen: origenTrato(trato, tipoTratoFarma),
+        })),
+        siguiente: respuesta.page?.next ?? null,
+    };
 };
 
 export const getTotalesTratos = async (filtros: FiltrosTratos): Promise<TotalesTratos> => {
