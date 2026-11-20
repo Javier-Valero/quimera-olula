@@ -32,7 +32,7 @@ export type UsuarioSmartsalesAPI = {
 
 export type TipoTarea = "Llamada" | "Email" | "Whatsapp" | "Cita";
 
-export type EstadoTarea = "en_curso" | "atrasada";
+export type EstadoTarea = "completada" | "en_curso" | "atrasada";
 
 export type Tarea = {
     id: string;

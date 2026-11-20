@@ -75,6 +75,7 @@ export const tareaAtrasada = (tarea: Tarea, ahora: Date = new Date()): boolean =
 };
 
 export const estadoTarea = (tarea: Tarea, ahora: Date = new Date()): EstadoTarea | null => {
+    if (tarea.completada) return "completada";
     if (tarea.enCurso) return "en_curso";
     return tareaAtrasada(tarea, ahora) ? "atrasada" : null;
 };

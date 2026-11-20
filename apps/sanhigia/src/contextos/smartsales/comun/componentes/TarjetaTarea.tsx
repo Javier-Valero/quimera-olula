@@ -1,7 +1,7 @@
 import { QEtiqueta } from "@olula/componentes/atomos/qetiqueta.tsx";
 import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { Link } from "react-router";
-import { Tarea, TipoTarea } from "../diseño.ts";
+import { EstadoTarea, Tarea, TipoTarea } from "../diseño.ts";
 import { estadoTarea, textoTipoTarea } from "../dominio.ts";
 import { rutasSmartsales } from "../rutas.ts";
 import "./TarjetaTarea.css";
@@ -12,10 +12,17 @@ type TarjetaTareaProps = {
     conFecha?: boolean;
 };
 
-const textoEstado = {
+const textoEstado: Record<EstadoTarea, string> = {
+    completada: "Completada",
     en_curso: "En curso",
     atrasada: "Atrasada",
-} as const;
+};
+
+const varianteEstado = {
+    completada: "exito",
+    en_curso: "advertencia",
+    atrasada: "error",
+} as const satisfies Record<EstadoTarea, string>;
 
 const iconoTipo: Record<TipoTarea, string> = {
     Cita: "calendario_evento",
@@ -48,9 +55,7 @@ export const TarjetaTarea = ({ tarea, ahora, conFecha = false }: TarjetaTareaPro
                     {textoTipoTarea[tarea.tipo]}
                 </QEtiqueta>
                 {estado && (
-                    <QEtiqueta variante={estado === "atrasada" ? "error" : "advertencia"}>
-                        {textoEstado[estado]}
-                    </QEtiqueta>
+                    <QEtiqueta variante={varianteEstado[estado]}>{textoEstado[estado]}</QEtiqueta>
                 )}
             </div>
         </Link>

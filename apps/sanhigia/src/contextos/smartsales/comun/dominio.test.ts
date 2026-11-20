@@ -74,6 +74,10 @@ describe("tareaAtrasada", () => {
         expect(estadoTarea(tarea({ enCurso: true }), ahora)).toBe("en_curso");
         expect(estadoTarea(tarea(), ahora)).toBe("atrasada");
     });
+
+    test("una tarea completada se marca como completada aunque su fecha haya pasado", () => {
+        expect(estadoTarea(tarea({ fecha: "2026-01-01", completada: true }), ahora)).toBe("completada");
+    });
 });
 
 describe("trimestres", () => {
