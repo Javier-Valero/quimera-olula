@@ -71,7 +71,11 @@ export const iniciarVisita = async (id: string, posicion: Posicion | null) =>
         longitud: posicion?.longitud ?? null,
     });
 
-export const finalizarTarea = async (id: string, finalizacion: FinalizacionAPI) =>
+// Vuelve la visita a pendiente borrando el inicio (iniciada por error).
+export const anularInicioVisita = async (id: string) =>
+    LegacyAPI.post(legacyUrl("ss_tareas", { id, action: "anular_inicio_visita" }), {});
+
+export const finalizarTarea =async (id: string, finalizacion: FinalizacionAPI) =>
     LegacyAPI.patch<FinalizacionAPI>(legacyUrl("ss_tareas", { id }), finalizacion);
 
 export const quedanTareasPendientes = async (idTrato: string, idTarea: string): Promise<boolean> => {

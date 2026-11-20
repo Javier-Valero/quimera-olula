@@ -14,6 +14,7 @@ import {
 import { aprobarPresupuesto, crearDocumentoTrato, esDireccionCanarias, getTrato, prepararDocumento } from "../trato/infraestructura.ts";
 import { CambioVisita, ContextoVisita, EstadoVisita, FinalizacionAPI, TareaVisita, TiposTratoUsuario } from "./diseño.ts";
 import {
+    anularInicioVisita,
     cerrarTrato,
     finalizarTarea,
     getCausasPerdida,
@@ -159,6 +160,14 @@ export const iniciarProceso: ProcesarVisita = async (ctx) => {
     const tarea = ctx.tarea!;
     await iniciarVisita(tarea.id, await posicionActual());
     return { ...ctx, estado: "EN_CURSO", tarea: await getTareaVisita(tarea.id) };
+};
+
+// La nota y el interlocutor que no se han guardado se descartan: vuelven a los de la tarea.
+export const anularInicioProceso: ProcesarVisita = async (ctx) => {
+    const id = ctx.tarea!.id;
+    await anularInicioVisita(id);
+    const tarea = await getTareaVisita(id);
+    return { ...ctx, estado: "PENDIENTE", tarea, nota: tarea.nota, interlocutor: tarea.interlocutor, errores: [] };
 };
 
 export const pedirFinalizacionProceso: ProcesarVisita = async (ctx) => ({

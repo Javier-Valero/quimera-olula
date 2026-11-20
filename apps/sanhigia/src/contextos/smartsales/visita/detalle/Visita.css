@@ -119,3 +119,9 @@
     font-size: 0.85rem;
     color: var(--color-texto-secundario);
 }
+
+.Visita .dialogo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
