@@ -4,7 +4,15 @@ import { campaniaListaDesdeAPI, clientePrevioDesdeAPI, resumenDesdeAPI } from ".
 
 const accion = (action: string) => legacyUrl("ss_campanias", { action, staticAction: true });
 
-export const previsualizarCampania = async (campania: CampaniaAPI): Promise<ClientePrevio[]> => {
+// Artículos y productos padre que tienen datos de afinidad en el modelo de recomendación.
+export const buscarProductosAfinidad = async (texto: string): Promise<{ codigo: string; descripcion: string }[]> => {
+    const respuesta = await LegacyAPI.get<{ data: { codigo: string; nombre: string | null }[] }>(
+        legacyUrl("ss_recomendaciones", { action: "buscar_productos_afinidad", staticAction: true, params: { extra: { texto } } })
+    );
+    return respuesta.data.map((p) => ({ codigo: p.codigo, descripcion: (p.nombre ?? p.codigo).trim() }));
+};
+
+export const previsualizarCampania =async (campania: CampaniaAPI): Promise<ClientePrevio[]> => {
     const respuesta = await LegacyAPI.post<CampaniaAPI, { clientes: ClientePrevioAPI[] }>(accion("previsualizar_campania_comercial"), campania);
     return respuesta.clientes.map(clientePrevioDesdeAPI);
 };

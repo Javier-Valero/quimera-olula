@@ -204,7 +204,9 @@ export const NuevoTrato = () => {
                             .map((f) => ({ valor: f.codigo, descripcion: f.descripcion }))
                     }
                     onChange={(opcion) =>
-                        opcion && cambiar({ familias: [...formulario.familias, { codfamilia: opcion.valor, descripcion: opcion.descripcion }] })
+                        opcion &&
+                        !formulario.familias.some((f) => f.codfamilia === opcion.valor) &&
+                        cambiar({ familias: [...formulario.familias, { codfamilia: opcion.valor, descripcion: opcion.descripcion }] })
                     }
                 />
                 {formulario.familias.length > 0 && (

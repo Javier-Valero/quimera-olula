@@ -34,10 +34,12 @@ const inicioDia = (fecha: Date): Date => new Date(fecha.getFullYear(), fecha.get
 const diasEntre = (desde: Date, hasta: Date): number =>
     Math.round((inicioDia(hasta).getTime() - inicioDia(desde).getTime()) / MS_DIA);
 
+// COM-05 más el nivel Baja (por debajo del 50 %), que también es un dato válido (decidido el 22-11-2026).
 export const nivelAfinidad = (score: number): NivelAfinidad | null => {
     if (score >= 0.85) return "muy_alta";
     if (score >= 0.7) return "alta";
     if (score >= 0.5) return "media";
+    if (score > 0) return "baja";
     return null;
 };
 
@@ -45,6 +47,7 @@ export const textoNivelAfinidad: Record<NivelAfinidad, string> = {
     muy_alta: "Muy alta",
     alta: "Alta",
     media: "Media",
+    baja: "Baja",
 };
 
 export const porcentajeAfinidad = (score: number): number => Math.round(score * 100);

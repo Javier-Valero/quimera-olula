@@ -29,7 +29,9 @@ describe("nivelAfinidad", () => {
         expect(nivelAfinidad(0.84)).toBe("alta");
         expect(nivelAfinidad(0.7)).toBe("alta");
         expect(nivelAfinidad(0.5)).toBe("media");
-        expect(nivelAfinidad(0.49)).toBeNull();
+        expect(nivelAfinidad(0.49)).toBe("baja");
+        expect(nivelAfinidad(0.01)).toBe("baja");
+        expect(nivelAfinidad(0)).toBeNull();
     });
 });
 

@@ -10,6 +10,7 @@ const variantes = {
     muy_alta: "exito",
     alta: "exito",
     media: "advertencia",
+    baja: "neutro",
 } as const;
 
 export const EtiquetaAfinidad = ({ score, conPorcentaje = false }: EtiquetaAfinidadProps) => {

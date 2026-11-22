@@ -18,6 +18,7 @@ import { buscarProductos } from "../../nueva_tarea/infraestructura.ts";
 import { FormularioCampania, TipoCampania } from "../diseño.ts";
 import { contextoInicial, textoTipoCampania, tipoProductoDe } from "../dominio.ts";
 import { getMaquina } from "../maquina.ts";
+import { buscarProductosAfinidad } from "../infraestructura.ts";
 import "../maestro/Campanias.css";
 
 const EVENTOS_SIN_BLOQUEO = ["cambiar", "fijar_agente"];
@@ -59,7 +60,8 @@ export const NuevaCampania = () => {
 
     if (estado !== "DEFINIENDO") {
         return (
-            <LayoutSmartsales>
+            // En la vista previa, el "Volver" de arriba regresa al formulario, no a la lista de campañas.
+            <LayoutSmartsales alVolver={() => enviar("volver")}>
                 <div className="Campanias">
                     <QCargando visible={enviando} mensaje="Procesando…" />
                     <header>
@@ -83,7 +85,7 @@ export const NuevaCampania = () => {
                     <Errores errores={errores} />
                     <div className="acciones">
                         <QBoton variante="borde" deshabilitado={enviando} onClick={() => enviar("volver")}>
-                            Volver
+                            Modificar filtros
                         </QBoton>
                         <QBoton deshabilitado={enviando || estado !== "REVISANDO" || clientes.length === 0} onClick={() => enviar("crear")}>
                             Crear campaña
@@ -113,24 +115,12 @@ export const NuevaCampania = () => {
                 />
 
                 {formulario.tipo === "inactivos" && (
-                    <>
-                        <QInput
-                            label="Días sin comprar"
-                            nombre="dias"
-                            valor={String(formulario.dias)}
-                            onChange={(valor) => cambiar({ dias: Number(valor) || 0 })}
-                        />
-                        <QSelect
-                            label="Producto"
-                            nombre="tipo_producto"
-                            valor={formulario.tipoProducto}
-                            opciones={[
-                                { valor: "subfamilia", descripcion: "Una subfamilia" },
-                                { valor: "listadearticulos", descripcion: "Unos artículos" },
-                            ]}
-                            onChange={(opcion) => opcion && cambiar({ tipoProducto: opcion.valor as FormularioCampania["tipoProducto"] })}
-                        />
-                    </>
+                    <QInput
+                        label="Días sin comprar"
+                        nombre="dias"
+                        valor={String(formulario.dias)}
+                        onChange={(valor) => cambiar({ dias: Number(valor) || 0 })}
+                    />
                 )}
 
                 {formulario.tipo === "ventaCruzada" && (
@@ -146,6 +136,20 @@ export const NuevaCampania = () => {
                         nombre="umbral"
                         valor={String(Math.round(formulario.umbral * 100))}
                         onChange={(valor) => cambiar({ umbral: (Number(valor) || 0) / 100 })}
+                    />
+                )}
+
+                {/* Inactivos y afinidad: por una subfamilia o por unos artículos. Venta cruzada siempre es por artículos. */}
+                {formulario.tipo !== "ventaCruzada" && (
+                    <QSelect
+                        label="Producto"
+                        nombre="tipo_producto"
+                        valor={formulario.tipoProducto}
+                        opciones={[
+                            { valor: "subfamilia", descripcion: "Una subfamilia" },
+                            { valor: "listadearticulos", descripcion: "Unos artículos" },
+                        ]}
+                        onChange={(opcion) => opcion && cambiar({ tipoProducto: opcion.valor as FormularioCampania["tipoProducto"] })}
                     />
                 )}
 
@@ -166,6 +170,8 @@ export const NuevaCampania = () => {
                         nombre="articulos"
                         articulos={formulario.articulos}
                         onChange={(articulos) => cambiar({ articulos })}
+                        // En afinidad solo tienen sentido los productos del modelo de recomendación.
+                        buscar={formulario.tipo === "captacion" ? buscarProductosAfinidad : undefined}
                     />
                 )}
 

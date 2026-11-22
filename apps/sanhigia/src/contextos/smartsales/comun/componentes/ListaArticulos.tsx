@@ -13,9 +13,14 @@ type ListaArticulosProps = {
     nombre: string;
     articulos: ArticuloElegido[];
     onChange: (articulos: ArticuloElegido[]) => void;
+    // Búsqueda propia (p. ej. solo productos con afinidad); por defecto, el catálogo de artículos.
+    buscar?: (texto: string) => Promise<ArticuloElegido[]>;
 };
 
-export const ListaArticulos = ({ label, nombre, articulos, onChange }: ListaArticulosProps) => (
+const buscarArticulos = async (texto: string): Promise<ArticuloElegido[]> =>
+    (await buscarProductos("articulo", texto)).map((p) => ({ codigo: p.codigo, descripcion: p.descripcion }));
+
+export const ListaArticulos = ({ label, nombre, articulos, onChange, buscar = buscarArticulos }: ListaArticulosProps) => (
     <>
         <QAutocompletar
             label={label}
@@ -23,11 +28,16 @@ export const ListaArticulos = ({ label, nombre, articulos, onChange }: ListaArti
             opcional
             valor=""
             obtenerOpciones={async (texto) =>
-                (await buscarProductos("articulo", texto))
+                (await buscar(texto))
                     .filter((p) => !articulos.some((a) => a.codigo === p.codigo))
-                    .map((p) => ({ valor: p.codigo, descripcion: p.descripcion }))
+                    .map((p) => ({ valor: p.codigo, descripcion: p.descripcion, descripcionOpcion: `${p.codigo} · ${p.descripcion}` }))
             }
-            onChange={(opcion) => opcion && onChange([...articulos, { codigo: opcion.valor, descripcion: opcion.descripcion }])}
+            // El autocompletar puede avisar dos veces de la misma elección (al elegir y al salir del campo).
+            onChange={(opcion) =>
+                opcion &&
+                !articulos.some((a) => a.codigo === opcion.valor) &&
+                onChange([...articulos, { codigo: opcion.valor, descripcion: opcion.descripcion }])
+            }
         />
         {articulos.length > 0 && (
             <ul className="ListaArticulos">

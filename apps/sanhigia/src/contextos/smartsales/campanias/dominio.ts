@@ -53,11 +53,9 @@ export const contextoInicial: ContextoNuevaCampania = {
     errores: [],
 };
 
-export const tipoProductoDe = (formulario: FormularioCampania) => {
-    if (formulario.tipo === "ventaCruzada") return "listadearticulos";
-    if (formulario.tipo === "captacion") return "subfamilia";
-    return formulario.tipoProducto;
-};
+// Venta cruzada siempre es por artículos; inactivos y afinidad, por subfamilia o por artículos.
+export const tipoProductoDe = (formulario: FormularioCampania) =>
+    formulario.tipo === "ventaCruzada" ? "listadearticulos" : formulario.tipoProducto;
 
 export const erroresCampania = (formulario: FormularioCampania): string[] => {
     const tipoProducto = tipoProductoDe(formulario);
@@ -149,9 +147,16 @@ export const trabajados = (clientes: ClienteCampania[]) => clientes.filter(traba
 export const conVentas = (clientes: ClienteCampania[]) =>
     clientes.filter((c) => c.ventasCampania > 0).sort((a, b) => b.ventasCampania - a.ventasCampania);
 
+// Cambiar el tipo de campaña deja la configuración como nueva (artículos, subfamilia, fechas,
+// umbral...), que no sirve para otro tipo; se conservan el nombre y la descripción u objetivo.
+export const cambiarFormulario = (formulario: FormularioCampania, cambios: Partial<FormularioCampania>, hoy: Date = new Date()): FormularioCampania =>
+    cambios.tipo && cambios.tipo !== formulario.tipo
+        ? { ...formularioInicial(hoy), tipo: cambios.tipo, nombre: formulario.nombre, descripcion: formulario.descripcion }
+        : { ...formulario, ...cambios };
+
 export const cambiarProceso: ProcesarNuevaCampania = async (ctx, payload) => ({
     ...ctx,
-    formulario: { ...ctx.formulario, ...(payload as Partial<FormularioCampania>) },
+    formulario: cambiarFormulario(ctx.formulario, payload as Partial<FormularioCampania>),
     errores: [],
 });
 

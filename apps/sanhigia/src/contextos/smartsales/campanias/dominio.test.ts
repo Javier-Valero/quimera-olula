@@ -1,6 +1,7 @@
 import { distanciaKm } from "../comun/geolocalizacion.ts";
 import { ClienteCampania } from "./diseño.ts";
 import {
+    cambiarFormulario,
     campaniaParaAPI,
     conVentas,
     erroresCampania,
@@ -32,9 +33,49 @@ describe("formulario de campaña", () => {
         expect(erroresCampania(formularioInicial(HOY))).toEqual(["Indica el nombre de la campaña", "Elige la subfamilia"]);
     });
 
-    test("la venta cruzada siempre es por artículos y la afinidad por subfamilia", () => {
+    test("la venta cruzada siempre es por artículos; la afinidad, por subfamilia o por artículos", () => {
         expect(tipoProductoDe({ ...formularioInicial(HOY), tipo: "ventaCruzada", tipoProducto: "subfamilia" })).toBe("listadearticulos");
-        expect(tipoProductoDe({ ...formularioInicial(HOY), tipo: "captacion", tipoProducto: "listadearticulos" })).toBe("subfamilia");
+        expect(tipoProductoDe({ ...formularioInicial(HOY), tipo: "captacion", tipoProducto: "listadearticulos" })).toBe("listadearticulos");
+        expect(tipoProductoDe({ ...formularioInicial(HOY), tipo: "captacion", tipoProducto: "subfamilia" })).toBe("subfamilia");
+    });
+
+    test("afinidad por artículos manda la lista en modo alguno y el umbral", () => {
+        const formulario = {
+            ...formularioInicial(HOY),
+            tipo: "captacion" as const,
+            tipoProducto: "listadearticulos" as const,
+            nombre: "Afinidad",
+            articulos: [
+                { codigo: "W-PTB", descripcion: "PTB" },
+                { codigo: "W-PTE", descripcion: "PTE" },
+            ],
+        };
+        expect(erroresCampania(formulario)).toEqual([]);
+        expect(campaniaParaAPI(formulario, "A1")).toMatchObject({
+            tipo: "captacion",
+            tipoproducto: "listadearticulos",
+            subfamilia: null,
+            productos: JSON.stringify({ lista_incluidos: { refs: "W-PTB;W-PTE", tipo: "alguno" } }),
+            umbralrecomendacion: 0.7,
+        });
+    });
+
+    test("cambiar el tipo de campaña deja la configuración como nueva, salvo nombre y descripción", () => {
+        const configurado = {
+            ...formularioInicial(HOY),
+            nombre: "Campaña",
+            descripcion: "Presentar PTE",
+            tipoProducto: "listadearticulos" as const,
+            articulos: [{ codigo: "A1", descripcion: "A" }],
+            dias: 200,
+        };
+        expect(cambiarFormulario(configurado, { tipo: "captacion" }, HOY)).toEqual({
+            ...formularioInicial(HOY),
+            tipo: "captacion",
+            nombre: "Campaña",
+            descripcion: "Presentar PTE",
+        });
+        expect(cambiarFormulario(configurado, { tipo: "inactivos", dias: 300 }, HOY)).toMatchObject({ nombre: "Campaña", dias: 300 });
     });
 
     test("el umbral de afinidad tiene que estar entre 0 y 100 %", () => {

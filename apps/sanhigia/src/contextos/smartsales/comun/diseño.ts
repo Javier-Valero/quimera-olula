@@ -1,4 +1,4 @@
-export type NivelAfinidad = "muy_alta" | "alta" | "media";
+export type NivelAfinidad = "muy_alta" | "alta" | "media" | "baja";
 
 export type Agente = {
     codigo: string;

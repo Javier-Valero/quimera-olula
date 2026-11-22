@@ -416,6 +416,7 @@ export const DetalleTrato = () => {
                             }
                             onChange={(opcion) =>
                                 opcion &&
+                                !edicion.familias.some((f) => f.codfamilia === opcion.valor) &&
                                 cambiarEdicion({ familias: [...edicion.familias, { codfamilia: opcion.valor, descripcion: opcion.descripcion }] })
                             }
                         />

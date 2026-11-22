@@ -4,12 +4,12 @@ import { ClienteElegido, Motivo, NuevaTareaAPI, Producto, Sugerencia, TipoProduc
 
 const LIMITE_BUSQUEDA = 20;
 
-const buscar = async <T>(modelo: string, campo: string, texto: string, fields: string[], filtrosExtra: unknown[] = []) =>
+const buscar = async <T>(modelo: string, filtroTexto: unknown, fields: string[], filtrosExtra: unknown[] = []) =>
     (
         await LegacyAPI.get<{ data: T[] }>(
             legacyUrl(modelo, {
                 params: {
-                    filter: { and: [[campo, "like", texto], ...filtrosExtra] },
+                    filter: { and: [filtroTexto, ...filtrosExtra] },
                     fields,
                     page: { limit: LIMITE_BUSQUEDA },
                 },
@@ -20,7 +20,7 @@ const buscar = async <T>(modelo: string, campo: string, texto: string, fields: s
 // Como el selector de cliente legacy (base-ventas Cliente): sin los clientes dados de baja.
 export const buscarClientes = async (texto: string): Promise<ClienteElegido[]> =>
     (
-        await buscar<{ codcliente: string; nombre: string }>("clientes", "nombre", texto, ["codcliente", "nombre"], [["debaja", "eq", false]])
+        await buscar<{ codcliente: string; nombre: string }>("clientes", ["nombre", "like", texto], ["codcliente", "nombre"], [["debaja", "eq", false]])
     ).map((cliente) => ({ codigo: cliente.codcliente, nombre: cliente.nombre }));
 
 const catalogos: Record<TipoProducto, { modelo: string; codigo: string }> = {
@@ -29,9 +29,11 @@ const catalogos: Record<TipoProducto, { modelo: string; codigo: string }> = {
     subfamilia: { modelo: "subfamilias", codigo: "codsubfamilia" },
 };
 
+// Por código o por descripción; la descripción sin distinguir tildes ("esterilizacion" encuentra "esterilización").
 export const buscarProductos = async (tipo: TipoProducto, texto: string): Promise<Producto[]> => {
     const { modelo, codigo } = catalogos[tipo];
-    const filas = await buscar<Record<string, string>>(modelo, "descripcion", texto, [codigo, "descripcion"]);
+    const porTexto = { or: [[codigo, "like", texto], ["descripcion", "like_ua", texto]] };
+    const filas = await buscar<Record<string, string>>(modelo, porTexto, [codigo, "descripcion"]);
     return filas.map((fila) => ({ tipo, codigo: fila[codigo], descripcion: fila.descripcion }));
 };
 
