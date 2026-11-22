@@ -335,7 +335,8 @@ export const DetalleTrato = () => {
         : rutasSmartsales.nuevaTareaTratoLegacy(trato.id);
 
     return (
-        <LayoutSmartsales>
+        // Mientras se editan los datos, el "Volver" de arriba cancela la edición (como "Cancelar").
+        <LayoutSmartsales alVolver={edicion ? () => setEdicion(null) : undefined}>
             <div className="DetalleTrato">
                 <QCargando visible={procesando} mensaje="Procesando…" />
                 {accionInicial && usuario && <AccionAlEntrar lanzar={lanzarAccionInicial} />}

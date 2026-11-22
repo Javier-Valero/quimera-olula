@@ -164,7 +164,8 @@ export const FichaContacto = () => {
     const tareasVisibles = visiblesPara(tareas, usuario);
 
     return (
-        <LayoutSmartsales>
+        // Mientras se editan los datos, el "Volver" de arriba cancela la edición (como "Cancelar").
+        <LayoutSmartsales alVolver={edicion ? () => setEdicion(null) : undefined}>
             <div className="Contacto">
                 <QCargando visible={procesando} mensaje="Procesando…" />
                 <header>

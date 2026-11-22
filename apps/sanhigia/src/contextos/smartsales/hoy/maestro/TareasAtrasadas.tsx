@@ -1,10 +1,8 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { Link } from "react-router";
 import { Tarea } from "../../comun/diseño.ts";
 import { fechaIso, tareaAtrasada } from "../../comun/dominio.ts";
-import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { CargarPagina, useListaPaginada } from "../../comun/useListaPaginada.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
@@ -63,7 +61,6 @@ export const TareasAtrasadas = () => {
 
     return (
         <LayoutSmartsales>
-            <Link to={rutasSmartsales.hoy}>← Hoy</Link>
             <h1>Tareas atrasadas</h1>
             {ninguna && <p>No tienes tareas atrasadas en los últimos {DIAS_ATRASADAS} días</p>}
 
