@@ -45,13 +45,15 @@ const EnlaceBarra = ({ texto, icono, ruta }: Destino) => (
     </NavLink>
 );
 
-export const LayoutSmartsales = ({ children }: PropsWithChildren) => {
+// alVolver: en pantallas con pasos (p. ej. la vista previa de una campaña), qué hace "Volver" en lugar
+// de ir a la página anterior del navegador.
+export const LayoutSmartsales = ({ children, alVolver }: PropsWithChildren<{ alVolver?: () => void }>) => {
     const [menuAbierto, setMenuAbierto] = useState(false);
     const navigate = useNavigate();
     const { pathname } = useLocation();
     const conVolver = !principales.includes(pathname.replace(/\/$/, ""));
 
-    const volver = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate(rutasSmartsales.hoy));
+    const volver = alVolver ?? (() => (window.history.state?.idx > 0 ? navigate(-1) : navigate(rutasSmartsales.hoy)));
 
     return (
         <div className="LayoutSmartsales">

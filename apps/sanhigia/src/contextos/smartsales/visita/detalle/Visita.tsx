@@ -83,7 +83,8 @@ export const Visita = () => {
   const visita = esVisita(tarea);
 
   return (
-    <LayoutSmartsales>
+    // Al finalizar, el "Volver" de arriba regresa a la visita en curso (como el de abajo), no sale de la pantalla.
+    <LayoutSmartsales alVolver={estado === "FINALIZANDO" ? () => emitir("volver") : undefined}>
       <div className="Visita">
         <QCargando visible={procesando} mensaje="Procesando…" />
         <h1>
