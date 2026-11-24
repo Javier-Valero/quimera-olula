@@ -30,6 +30,13 @@ const textoOrigen: Record<Exclude<OrigenTrato, null>, string> = {
     campaña: "campaña",
 };
 
+// Un color discreto por origen (ver TarjetaTrato.css).
+const claseOrigen: Record<Exclude<OrigenTrato, null>, string> = {
+    mkt: "origen-mkt",
+    farma: "origen-farma",
+    campaña: "origen-campania",
+};
+
 const varianteEstado = (estado: string) => (estado === "Ganado" ? "exito" : estado === "Perdido" ? "error" : "advertencia");
 
 const fechaCorta = (iso: string | null) =>
@@ -44,7 +51,11 @@ export const TarjetaTrato = ({ trato, conEstado = true }: TarjetaTratoProps) => 
             <span className="datos">
                 <span className="titulo">
                     <strong>{trato.titulo}</strong>
-                    {trato.origen && <QEtiqueta variante="neutro">{textoOrigen[trato.origen]}</QEtiqueta>}
+                    {trato.origen && (
+                        <QEtiqueta variante="neutro" className={claseOrigen[trato.origen]}>
+                            {textoOrigen[trato.origen]}
+                        </QEtiqueta>
+                    )}
                 </span>
                 {interlocutores && <span className="secundario">{interlocutores}</span>}
             </span>

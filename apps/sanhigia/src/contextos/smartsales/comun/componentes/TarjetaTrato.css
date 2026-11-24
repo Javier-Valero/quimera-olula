@@ -34,6 +34,33 @@ li:last-child > .TarjetaTrato {
     white-space: nowrap;
 }
 
+/* Origen del trato, con los colores de legacy (MKT amarillo #FAEB8C, Farma rosa #FFC0CB, en mayúsculas).
+   Campaña no existía en legacy: violeta. Textos oscurecidos para llegar al contraste mínimo. */
+.TarjetaTrato .q-etiqueta.origen-mkt,
+.TarjetaTrato .q-etiqueta.origen-farma,
+.TarjetaTrato .q-etiqueta.origen-campania {
+    flex-shrink: 0;
+    box-shadow: none;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.TarjetaTrato .q-etiqueta.origen-mkt {
+    background: var(--amarillo-2);
+    /* --amarillo-9 sobre --amarillo-2 da 2,5; este naranja oscuro, en torno a 6,3. */
+    color: color-mix(in srgb, var(--naranja-9) 70%, black);
+}
+
+.TarjetaTrato .q-etiqueta.origen-farma {
+    background: var(--rosa-2);
+    color: var(--rosa-9);
+}
+
+.TarjetaTrato .q-etiqueta.origen-campania {
+    background: var(--violeta-1);
+    color: var(--violeta-9);
+}
+
 .TarjetaTrato .lado {
     display: flex;
     flex-direction: column;
