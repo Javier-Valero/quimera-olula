@@ -70,8 +70,10 @@ export const Visita = () => {
   }, [id]);
 
   useEffect(() => {
+    // replace: la tarea ya completada no se queda en el historial, así que "Volver" desde el destino
+    // (p. ej. la siguiente tarea) no regresa a ella.
     if (estado === "TERMINADA" && tarea && !tarea.completada)
-      navigate(destinoAlTerminar(ctx));
+      navigate(destinoAlTerminar(ctx), { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estado]);
 

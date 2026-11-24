@@ -162,6 +162,12 @@ describe("destinoAlTerminar", () => {
         ).toBe("/ss/mi-tarea/nueva?cliente=000123&trato=40");
     });
 
+    test("en un trato sin cliente la siguiente tarea va al mismo trato, si sigue abierto", () => {
+        const sinCliente = tarea({ codCliente: null, nombreCliente: null, idTrato: "74793" });
+        expect(destinoAlTerminar(contexto({ tarea: sinCliente, generarSiguiente: true }))).toBe("/ss/mi-tarea/nueva?trato=74793");
+        expect(destinoAlTerminar(contexto({ tarea: sinCliente, generarSiguiente: true, tratoCerrado: true }))).toBe("/ss/mi-agenda");
+    });
+
     test("lo que no se resuelve en la visita se termina en la ficha del trato", () => {
         expect(destinoAlTerminar(contexto({ accionEnFicha: "ganar" }))).toBe("/ss/mi-trato/40?accion=ganar");
         expect(destinoAlTerminar(contexto({ accionEnFicha: "presupuesto" }))).toBe("/ss/mi-trato/40?accion=presupuesto");

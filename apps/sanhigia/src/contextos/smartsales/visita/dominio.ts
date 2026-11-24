@@ -136,6 +136,10 @@ export const destinoAlTerminar = (ctx: ContextoVisita): string => {
     if (ctx.generarSiguiente && tarea?.codCliente) {
         return rutasSmartsales.nuevaTareaPara(tarea.codCliente, ctx.tratoCerrado ? null : tarea.idTrato);
     }
+    // Trato de un contacto, sin cliente: la siguiente tarea va al mismo trato (como legacy), si sigue abierto.
+    if (ctx.generarSiguiente && tarea?.idTrato && !ctx.tratoCerrado) {
+        return rutasSmartsales.nuevaTareaDeTrato(tarea.idTrato);
+    }
     if (ctx.documentoCreado) {
         const { tipo, id } = ctx.documentoCreado;
         return tipo === "presupuesto" ? rutasSmartsales.presupuesto(id) : rutasSmartsales.pedido(id);
