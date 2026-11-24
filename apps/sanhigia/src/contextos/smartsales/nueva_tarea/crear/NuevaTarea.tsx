@@ -6,18 +6,17 @@ import { QAutocompletar } from "@olula/componentes/moleculas/qautocompletar.tsx"
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { TipoTarea } from "../../comun/diseño.ts";
-import { textoTipoTarea } from "../../comun/dominio.ts";
 import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { EtiquetaAfinidad } from "../../comun/componentes/EtiquetaAfinidad.tsx";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { NotaDictada } from "../../comun/componentes/NotaDictada.tsx";
-import { FormularioTarea, Motivo, Sugerencia, TipoProducto, TratoCliente } from "../diseño.ts";
+import { SelectorProducto } from "../../comun/componentes/SelectorProducto.tsx";
+import { SelectorTipoTarea } from "../../comun/componentes/SelectorTipoTarea.tsx";
+import { FormularioTarea, Motivo, Sugerencia, TratoCliente } from "../diseño.ts";
 import { erroresFormulario, formularioVacio, MAX_NOTA, sugerenciasVisibles, tareaParaAPI } from "../dominio.ts";
 import {
     buscarClientes,
-    buscarProductos,
     crearTarea,
     crearTareaUnica,
     getMotivos,
@@ -27,14 +26,7 @@ import {
 } from "../infraestructura.ts";
 import "./NuevaTarea.css";
 
-const TIPOS: TipoTarea[] = ["Cita", "Llamada", "Email", "Whatsapp"];
 const SIN_TRATO = "sin_trato";
-
-const nivelesProducto: { valor: TipoProducto; descripcion: string }[] = [
-    { valor: "articulo", descripcion: "Artículo" },
-    { valor: "familia", descripcion: "Familia" },
-    { valor: "subfamilia", descripcion: "Subfamilia" },
-];
 
 export const NuevaTarea = () => {
     const { intentar } = useContext(ContextoError);
@@ -47,7 +39,6 @@ export const NuevaTarea = () => {
     const [tratos, setTratos] = useState<TratoCliente[]>([]);
     const [sugerencias, setSugerencias] = useState<Sugerencia[]>([]);
     const [todasSugerencias, setTodasSugerencias] = useState(false);
-    const [nivelProducto, setNivelProducto] = useState<TipoProducto>("subfamilia");
     const [errores, setErrores] = useState<string[]>([]);
     const [guardando, setGuardando] = useState(false);
 
@@ -141,22 +132,7 @@ export const NuevaTarea = () => {
                         />
                     )}
 
-                    <span className="titulo-campo" id="tipo-tarea">
-                        Tipo de tarea
-                    </span>
-                    <div className="tipos" role="radiogroup" aria-labelledby="tipo-tarea">
-                        {TIPOS.map((tipo) => (
-                            <button
-                                key={tipo}
-                                type="button"
-                                role="radio"
-                                aria-checked={formulario.tipo === tipo}
-                                onClick={() => cambiar({ tipo })}
-                            >
-                                {textoTipoTarea[tipo]}
-                            </button>
-                        ))}
-                    </div>
+                    <SelectorTipoTarea valor={formulario.tipo} onChange={(tipo) => cambiar({ tipo })} />
 
                     <div className="fila">
                         <QInput label="Fecha" nombre="fecha" tipo="fecha" valor={formulario.fecha} onChange={(fecha) => cambiar({ fecha })} />
@@ -172,35 +148,7 @@ export const NuevaTarea = () => {
                         onChange={(opcion) => cambiar({ idMotivo: opcion?.valor || null })}
                     />
 
-                    <div className="fila">
-                        <QSelect
-                            label="Producto"
-                            nombre="nivel_producto"
-                            valor={nivelProducto}
-                            opciones={nivelesProducto}
-                            onChange={(opcion) => {
-                                if (!opcion) return;
-                                setNivelProducto(opcion.valor as TipoProducto);
-                                cambiar({ producto: null });
-                            }}
-                        />
-                        <QAutocompletar
-                            key={nivelProducto}
-                            label={nivelesProducto.find((n) => n.valor === nivelProducto)?.descripcion ?? ""}
-                            nombre="producto"
-                            opcional
-                            valor={formulario.producto?.codigo ?? ""}
-                            descripcion={formulario.producto?.descripcion}
-                            obtenerOpciones={async (texto) =>
-                                (await buscarProductos(nivelProducto, texto)).map((p) => ({ valor: p.codigo, descripcion: p.descripcion }))
-                            }
-                            onChange={(opcion) =>
-                                cambiar({
-                                    producto: opcion ? { tipo: nivelProducto, codigo: opcion.valor, descripcion: opcion.descripcion } : null,
-                                })
-                            }
-                        />
-                    </div>
+                    <SelectorProducto producto={formulario.producto} onChange={(producto) => cambiar({ producto })} />
 
                     {sugerencias.length > 0 && (
                         <section className="sugerencias">
@@ -217,10 +165,9 @@ export const NuevaTarea = () => {
                                     <li key={s.codSubfamilia}>
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                setNivelProducto("subfamilia");
-                                                cambiar({ producto: { tipo: "subfamilia", codigo: s.codSubfamilia, descripcion: s.descripcion } });
-                                            }}
+                                            onClick={() =>
+                                                cambiar({ producto: { tipo: "subfamilia", codigo: s.codSubfamilia, descripcion: s.descripcion } })
+                                            }
                                         >
                                             <span>{s.descripcion}</span>
                                             <EtiquetaAfinidad score={s.score} conPorcentaje />

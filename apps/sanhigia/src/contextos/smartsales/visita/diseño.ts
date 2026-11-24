@@ -1,6 +1,7 @@
 import { Contexto } from "@olula/lib/diseño.ts";
 import { TipoTarea } from "../comun/diseño.ts";
 import { Posicion } from "../comun/geolocalizacion.ts";
+import { Producto, TipoProducto } from "../nueva_tarea/diseño.ts";
 import { AccionInicialTrato, DatosDocumento, Opcion, TipoDocumentoTrato, TratoDetalle } from "../trato/diseño.ts";
 
 export type TareaVisita = {
@@ -19,6 +20,32 @@ export type TareaVisita = {
     codCliente: string | null;
     nombreCliente: string | null;
     interlocutor: string | null;
+    idMotivo: string | null;
+    // Producto de la tarea, sin descripción (se pide al editar).
+    producto: { tipo: TipoProducto; codigo: string } | null;
+};
+
+// Datos que se pueden cambiar al editar una tarea pendiente (como la vista Tarea de legacy, más motivo y producto).
+export type FormularioEdicionTarea = {
+    titulo: string;
+    tipo: TipoTarea;
+    fecha: string;
+    hora: string;
+    idMotivo: string | null;
+    producto: Producto | null;
+    nota: string;
+};
+
+export type EdicionTareaAPI = {
+    titulo: string;
+    tipo: TipoTarea;
+    fecha: string;
+    hora: string;
+    nota: string;
+    idmotivo: number | null;
+    referencia: string | null;
+    codfamilia: string | null;
+    codsubfamilia: string | null;
 };
 
 export type TareaVisitaAPI = {
@@ -39,6 +66,10 @@ export type TareaVisitaAPI = {
     codclienteincidencia: string | null;
     nombrecliente: string | null;
     interlocutor: string | null;
+    idmotivo: number | null;
+    referencia: string | null;
+    codfamilia: string | null;
+    codsubfamilia: string | null;
 };
 
 export type Contacto = {

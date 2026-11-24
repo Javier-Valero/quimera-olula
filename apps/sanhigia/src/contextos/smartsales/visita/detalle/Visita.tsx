@@ -21,9 +21,11 @@ import {
   destinoAlTerminar,
   esVisita,
   MAX_NOTA,
+  puedeEditar,
   puedeGenerarSiguiente,
 } from "../dominio.ts";
 import { getMaquina } from "../maquina.ts";
+import { EditarTarea } from "../componentes/EditarTarea.tsx";
 import "./Visita.css";
 
 // Editar campos y la carga inicial (que ya muestra "Cargando…") no bloquean la pantalla.
@@ -53,6 +55,7 @@ export const Visita = () => {
   );
   const { usuario, agentePropio } = useAgenteSeguido();
   const [confirmarAnulacion, setConfirmarAnulacion] = useState(false);
+  const [editando, setEditando] = useState(false);
   const tiposTrato: TiposTratoUsuario = {
     tipoTratoFarma: usuario?.tipoTratoFarma ?? null,
     tipoTratoTareaUnica: usuario?.tipoTratoTareaUnica ?? null,
@@ -84,13 +87,24 @@ export const Visita = () => {
 
   return (
     // Al finalizar, el "Volver" de arriba regresa a la visita en curso (como el de abajo), no sale de la pantalla.
-    <LayoutSmartsales alVolver={estado === "FINALIZANDO" ? () => emitir("volver") : undefined}>
+    // Al editar, cancela la edición.
+    <LayoutSmartsales
+      alVolver={
+        estado === "FINALIZANDO"
+          ? () => emitir("volver")
+          : estado === "PENDIENTE" && editando
+            ? () => setEditando(false)
+            : undefined
+      }
+    >
       <div className="Visita">
         <QCargando visible={procesando} mensaje="Procesando…" />
         <h1>
           {estado === "FINALIZANDO"
             ? `Finalizar ${visita ? "visita" : "tarea"}`
-            : `${visita ? "Visita" : "Tarea"}${estado === "EN_CURSO" ? " en curso" : ""}`}
+            : estado === "PENDIENTE" && editando
+              ? `Editar ${visita ? "visita" : "tarea"}`
+              : `${visita ? "Visita" : "Tarea"}${estado === "EN_CURSO" ? " en curso" : ""}`}
         </h1>
 
         <header className="tarjeta cabecera-visita">
@@ -128,7 +142,18 @@ export const Visita = () => {
 
         {estado === "TERMINADA" && <p>Esta tarea ya está completada.</p>}
 
-        {estado === "PENDIENTE" && (
+        {estado === "PENDIENTE" && editando && (
+          <EditarTarea
+            tarea={tarea}
+            onCancelar={() => setEditando(false)}
+            onGuardada={() => {
+              setEditando(false);
+              emitir("cargar", tarea.id).catch(() => undefined);
+            }}
+          />
+        )}
+
+        {estado === "PENDIENTE" && !editando && (
           <section className="tarjeta acciones-principales">
             <p className="titulo-tarea">{tarea.titulo}</p>
             {tarea.nota && <p className="nota-previa">{tarea.nota}</p>}
@@ -139,6 +164,11 @@ export const Visita = () => {
             ) : (
               <QBoton ancho onClick={() => emitir("finalizar")}>
                 Completar tarea
+              </QBoton>
+            )}
+            {puedeEditar(tarea) && (
+              <QBoton variante="borde" ancho onClick={() => setEditando(true)}>
+                Editar
               </QBoton>
             )}
           </section>

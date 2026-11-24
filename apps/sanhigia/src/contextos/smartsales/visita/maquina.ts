@@ -22,6 +22,8 @@ export const getMaquina = (): Maquina<EstadoVisita, ContextoVisita> => ({
         cargar: cargarProceso,
     },
     PENDIENTE: {
+        // Tras editar la tarea se vuelve a leer.
+        cargar: cargarProceso,
         iniciar: iniciarProceso,
         finalizar: pedirFinalizacionProceso,
         cambiar: cambiarProceso,

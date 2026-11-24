@@ -1,7 +1,7 @@
 import { QEtiqueta } from "@olula/componentes/atomos/qetiqueta.tsx";
-import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
+// import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { Link } from "react-router";
-import { EstadoTarea, Tarea, TipoTarea } from "../diseño.ts";
+import { EstadoTarea, Tarea } from "../diseño.ts";
 import { estadoTarea, textoTipoTarea } from "../dominio.ts";
 import { rutasSmartsales } from "../rutas.ts";
 import "./TarjetaTarea.css";
@@ -26,12 +26,13 @@ const varianteEstado = {
     atrasada: "error",
 } as const satisfies Record<EstadoTarea, string>;
 
-const iconoTipo: Record<TipoTarea, string> = {
-    Cita: "calendario_evento",
-    Llamada: "telefono",
-    Email: "correo",
-    Whatsapp: "whatsapp",
-};
+// Para el icono del tipo, comentado en la tarjeta (ver más abajo).
+// const iconoTipo: Record<TipoTarea, string> = {
+//     Cita: "calendario_evento",
+//     Llamada: "telefono",
+//     Email: "correo",
+//     Whatsapp: "whatsapp",
+// };
 
 const diaMes = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" });
 
@@ -45,9 +46,12 @@ export const TarjetaTarea = ({ tarea, ahora, conFecha = false, distanciaKm = nul
                 {conFecha && <span className="fecha">{diaMes(tarea.fecha)}</span>}
                 {tarea.hora?.slice(0, 5) ?? (conFecha ? null : "—")}
             </time>
+            {/* Icono del tipo: comentado porque repite la etiqueta del tipo (COM-04 pide solo las dos etiquetas).
+                Se deja por si se retoma.
             <span className="icono">
                 <QIcono nombre={iconoTipo[tarea.tipo]} />
             </span>
+            */}
             <div className="contenido">
                 <strong className="interlocutores">{interlocutores || tarea.titulo}</strong>
                 {interlocutores && <span className="titulo">{tarea.titulo}</span>}

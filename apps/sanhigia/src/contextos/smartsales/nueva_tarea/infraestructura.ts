@@ -37,7 +37,14 @@ export const buscarProductos = async (tipo: TipoProducto, texto: string): Promis
     return filas.map((fila) => ({ tipo, codigo: fila[codigo], descripcion: fila.descripcion }));
 };
 
-export const getTratosAbiertosCliente = async (codCliente: string): Promise<TratoCliente[]> => {
+// Descripción de un producto ya elegido (al editar una tarea solo se guarda el código).
+export const getProducto = async (tipo: TipoProducto, valor: string): Promise<Producto> => {
+    const { modelo, codigo } = catalogos[tipo];
+    const filas = await buscar<Record<string, string>>(modelo, [codigo, "eq", valor], [codigo, "descripcion"]);
+    return { tipo, codigo: valor, descripcion: filas[0]?.descripcion ?? valor };
+};
+
+export const getTratosAbiertosCliente =async (codCliente: string): Promise<TratoCliente[]> => {
     const respuesta = await LegacyAPI.get<{ data: { idtrato: number; titulo: string }[] }>(
         legacyUrl("ss_tratos", {
             params: {

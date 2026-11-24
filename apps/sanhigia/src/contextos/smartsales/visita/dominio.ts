@@ -12,7 +12,17 @@ import {
     SIN_DIRECCION,
 } from "../trato/dominio.ts";
 import { aprobarPresupuesto, crearDocumentoTrato, esDireccionCanarias, getTrato, prepararDocumento } from "../trato/infraestructura.ts";
-import { CambioVisita, ContextoVisita, EstadoVisita, FinalizacionAPI, TareaVisita, TiposTratoUsuario } from "./diseño.ts";
+import { Producto } from "../nueva_tarea/diseño.ts";
+import {
+    CambioVisita,
+    ContextoVisita,
+    EdicionTareaAPI,
+    EstadoVisita,
+    FinalizacionAPI,
+    FormularioEdicionTarea,
+    TareaVisita,
+    TiposTratoUsuario,
+} from "./diseño.ts";
 import {
     anularInicioVisita,
     cerrarTrato,
@@ -27,6 +37,44 @@ import {
 type ProcesarVisita = ProcesarContexto<EstadoVisita, ContextoVisita>;
 
 export const MAX_NOTA = 1000;
+const MAX_TITULO = 100;
+
+// Edición: solo de tareas pendientes que no estén en curso (una visita iniciada se anula antes de cambiarla).
+export const puedeEditar = (tarea: TareaVisita) => !tarea.completada && !tarea.enCurso;
+
+export const formularioEdicion = (tarea: TareaVisita, producto: Producto | null): FormularioEdicionTarea => ({
+    titulo: tarea.titulo,
+    tipo: tarea.tipo,
+    fecha: tarea.fecha,
+    hora: tarea.hora?.slice(0, 5) ?? "",
+    idMotivo: tarea.idMotivo,
+    producto,
+    nota: tarea.nota,
+});
+
+export const erroresEdicion = (formulario: FormularioEdicionTarea): string[] =>
+    [
+        !formulario.titulo.trim() && "Indica el título",
+        formulario.titulo.length > MAX_TITULO && `El título no puede pasar de ${MAX_TITULO} caracteres`,
+        !formulario.fecha && "Indica la fecha",
+        !formulario.hora && "Indica la hora",
+        formulario.nota.length > MAX_NOTA && `La nota no puede pasar de ${MAX_NOTA} caracteres`,
+    ].filter((error): error is string => !!error);
+
+export const edicionParaAPI = (formulario: FormularioEdicionTarea): EdicionTareaAPI => {
+    const producto = formulario.producto;
+    return {
+        titulo: formulario.titulo.trim(),
+        tipo: formulario.tipo,
+        fecha: formulario.fecha,
+        hora: formulario.hora.length === 5 ? `${formulario.hora}:00` : formulario.hora,
+        nota: formulario.nota,
+        idmotivo: formulario.idMotivo ? Number(formulario.idMotivo) : null,
+        referencia: producto?.tipo === "articulo" ? producto.codigo : null,
+        codfamilia: producto?.tipo === "familia" ? producto.codigo : null,
+        codsubfamilia: producto?.tipo === "subfamilia" ? producto.codigo : null,
+    };
+};
 
 
 export const contextoInicial: ContextoVisita = {

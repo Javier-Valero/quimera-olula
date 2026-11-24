@@ -1,0 +1,33 @@
+.SelectorTipoTarea {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.SelectorTipoTarea .titulo-campo {
+    font-size: 0.85rem;
+    color: var(--color-texto-secundario);
+}
+
+.SelectorTipoTarea .tipos {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.SelectorTipoTarea .tipos button {
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--color-borde-sutil);
+    border-radius: 999px;
+    background: var(--color-superficie);
+    color: var(--color-texto-primario);
+    font: inherit;
+    cursor: pointer;
+}
+
+.SelectorTipoTarea .tipos button[aria-checked="true"] {
+    border-color: var(--color-primario);
+    background: var(--color-primario-selected);
+    color: var(--color-primario);
+    font-weight: 600;
+}

@@ -90,6 +90,12 @@
     font-weight: 600;
 }
 
+.Visita .fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
 .Visita .acciones {
     display: grid;
     grid-auto-columns: 1fr;

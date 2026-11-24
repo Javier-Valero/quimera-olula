@@ -1,6 +1,6 @@
 import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
 import { Posicion } from "../comun/geolocalizacion.ts";
-import { CausaPerdida, Contacto, EstadoTrato, FinalizacionAPI, TareaVisita, TareaVisitaAPI } from "./diseño.ts";
+import { CausaPerdida, Contacto, EdicionTareaAPI, EstadoTrato, FinalizacionAPI, TareaVisita, TareaVisitaAPI } from "./diseño.ts";
 
 const camposTarea = [
     "idtarea",
@@ -20,7 +20,18 @@ const camposTarea = [
     "codclienteincidencia",
     "nombrecliente",
     "interlocutor",
+    "idmotivo",
+    "referencia",
+    "codfamilia",
+    "codsubfamilia",
 ];
+
+const productoDesdeAPI = (tarea: TareaVisitaAPI): TareaVisita["producto"] => {
+    if (tarea.referencia) return { tipo: "articulo", codigo: tarea.referencia };
+    if (tarea.codsubfamilia) return { tipo: "subfamilia", codigo: tarea.codsubfamilia };
+    if (tarea.codfamilia) return { tipo: "familia", codigo: tarea.codfamilia };
+    return null;
+};
 
 const tareaDesdeAPI = (tarea: TareaVisitaAPI): TareaVisita => ({
     id: String(tarea.idtarea),
@@ -41,7 +52,13 @@ const tareaDesdeAPI = (tarea: TareaVisitaAPI): TareaVisita => ({
     codCliente: tarea.codcliente ?? tarea.codclienteincidencia,
     nombreCliente: tarea.nombrecliente,
     interlocutor: tarea.interlocutor,
+    idMotivo: tarea.idmotivo ? String(tarea.idmotivo) : null,
+    producto: productoDesdeAPI(tarea),
 });
+
+// Edición de una tarea pendiente. El backend actualiza también el evento de Google Calendar.
+export const guardarEdicionTarea = async (id: string, edicion: EdicionTareaAPI) =>
+    LegacyAPI.patch<EdicionTareaAPI>(legacyUrl("ss_tareas", { id }), edicion);
 
 export const getTareaVisita = async (id: string): Promise<TareaVisita> => {
     const respuesta = await LegacyAPI.get<{ data: TareaVisitaAPI[] }>(

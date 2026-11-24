@@ -3,10 +3,14 @@ import {
     cambiarProceso,
     contextoInicial,
     destinoAlTerminar,
+    edicionParaAPI,
+    erroresEdicion,
     erroresFinalizacion,
     erroresPerdida,
     estadoSegunTarea,
     finalizacionParaAPI,
+    formularioEdicion,
+    puedeEditar,
     puedeGenerarSiguiente,
 } from "./dominio.ts";
 
@@ -26,10 +30,70 @@ const tarea = (datos: Partial<TareaVisita> = {}): TareaVisita => ({
     codCliente: "000123",
     nombreCliente: "Clínica",
     interlocutor: null,
+    idMotivo: null,
+    producto: null,
     ...datos,
 });
 
-const contexto = (datos: Partial<ContextoVisita> = {}): ContextoVisita => ({
+describe("edición de la tarea", () => {
+    test("solo se edita una tarea pendiente que no está en curso", () => {
+        expect(puedeEditar(tarea())).toBe(true);
+        expect(puedeEditar(tarea({ enCurso: true }))).toBe(false);
+        expect(puedeEditar(tarea({ completada: true }))).toBe(false);
+    });
+
+    test("el formulario parte de la tarea, con la hora sin segundos", () => {
+        const producto = { tipo: "subfamilia" as const, codigo: "S1", descripcion: "Suturas" };
+        expect(formularioEdicion(tarea({ idMotivo: "3", nota: "Llevar muestras" }), producto)).toEqual({
+            titulo: "Visita",
+            tipo: "Cita",
+            fecha: "2026-10-28",
+            hora: "10:00",
+            idMotivo: "3",
+            producto,
+            nota: "Llevar muestras",
+        });
+    });
+
+    test("exige título, fecha y hora", () => {
+        const formulario = formularioEdicion(tarea(), null);
+        expect(erroresEdicion(formulario)).toEqual([]);
+        expect(erroresEdicion({ ...formulario, titulo: "  ", fecha: "", hora: "" })).toEqual([
+            "Indica el título",
+            "Indica la fecha",
+            "Indica la hora",
+        ]);
+    });
+
+    test("se envía con la hora completa, el motivo como número y el producto en su campo", () => {
+        const formulario = {
+            ...formularioEdicion(tarea(), { tipo: "articulo" as const, codigo: "REF1", descripcion: "Bisturí" }),
+            titulo: " Visita aplazada ",
+            fecha: "2026-11-03",
+            hora: "09:30",
+            idMotivo: "2",
+        };
+        expect(edicionParaAPI(formulario)).toEqual({
+            titulo: "Visita aplazada",
+            tipo: "Cita",
+            fecha: "2026-11-03",
+            hora: "09:30:00",
+            nota: "",
+            idmotivo: 2,
+            referencia: "REF1",
+            codfamilia: null,
+            codsubfamilia: null,
+        });
+        expect(edicionParaAPI({ ...formulario, producto: null, idMotivo: null })).toMatchObject({
+            idmotivo: null,
+            referencia: null,
+            codfamilia: null,
+            codsubfamilia: null,
+        });
+    });
+});
+
+const contexto =(datos: Partial<ContextoVisita> = {}): ContextoVisita => ({
     ...contextoInicial,
     estado: "FINALIZANDO",
     tarea: tarea(),
