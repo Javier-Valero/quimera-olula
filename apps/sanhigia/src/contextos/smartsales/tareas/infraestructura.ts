@@ -90,19 +90,20 @@ export const contarTareasRango = async (filtro: FiltroTareasRango): Promise<numb
     return Number(respuesta.data.total) || 0;
 };
 
-export const getTareasCompletadas = async (agente: string | null, limite = 30) => {
-    const respuesta = await LegacyAPI.get<{ data: TareaAPI[] }>(
+// Una página del historial de tareas completadas, de la más reciente a la más antigua.
+export const getPaginaTareasCompletadas = async (agente: string | null, limite: number, siguiente: unknown | null): Promise<Pagina<Tarea>> => {
+    const respuesta = await LegacyAPI.get<{ data: TareaAPI[]; page?: { next: unknown | null } }>(
         legacyUrl(baseUrl, {
             params: {
                 filter: { and: [["completada", "eq", true], ...(agente ? [["codagente", "eq", agente]] : [])] },
                 fields: campos,
                 order: { field: "fecha", direction: "DESC" },
-                page: { limit: limite },
+                page: siguiente ? { limit: limite, next: siguiente } : { limit: limite },
             },
         })
     );
 
-    return respuesta.data.map(tareaDesdeAPI);
+    return { elementos: respuesta.data.map(tareaDesdeAPI), siguiente: respuesta.page?.next ?? null };
 };
 
 export const getTareasTrato = async (idTrato: string) => {

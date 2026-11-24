@@ -2,17 +2,18 @@ import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { getSemanasDelMes } from "@olula/componentes/calendario/helpers.ts";
 import { ContextoError } from "@olula/lib/contexto.ts";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Tarea } from "../../comun/diseño.ts";
 import { fechaIso, tareaAtrasada } from "../../comun/dominio.ts";
 import { distanciaKm, Posicion, posicionActual } from "../../comun/geolocalizacion.ts";
 import { getCoordenadasClientes } from "../../comun/infraestructura.ts";
 import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
+import { CargarPagina, useListaPaginada } from "../../comun/useListaPaginada.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { SelectorAgente } from "../../comun/componentes/SelectorAgente.tsx";
 import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
-import { getTareasCompletadas, getTareasRango, LIMITE_RANGO } from "../../tareas/infraestructura.ts";
+import { getPaginaTareasCompletadas, getTareasRango, LIMITE_RANGO } from "../../tareas/infraestructura.ts";
 import { VistaAgenda } from "../diseño.ts";
 import {
     agruparPorDia,
@@ -34,13 +35,25 @@ const pestañas: [VistaAgenda, string][] = [
 
 const DIAS_SEMANA = ["L", "M", "X", "J", "V", "S", "D"];
 
+const POR_PAGINA_HISTORIAL = 30;
+
 type Distancia = (tarea: Tarea) => number | null;
 
-const ListaPorDia = ({ tareas, vacio, distancia }: { tareas: Tarea[]; vacio: string; distancia: Distancia }) => {
+type ListaPorDiaProps = {
+    tareas: Tarea[];
+    vacio: string;
+    distancia: Distancia;
+    // Para el historial: los días y las tareas de cada día, de la más reciente a la más antigua.
+    deMasReciente?: boolean;
+};
+
+const ListaPorDia = ({ tareas, vacio, distancia, deMasReciente = false }: ListaPorDiaProps) => {
     if (tareas.length === 0) return <p className="vacio">{vacio}</p>;
+    const grupos = agruparPorDia(tareas);
+    const ordenados = deMasReciente ? grupos.reverse().map(([fecha, delDia]): [string, Tarea[]] => [fecha, [...delDia].reverse()]) : grupos;
     return (
         <>
-            {agruparPorDia(tareas).map(([fecha, delDia]) => (
+            {ordenados.map(([fecha, delDia]) => (
                 <section key={fecha} className="dia">
                     <h3>{textoFecha(fecha)}</h3>
                     {delDia.map((tarea) => (
@@ -127,7 +140,7 @@ export const Agenda = () => {
     const [referencia, setReferencia] = useState(() => new Date());
     const [tareas, setTareas] = useState<Tarea[]>([]);
     const [proximas, setProximas] = useState<Tarea[]>([]);
-    const [historial, setHistorial] = useState<Tarea[] | null>(null);
+    const [verHistorial, setVerHistorial] = useState(false);
 
     const { desde, hasta } = rangoVista(vista, referencia);
 
@@ -143,7 +156,7 @@ export const Agenda = () => {
         const cargar = async () =>
             setProximas(await intentar(() => getTareasRango({ ...rangoProximas(new Date()), agente: agenteSeguido })));
         cargar().catch(() => undefined);
-        setHistorial(null);
+        setVerHistorial(false);
     }, [intentar, cargando, agenteSeguido]);
 
     // Distancia en línea recta desde la posición del comercial (PAN3-04). Sin permiso de ubicación no se muestra.
@@ -183,7 +196,12 @@ export const Agenda = () => {
         return posicion && destino ? distanciaKm(posicion, destino.latitud, destino.longitud) : null;
     };
 
-    const verHistorial = async () => setHistorial(await intentar(() => getTareasCompletadas(agenteSeguido)));
+    // El historial se pide al pulsar "Ver historial" y se carga de 30 en 30.
+    const cargarHistorial = useCallback<CargarPagina<Tarea>>(
+        (siguiente) => getPaginaTareasCompletadas(agenteSeguido, POR_PAGINA_HISTORIAL, siguiente),
+        [agenteSeguido]
+    );
+    const historial = useListaPaginada(verHistorial && !cargando ? cargarHistorial : null);
 
     const bloques = bloquesProximas(proximas, new Date());
     const viendoHoy = vista === "dia" && fechaIso(referencia) === fechaIso(new Date());
@@ -280,12 +298,34 @@ export const Agenda = () => {
 
                 <section className="tarjeta tareas historial">
                     <h2>Historial de tareas completadas</h2>
-                    {historial === null ? (
-                        <QBoton variante="borde" tamaño="pequeño" onClick={() => verHistorial().catch(() => undefined)}>
+                    {!verHistorial ? (
+                        <QBoton variante="borde" tamaño="pequeño" onClick={() => setVerHistorial(true)}>
                             Ver historial
                         </QBoton>
                     ) : (
-                        <ListaPorDia tareas={historial} vacio="No hay tareas completadas" distancia={() => null} />
+                        <>
+                            {/* Mientras llega la primera página no se dice "No hay tareas completadas". */}
+                            {historial.cargada ? (
+                                <ListaPorDia
+                                    tareas={historial.elementos}
+                                    vacio="No hay tareas completadas"
+                                    distancia={() => null}
+                                    deMasReciente
+                                />
+                            ) : (
+                                <p className="vacio">Cargando…</p>
+                            )}
+                            {historial.hayMas && (
+                                <QBoton
+                                    variante="borde"
+                                    ancho
+                                    deshabilitado={historial.cargando}
+                                    onClick={() => historial.cargarMas().catch(() => undefined)}
+                                >
+                                    {historial.cargando ? "Cargando…" : "Cargar más"}
+                                </QBoton>
+                            )}
+                        </>
                     )}
                 </section>
             </div>

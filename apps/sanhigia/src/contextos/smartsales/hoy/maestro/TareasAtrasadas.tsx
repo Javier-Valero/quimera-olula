@@ -6,6 +6,7 @@ import { fechaIso, tareaAtrasada } from "../../comun/dominio.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { CargarPagina, useListaPaginada } from "../../comun/useListaPaginada.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
+import { SelectorAgente } from "../../comun/componentes/SelectorAgente.tsx";
 import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
 import { contarTareasRango, getPaginaTareasRango, getTareasRango } from "../../tareas/infraestructura.ts";
 import { DIAS_ATRASADAS, filtrosAtrasadas, separarTareasHoy } from "../dominio.ts";
@@ -62,6 +63,8 @@ export const TareasAtrasadas = () => {
     return (
         <LayoutSmartsales>
             <h1>Tareas atrasadas</h1>
+            {/* Solo aparece a quien puede ver a otros agentes (supervisores). */}
+            <SelectorAgente />
             {ninguna && <p>No tienes tareas atrasadas en los últimos {DIAS_ATRASADAS} días</p>}
 
             {deHoy.map((tarea) => (
