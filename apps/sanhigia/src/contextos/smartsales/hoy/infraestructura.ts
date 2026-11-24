@@ -1,5 +1,6 @@
 import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
 import { Trimestre } from "../comun/diseño.ts";
+import { origenTrato } from "../tratos/dominio.ts";
 import {
     Avisos,
     BloqueKpi,
@@ -56,7 +57,7 @@ export const getAvisos = async (): Promise<Avisos> => {
     };
 };
 
-export const getTratosAbiertos = async (agente: string | null, limite = 5): Promise<TratoAbierto[]> => {
+export const getTratosAbiertos = async (agente: string | null, tipoTratoFarma: string | null, limite = 5): Promise<TratoAbierto[]> => {
     const filtroAgente = agente
         ? [{ or: [["codagente", "eq", agente], ["codagenteobservador", "eq", agente]] }]
         : [];
@@ -64,8 +65,21 @@ export const getTratosAbiertos = async (agente: string | null, limite = 5): Prom
         legacyUrl("ss_tratos", {
             params: {
                 filter: { and: [["estado", "eq", "-"], ...filtroAgente] },
-                fields: ["idtrato", "titulo", "nombrecliente", "nombrecontacto", "valor", "fecha"],
-                order: { field: "fecha", direction: "DESC" },
+                fields: [
+                    "idtrato",
+                    "titulo",
+                    "estado",
+                    "nombrecliente",
+                    "nombrecontacto",
+                    "valor",
+                    "fecha",
+                    "idcampania",
+                    "idtipotrato",
+                    "cuentamarketing",
+                ],
+                // Los últimos creados. Por fecha empatan los del mismo día y el backend desempata por idtrato
+                // ascendente, con lo que el límite dejaba fuera justo los más nuevos.
+                order: { field: "idtrato", direction: "DESC" },
                 page: { limit: limite },
             },
         })
@@ -74,8 +88,11 @@ export const getTratosAbiertos = async (agente: string | null, limite = 5): Prom
     return respuesta.data.map((trato) => ({
         id: String(trato.idtrato),
         titulo: trato.titulo,
-        cliente: trato.nombrecliente ?? trato.nombrecontacto,
+        estado: trato.estado,
+        cliente: trato.nombrecliente,
+        contacto: trato.nombrecontacto,
         valor: Number(trato.valor) || 0,
         fecha: trato.fecha,
+        origen: origenTrato(trato, tipoTratoFarma),
     }));
 };

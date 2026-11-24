@@ -1,4 +1,5 @@
 import { RangoFechas, Tarea } from "../comun/diseño.ts";
+import { OrigenTrato, TratoListaAPI } from "../tratos/diseño.ts";
 
 export type LineaKpi = {
     clave: string;
@@ -30,9 +31,12 @@ export type Avisos = {
 export type TratoAbierto = {
     id: string;
     titulo: string;
+    estado: string;
     cliente: string | null;
+    contacto: string | null;
     valor: number;
     fecha: string | null;
+    origen: OrigenTrato;
 };
 
 export type TareasHoy = {
@@ -65,11 +69,4 @@ export type ProgresoComercialAPI = {
     kpi_unidades_producto: BloqueKpiAPI;
 };
 
-export type TratoAbiertoAPI = {
-    idtrato: number;
-    titulo: string;
-    nombrecliente: string | null;
-    nombrecontacto: string | null;
-    valor: number | null;
-    fecha: string | null;
-};
+export type TratoAbiertoAPI = TratoListaAPI;

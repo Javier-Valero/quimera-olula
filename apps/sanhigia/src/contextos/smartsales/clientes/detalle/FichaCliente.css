@@ -116,6 +116,14 @@
     padding-inline: 0;
 }
 
+.FichaCliente .tratos {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding-block: 0;
+    list-style: none;
+}
+
 .FichaCliente .lista.tarjeta {
     padding: 0;
 }

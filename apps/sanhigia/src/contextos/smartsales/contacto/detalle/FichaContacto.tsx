@@ -14,7 +14,8 @@ import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
-import { enlaceEmail, enlaceLlamar, enlaceWhatsapp, textoEstadoTrato } from "../../clientes/dominio.ts";
+import { TarjetaTrato } from "../../comun/componentes/TarjetaTrato.tsx";
+import { enlaceEmail, enlaceLlamar, enlaceWhatsapp } from "../../clientes/dominio.ts";
 import { getNombreCliente } from "../../nueva_tarea/infraestructura.ts";
 import { Contacto, EventoContacto, FormularioContacto, NotaContacto, TratoContacto } from "../diseño.ts";
 import { accesoCompleto, edicionParaAPI, erroresEdicion, formularioEdicion, visiblesPara } from "../dominio.ts";
@@ -31,7 +32,6 @@ import {
 import { CamposContacto } from "./CamposContacto.tsx";
 import "./Contacto.css";
 
-const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
 const fecha = (iso: string | null) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString("es-ES") : "—");
 
@@ -263,15 +263,10 @@ export const FichaContacto = () => {
                                 />
                             </header>
                             {tratosVisibles.length === 0 && <p className="vacio">Sin tratos</p>}
-                            <ul className="lista">
+                            <ul className="tratos">
                                 {tratosVisibles.map((trato) => (
                                     <li key={trato.id}>
-                                        <Link to={rutasSmartsales.trato(trato.id)}>
-                                            <strong>{trato.titulo}</strong>
-                                            <span className="secundario">
-                                                {textoEstadoTrato(trato.estado)} · {euros.format(trato.valor)} · {fecha(trato.fecha)}
-                                            </span>
-                                        </Link>
+                                        <TarjetaTrato trato={trato} />
                                     </li>
                                 ))}
                             </ul>

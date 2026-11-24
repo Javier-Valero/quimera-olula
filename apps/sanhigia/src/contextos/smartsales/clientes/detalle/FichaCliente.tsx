@@ -3,7 +3,7 @@ import { QEtiqueta } from "@olula/componentes/atomos/qetiqueta.tsx";
 import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { useContext, useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { Tarea } from "../../comun/diseño.ts";
 import { rutasSmartsales } from "../../comun/rutas.ts";
 import { EtiquetaAfinidad } from "../../comun/componentes/EtiquetaAfinidad.tsx";
@@ -12,7 +12,8 @@ import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
 import { Sugerencia } from "../../nueva_tarea/diseño.ts";
 import { getSugerencias } from "../../nueva_tarea/infraestructura.ts";
 import { DocumentoCliente, ResumenCliente, TipoDocumento, TratoFicha } from "../diseño.ts";
-import { enlaceComoLlegar, enlaceEmail, enlaceLlamar, enlaceWhatsapp, textoEstadoTrato } from "../dominio.ts";
+import { TarjetaTrato } from "../../comun/componentes/TarjetaTrato.tsx";
+import { enlaceComoLlegar, enlaceEmail, enlaceLlamar, enlaceWhatsapp } from "../dominio.ts";
 import {
     documentoConPdf,
     getDocumentosCliente,
@@ -203,15 +204,10 @@ export const FichaCliente = () => {
 
                 {pestaña === "tratos" && tratos?.length === 0 && <p className="vacio">Sin tratos con este cliente</p>}
                 {pestaña === "tratos" && !!tratos?.length && (
-                    <ul className="lista tarjeta">
+                    <ul className="tratos tarjeta">
                         {tratos?.map((trato) => (
                             <li key={trato.id}>
-                                <Link to={rutasSmartsales.trato(trato.id)}>
-                                    <strong>{trato.titulo}</strong>
-                                    <span className="secundario">
-                                        {textoEstadoTrato(trato.estado)} · {euros.format(trato.valor)} · {fecha(trato.fecha)}
-                                    </span>
-                                </Link>
+                                <TarjetaTrato trato={trato} />
                             </li>
                         ))}
                     </ul>

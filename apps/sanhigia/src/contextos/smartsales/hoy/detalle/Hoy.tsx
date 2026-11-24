@@ -18,6 +18,7 @@ import { IndicadorProgreso } from "../../comun/componentes/IndicadorProgreso.tsx
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { SelectorAgente } from "../../comun/componentes/SelectorAgente.tsx";
 import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
+import { TarjetaTrato } from "../../comun/componentes/TarjetaTrato.tsx";
 import { contarTareasRango, getPaginaTareasRango, getTareasRango } from "../../tareas/infraestructura.ts";
 import { Avisos, ProgresoComercial, TratoAbierto } from "../diseño.ts";
 import { contarAtrasadas, DIAS_ATRASADAS, filtrosAtrasadas, saludo, separarTareasHoy } from "../dominio.ts";
@@ -38,7 +39,8 @@ const MAX_ANTERIORES = 3;
 
 export const Hoy = () => {
     const { intentar } = useContext(ContextoError);
-    const { agentes, agentePropio, agenteSeguido, cargando } = useAgenteSeguido();
+    const { agentes, agentePropio, agenteSeguido, cargando, usuario } = useAgenteSeguido();
+    const tipoTratoFarma = usuario?.tipoTratoFarma ?? null;
     const [avisos, setAvisos] = useState<Avisos | null>(null);
     const [progreso, setProgreso] = useState<ProgresoComercial | null>(null);
     const [tareasHoy, setTareasHoy] = useState<Tarea[]>([]);
@@ -65,7 +67,7 @@ export const Hoy = () => {
                     getTareasRango({ desde: hoy, hasta: hoy, agente: agenteSeguido }),
                     getPaginaTareasRango(recientes, MAX_ANTERIORES, null),
                     contarTareasRango(recientes),
-                    getTratosAbiertos(agenteSeguido),
+                    getTratosAbiertos(agenteSeguido, tipoTratoFarma),
                 ])
             );
             setProgreso(nuevoProgreso);
@@ -75,7 +77,7 @@ export const Hoy = () => {
             setTratos(nuevosTratos);
         };
         cargar().catch(() => undefined);
-    }, [intentar, cargando, agenteSeguido, hoy, trimestre.año, trimestre.numero]);
+    }, [intentar, cargando, agenteSeguido, tipoTratoFarma, hoy, trimestre.año, trimestre.numero]);
 
     const nombre = agentes.find((agente) => agente.codigo === agentePropio)?.nombre;
     const { deHoy } = separarTareasHoy(tareasHoy, hoy);
@@ -182,11 +184,7 @@ export const Hoy = () => {
                     <ul className="tratos">
                         {tratos.map((trato) => (
                             <li key={trato.id}>
-                                <Link to={rutasSmartsales.trato(trato.id)}>
-                                    <strong>{trato.titulo}</strong>
-                                    <span className="secundario">{trato.cliente}</span>
-                                    <span className="valor">{euros.format(trato.valor)}</span>
-                                </Link>
+                                <TarjetaTrato trato={trato} conEstado={false} />
                             </li>
                         ))}
                     </ul>

@@ -1,0 +1,51 @@
+.TarjetaTrato {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-borde-sutil);
+    color: inherit;
+    text-decoration: none;
+}
+
+li:last-child > .TarjetaTrato {
+    border-bottom: none;
+}
+
+.TarjetaTrato .datos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.TarjetaTrato .titulo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.TarjetaTrato .titulo strong,
+.TarjetaTrato .datos > .secundario {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.TarjetaTrato .lado {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    gap: 0.25rem;
+}
+
+.TarjetaTrato .valor {
+    white-space: nowrap;
+}
+
+.TarjetaTrato .secundario {
+    font-size: 0.85rem;
+    color: var(--color-texto-secundario);
+}

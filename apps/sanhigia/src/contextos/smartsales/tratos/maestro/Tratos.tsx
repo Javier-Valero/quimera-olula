@@ -1,16 +1,13 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
-import { QEtiqueta } from "@olula/componentes/atomos/qetiqueta.tsx";
-import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { Link } from "react-router";
 import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { SelectorAgente } from "../../comun/componentes/SelectorAgente.tsx";
-import { textoEstadoTrato } from "../../clientes/dominio.ts";
-import { EstadoTratoFiltro, FiltrosTratos, OrigenTrato, TotalesTratos, TratoLista } from "../diseño.ts";
+import { TarjetaTrato } from "../../comun/componentes/TarjetaTrato.tsx";
+import { EstadoTratoFiltro, FiltrosTratos, TotalesTratos, TratoLista } from "../diseño.ts";
 import { getPaginaTratos, getTotalesTratos } from "../infraestructura.ts";
 import { totalSegunEstado } from "../dominio.ts";
 import { CargarPagina, useListaPaginada } from "../../comun/useListaPaginada.ts";
@@ -20,19 +17,6 @@ type Pestaña = "mios" | "todos";
 
 const ESPERA_FILTROS = 400;
 const POR_PAGINA = 50;
-
-const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
-
-const chips: Record<Exclude<OrigenTrato, null>, string> = {
-    mkt: "mkt",
-    farma: "farma",
-    campaña: "campaña",
-};
-
-const varianteEstado = (estado: string) => (estado === "Ganado" ? "exito" : estado === "Perdido" ? "error" : "advertencia");
-
-const fechaCorta = (iso: string | null) =>
-    iso ? new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 const filtrosIniciales: Omit<FiltrosTratos, "agente"> = {
     estado: "abiertos",
@@ -135,25 +119,7 @@ export const Tratos = () => {
                     <ul className="tarjeta lista">
                         {tratos.map((trato) => (
                             <li key={trato.id}>
-                                <Link to={rutasSmartsales.trato(trato.id)}>
-                                    <span className="icono">
-                                        <QIcono nombre="documento_nuevo" tamaño="sm" />
-                                    </span>
-                                    <span className="datos">
-                                        <span className="titulo">
-                                            <strong>{trato.titulo}</strong>
-                                            {trato.origen && (
-                                                <QEtiqueta variante="neutro">{chips[trato.origen]}</QEtiqueta>
-                                            )}
-                                        </span>
-                                        <span className="secundario">{[trato.cliente, trato.contacto].filter(Boolean).join(" · ")}</span>
-                                        <span className="secundario">Valor: {euros.format(trato.valor)}</span>
-                                    </span>
-                                    <span className="lado">
-                                        <QEtiqueta variante={varianteEstado(trato.estado)}>{textoEstadoTrato(trato.estado)}</QEtiqueta>
-                                        <span className="secundario">{fechaCorta(trato.fecha)}</span>
-                                    </span>
-                                </Link>
+                                <TarjetaTrato trato={trato} />
                             </li>
                         ))}
                     </ul>
