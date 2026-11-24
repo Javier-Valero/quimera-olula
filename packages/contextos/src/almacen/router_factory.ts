@@ -17,6 +17,7 @@ import { ReposicionPicking } from "./reposicion/ReposicionPicking.tsx"
 import { Slotting } from "./slotting/Slotting.tsx"
 import { MaestroConDetalleZona } from "./zona/vistas/maestro/MaestroConDetalleZona.tsx"
 import { MaestroConDetallePesoMedida } from "./peso_medida/maestro/MaestroConDetallePesoMedida.tsx"
+import { MaestroConDetalleImpresora } from "./impresora/maestro/MaestroConDetalleImpresora.tsx"
 
 export class RouterFactoryAlmacenOlula {
         static router = {
@@ -39,5 +40,6 @@ export class RouterFactoryAlmacenOlula {
                 "almacen/reposicion": ReposicionPicking,
                 "almacen/slotting": Slotting,
                 "almacen/mapa": MapaAlmacen,
+                "almacen/impresoras": MaestroConDetalleImpresora,
         }
 }

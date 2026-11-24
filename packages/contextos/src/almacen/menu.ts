@@ -28,4 +28,11 @@ export const menuAlmacen = {
     "Almacén/Reposición de picking": { url: "/almacen/reposicion", regla: "almacen.picking_fijo", plugin: "sga" },
     "Almacén/Slotting": { url: "/almacen/slotting", regla: "almacen.picking_fijo", plugin: "sga" },
     "Almacén/Zonas": { url: "/almacen/zonas", regla: "almacen.zona", plugin: "sga" },
+    // Impresoras de etiquetas de red: solo con el plugin impresion activo.
+    "Almacén/Impresoras de etiquetas": {
+        alias: ["impresoras", "etiquetadoras", "zpl"],
+        url: "/almacen/impresoras",
+        regla: "almacen.impresora",
+        plugin: "impresion",
+    },
 };
