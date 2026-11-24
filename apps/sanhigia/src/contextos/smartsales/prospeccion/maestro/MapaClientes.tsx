@@ -14,7 +14,16 @@ import { getResumenCliente } from "../../clientes/infraestructura.ts";
 import { Sugerencia } from "../../nueva_tarea/diseño.ts";
 import { buscarClientes, getSugerencias } from "../../nueva_tarea/infraestructura.ts";
 import { ClienteMapa, FiltrosProspeccion, OrdenClientes } from "../diseño.ts";
-import { capitalPorNombre, filtrosAUrl, filtrosDesdeUrl, filtrosIniciales, ordenarClientes } from "../dominio.ts";
+import {
+    capitalPorNombre,
+    clienteMapaDesdeResumen,
+    detallePopup,
+    filtrosAUrl,
+    filtrosDesdeUrl,
+    filtrosIniciales,
+    ordenarClientes,
+    textoDistancia,
+} from "../dominio.ts";
 import { buscarClientesMapa, leerUltimaCapital } from "../infraestructura.ts";
 import "./Prospeccion.css";
 
@@ -33,6 +42,8 @@ export const MapaClientes = () => {
     const [posicion, setPosicion] = useState<Posicion | null>(null);
     const [resultado, setResultado] = useState<{ total: number; clientes: ClienteMapa[] } | null>(null);
     const [seleccionado, setSeleccionado] = useState<string | null>(null);
+    // Cliente buscado, por si no aparece entre los resultados (filtros o límite de 100).
+    const [buscado, setBuscado] = useState<ClienteMapa | null>(null);
     const [oportunidades, setOportunidades] = useState<Sugerencia[]>([]);
 
     useEffect(() => {
@@ -65,16 +76,20 @@ export const MapaClientes = () => {
     }, [seleccionado]);
 
     const centrarEnCliente = async (codCliente: string) => {
-        const resumen = await intentar(() => getResumenCliente(codCliente));
-        const { latitud, longitud } = resumen.direccion ?? {};
-        if (latitud === null || latitud === undefined || longitud === null || longitud === undefined) return;
-        setCentro({ latitud: Number(latitud), longitud: Number(longitud) });
+        const cliente = clienteMapaDesdeResumen(await intentar(() => getResumenCliente(codCliente)));
+        if (!cliente) return;
+        setBuscado(cliente);
+        setCentro({ latitud: cliente.latitud, longitud: cliente.longitud });
         setSeleccionado(codCliente);
     };
 
     const clientes = ordenarClientes(resultado?.clientes ?? [], filtros.orden);
-    const elegido = clientes.find((c) => c.codCliente === seleccionado) ?? null;
-    const distancia = (cliente: ClienteMapa) => (posicion ? distanciaKm(posicion, cliente.latitud, cliente.longitud) : null) ?? cliente.distancia;
+    const buscadoFuera = buscado && !clientes.some((c) => c.codCliente === buscado.codCliente) ? buscado : null;
+    const elegido = clientes.find((c) => c.codCliente === seleccionado) ?? (buscadoFuera?.codCliente === seleccionado ? buscadoFuera : null);
+    // Distancia desde el comercial (PAN3-04). Sin su posición no se muestra: la del backend se mide desde
+    // el centro de la búsqueda (capital o zona del mapa), no desde él, y daría cifras engañosas.
+    const distancia = (cliente: ClienteMapa) => (posicion ? distanciaKm(posicion, cliente.latitud, cliente.longitud) : null) ?? Number.NaN;
+    const enMapa = buscadoFuera ? [...clientes, buscadoFuera] : clientes;
 
     return (
         <LayoutSmartsales>
@@ -100,7 +115,13 @@ export const MapaClientes = () => {
                     <QMapa
                         centro={centro}
                         radioKm={filtros.radio}
-                        puntos={clientes.map((c) => ({ id: c.codCliente, latitud: c.latitud, longitud: c.longitud, titulo: c.nombre }))}
+                        puntos={enMapa.map((c) => ({
+                            id: c.codCliente,
+                            latitud: c.latitud,
+                            longitud: c.longitud,
+                            titulo: c.nombre,
+                            detalle: detallePopup(c, distancia(c)),
+                        }))}
                         seleccionado={seleccionado}
                         posicion={posicion}
                         onSeleccionar={setSeleccionado}
@@ -132,7 +153,7 @@ export const MapaClientes = () => {
                             </div>
                             <div>
                                 <span className="secundario">Distancia</span>
-                                <strong>{distancia(elegido).toFixed(1)} km</strong>
+                                <strong>{textoDistancia(distancia(elegido))}</strong>
                             </div>
                         </div>
                         {oportunidades.length > 0 && (
@@ -145,7 +166,7 @@ export const MapaClientes = () => {
                                                 <QIcono nombre="paquete" tamaño="sm" />
                                             </span>
                                             <span>{o.descripcion}</span>
-                                            <strong className="porcentaje">{Math.round(o.score * 100)} %</strong>
+                                            <EtiquetaAfinidad score={o.score} conPorcentaje />
                                         </li>
                                     ))}
                                 </ul>
@@ -193,7 +214,7 @@ export const MapaClientes = () => {
                                 <Link to={rutasSmartsales.fichaCliente(cliente.codCliente)} className="datos">
                                     <strong>{cliente.nombre}</strong>
                                     <span className="secundario">
-                                        {[cliente.ciudad, `${distancia(cliente).toFixed(1)} km`].filter(Boolean).join(" · ")}
+                                        {[cliente.ciudad, textoDistancia(distancia(cliente))].filter(Boolean).join(" · ")}
                                     </span>
                                     <span className="secundario">{textoVentas(cliente)}</span>
                                 </Link>

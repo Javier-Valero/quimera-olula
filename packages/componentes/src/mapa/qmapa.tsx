@@ -15,7 +15,24 @@ export type PuntoMapa = {
   latitud: number;
   longitud: number;
   titulo: string;
+  // Líneas que se muestran bajo el título en la ventana emergente del punto seleccionado.
+  detalle?: string[];
   color?: string;
+};
+
+// Contenido de la ventana emergente con nodos de texto (no HTML), para no interpretar los datos.
+const contenidoPopup = (titulo: string, detalle: string[] = []) => {
+  const contenedor = document.createElement("div");
+  contenedor.className = "qmapa-popup";
+  const cabecera = document.createElement("strong");
+  cabecera.textContent = titulo;
+  contenedor.append(cabecera);
+  detalle.forEach((linea) => {
+    const elemento = document.createElement("div");
+    elemento.textContent = linea;
+    contenedor.append(elemento);
+  });
+  return contenedor;
 };
 
 type QMapaProps = {
@@ -231,7 +248,7 @@ export const QMapa = ({
     if (elegido) {
       popup.current
         ?.setLngLat([elegido.longitud, elegido.latitud])
-        .setText(elegido.titulo)
+        .setDOMContent(contenidoPopup(elegido.titulo, elegido.detalle))
         .addTo(actual);
     } else {
       popup.current?.remove();

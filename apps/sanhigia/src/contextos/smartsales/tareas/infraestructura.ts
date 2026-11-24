@@ -14,6 +14,8 @@ const campos = [
     "encurso",
     "nombrecliente",
     "nombrecontactotrato",
+    "codcliente",
+    "codclienteincidencia",
 ];
 
 export const tareaDesdeAPI = (tarea: TareaAPI): Tarea => ({
@@ -26,6 +28,7 @@ export const tareaDesdeAPI = (tarea: TareaAPI): Tarea => ({
     enCurso: !!tarea.encurso,
     nombreCliente: tarea.nombrecliente,
     nombreContacto: tarea.nombrecontactotrato,
+    codCliente: tarea.codcliente ?? tarea.codclienteincidencia ?? null,
 });
 
 const filtroAgente = (agente: string | null) => (agente ? { and: [["codagente", "eq", agente]] } : undefined);

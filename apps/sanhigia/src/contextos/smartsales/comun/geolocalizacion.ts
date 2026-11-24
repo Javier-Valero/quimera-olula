@@ -3,18 +3,24 @@ export type Posicion = {
     longitud: number;
 };
 
-export const posicionActual = (espera = 10000): Promise<Posicion | null> =>
+const pedirPosicion = (opciones: PositionOptions): Promise<Posicion | null> =>
     new Promise((resolver) => {
-        if (typeof navigator === "undefined" || !navigator.geolocation) {
-            resolver(null);
-            return;
-        }
         navigator.geolocation.getCurrentPosition(
             ({ coords }) => resolver({ latitud: coords.latitude, longitud: coords.longitude }),
             () => resolver(null),
-            { enableHighAccuracy: true, timeout: espera, maximumAge: 60000 }
+            opciones
         );
     });
+
+// Primero con alta precisión (GPS); si falla o se agota el tiempo (habitual en un ordenador sin GPS),
+// otra vez sin alta precisión y aceptando una posición de hasta 5 minutos, que basta para distancias.
+export const posicionActual = async (espera = 10000): Promise<Posicion | null> => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return null;
+    return (
+        (await pedirPosicion({ enableHighAccuracy: true, timeout: espera, maximumAge: 60000 })) ??
+        (await pedirPosicion({ enableHighAccuracy: false, timeout: espera, maximumAge: 300000 }))
+    );
+};
 
 export const distanciaKm = (desde: Posicion, latitud: number | null, longitud: number | null): number | null => {
     if (latitud === null || longitud === null) return null;

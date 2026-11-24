@@ -1,6 +1,54 @@
 import { CAPITALES } from "./capitales.ts";
 import { ClienteMapa } from "./diseño.ts";
-import { capitalMasCercana, filtrosAUrl, filtrosDesdeUrl, filtrosIniciales, ordenarClientes, parametrosBusqueda } from "./dominio.ts";
+import { ResumenCliente } from "../clientes/diseño.ts";
+import {
+    capitalMasCercana,
+    clienteMapaDesdeResumen,
+    detallePopup,
+    filtrosAUrl,
+    filtrosDesdeUrl,
+    filtrosIniciales,
+    ordenarClientes,
+    parametrosBusqueda,
+    textoDistancia,
+} from "./dominio.ts";
+
+describe("cliente buscado y ventana emergente del mapa", () => {
+    const resumen: ResumenCliente = {
+        codigo: "000533",
+        nombre: "Clínica",
+        telefono: null,
+        email: null,
+        direccion: { direccion: "C/ Mayor 1", codPostal: "08001", ciudad: "Barcelona", provincia: null, latitud: 41.38, longitud: 2.17 },
+        activo: true,
+        clienteDesde: null,
+        ventas12Meses: 1500,
+        tratosAbiertos: 0,
+        ultimaVisita: null,
+        ultimaCompra: "2026-10-05",
+        proximasAcciones: 0,
+    };
+
+    test("el cliente buscado se puede situar con su resumen; sin coordenadas, no", () => {
+        expect(clienteMapaDesdeResumen(resumen)).toMatchObject({ codCliente: "000533", latitud: 41.38, longitud: 2.17, ventas12Meses: 1500 });
+        expect(clienteMapaDesdeResumen({ ...resumen, direccion: { ...resumen.direccion!, latitud: null } })).toBeNull();
+    });
+
+    test("la distancia desconocida se muestra como —", () => {
+        expect(textoDistancia(3.24)).toBe("3.2 km");
+        expect(textoDistancia(Number.NaN)).toBe("—");
+    });
+
+    test("la ventana emergente lleva ventas, última compra, distancia y afinidad", () => {
+        const enMapa = clienteMapaDesdeResumen(resumen)!;
+        const detalle = detallePopup({ ...enMapa, afinidad: 0.72 }, 3.24);
+        expect(detalle[0]).toContain("Ventas 12 meses:");
+        expect(detalle[1]).toBe(`Última compra: ${new Date(2026, 9, 5).toLocaleDateString("es-ES")}`);
+        expect(detalle[2]).toBe("Distancia: 3.2 km");
+        expect(detalle[3]).toBe("Afinidad: Alta · 72 %");
+        expect(detallePopup(enMapa, 3)).toHaveLength(3);
+    });
+});
 
 const cliente = (datos: Partial<ClienteMapa>): ClienteMapa => ({
     codCliente: "1",

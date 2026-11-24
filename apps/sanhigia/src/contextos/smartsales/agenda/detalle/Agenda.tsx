@@ -2,9 +2,11 @@ import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { getSemanasDelMes } from "@olula/componentes/calendario/helpers.ts";
 import { ContextoError } from "@olula/lib/contexto.ts";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Tarea } from "../../comun/diseño.ts";
 import { fechaIso, tareaAtrasada } from "../../comun/dominio.ts";
+import { distanciaKm, Posicion, posicionActual } from "../../comun/geolocalizacion.ts";
+import { getCoordenadasClientes } from "../../comun/infraestructura.ts";
 import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
@@ -32,7 +34,9 @@ const pestañas: [VistaAgenda, string][] = [
 
 const DIAS_SEMANA = ["L", "M", "X", "J", "V", "S", "D"];
 
-const ListaPorDia = ({ tareas, vacio }: { tareas: Tarea[]; vacio: string }) => {
+type Distancia = (tarea: Tarea) => number | null;
+
+const ListaPorDia = ({ tareas, vacio, distancia }: { tareas: Tarea[]; vacio: string; distancia: Distancia }) => {
     if (tareas.length === 0) return <p className="vacio">{vacio}</p>;
     return (
         <>
@@ -40,7 +44,7 @@ const ListaPorDia = ({ tareas, vacio }: { tareas: Tarea[]; vacio: string }) => {
                 <section key={fecha} className="dia">
                     <h3>{textoFecha(fecha)}</h3>
                     {delDia.map((tarea) => (
-                        <TarjetaTarea key={tarea.id} tarea={tarea} />
+                        <TarjetaTarea key={tarea.id} tarea={tarea} distanciaKm={distancia(tarea)} />
                     ))}
                 </section>
             ))}
@@ -142,6 +146,43 @@ export const Agenda = () => {
         setHistorial(null);
     }, [intentar, cargando, agenteSeguido]);
 
+    // Distancia en línea recta desde la posición del comercial (PAN3-04). Sin permiso de ubicación no se muestra.
+    const [posicion, setPosicion] = useState<Posicion | null>(null);
+    const [sinUbicacion, setSinUbicacion] = useState(false);
+    const [coordenadas, setCoordenadas] = useState<Record<string, Posicion>>({});
+    const pedidas = useRef(new Set<string>());
+
+    useEffect(() => {
+        let activo = true;
+        posicionActual()
+            .then((actual) => {
+                if (!activo) return;
+                setPosicion(actual);
+                setSinUbicacion(actual === null);
+            })
+            .catch(() => undefined);
+        return () => {
+            activo = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!posicion) return;
+        const faltan = [...new Set([...tareas, ...proximas].map((t) => t.codCliente).filter((c): c is string => !!c))].filter(
+            (codigo) => !pedidas.current.has(codigo)
+        );
+        if (faltan.length === 0) return;
+        faltan.forEach((codigo) => pedidas.current.add(codigo));
+        getCoordenadasClientes(faltan)
+            .then((nuevas) => setCoordenadas((actuales) => ({ ...actuales, ...nuevas })))
+            .catch(() => undefined);
+    }, [posicion, tareas, proximas]);
+
+    const distancia: Distancia = (tarea) => {
+        const destino = tarea.codCliente ? coordenadas[tarea.codCliente] : undefined;
+        return posicion && destino ? distanciaKm(posicion, destino.latitud, destino.longitud) : null;
+    };
+
     const verHistorial = async () => setHistorial(await intentar(() => getTareasCompletadas(agenteSeguido)));
 
     const bloques = bloquesProximas(proximas, new Date());
@@ -181,6 +222,8 @@ export const Agenda = () => {
                     </QBoton>
                 </div>
 
+                {sinUbicacion && <p className="secundario">Activa la ubicación del navegador para ver la distancia a cada cliente.</p>}
+
                 {tareas.length >= LIMITE_RANGO && (
                     <p className="aviso-limite">
                         Este periodo tiene más de {LIMITE_RANGO} tareas pendientes y solo se muestran las {LIMITE_RANGO} primeras. Elige una vista más corta.
@@ -208,7 +251,7 @@ export const Agenda = () => {
                     />
                 ) : (
                     <div className="tarjeta tareas">
-                        <ListaPorDia tareas={tareas} vacio="No hay tareas en este periodo" />
+                        <ListaPorDia tareas={tareas} vacio="No hay tareas en este periodo" distancia={distancia} />
                     </div>
                 )}
 
@@ -222,17 +265,17 @@ export const Agenda = () => {
                             <h2>Hoy</h2>
                             {bloques.hoy.length === 0 && <p className="vacio">Sin tareas</p>}
                             {bloques.hoy.map((tarea) => (
-                                <TarjetaTarea key={tarea.id} tarea={tarea} />
+                                <TarjetaTarea key={tarea.id} tarea={tarea} distanciaKm={distancia(tarea)} />
                             ))}
                         </>
                     )}
                     <h2>Mañana</h2>
                     {bloques.mañana.length === 0 && <p className="vacio">Sin tareas</p>}
                     {bloques.mañana.map((tarea) => (
-                        <TarjetaTarea key={tarea.id} tarea={tarea} />
+                        <TarjetaTarea key={tarea.id} tarea={tarea} distanciaKm={distancia(tarea)} />
                     ))}
                     <h2>Próximamente</h2>
-                    <ListaPorDia tareas={bloques.proximamente} vacio="Sin tareas en los próximos 30 días" />
+                    <ListaPorDia tareas={bloques.proximamente} vacio="Sin tareas en los próximos 30 días" distancia={distancia} />
                 </section>
 
                 <section className="tarjeta tareas historial">
@@ -242,7 +285,7 @@ export const Agenda = () => {
                             Ver historial
                         </QBoton>
                     ) : (
-                        <ListaPorDia tareas={historial} vacio="No hay tareas completadas" />
+                        <ListaPorDia tareas={historial} vacio="No hay tareas completadas" distancia={() => null} />
                     )}
                 </section>
             </div>

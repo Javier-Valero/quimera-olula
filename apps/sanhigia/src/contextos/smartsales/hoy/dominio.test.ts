@@ -29,6 +29,7 @@ const tarea = (id: string, fecha: string, hora: string | null): Tarea => ({
     enCurso: false,
     nombreCliente: null,
     nombreContacto: null,
+    codCliente: null,
 });
 
 describe("separarTareasHoy", () => {

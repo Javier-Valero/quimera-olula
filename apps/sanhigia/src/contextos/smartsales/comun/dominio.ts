@@ -50,7 +50,8 @@ export const textoNivelAfinidad: Record<NivelAfinidad, string> = {
     baja: "Baja",
 };
 
-export const porcentajeAfinidad = (score: number): number => Math.round(score * 100);
+// El modelo de recomendación da a veces puntuaciones mayores que 1 (hasta 1,54): se muestran como 100 %.
+export const porcentajeAfinidad = (score: number): number => Math.min(100, Math.round(score * 100));
 
 export const porcentajeTiempoTranscurrido = (rango: RangoFechas, hoy: Date = new Date()): number => {
     const desde = fechaLocal(rango.desde);

@@ -2,6 +2,7 @@ import { Tarea } from "./diseño.ts";
 import {
     estadoTarea,
     nivelAfinidad,
+    porcentajeAfinidad,
     porcentajeConseguido,
     porcentajeTiempoTranscurrido,
     rangoPeriodo,
@@ -20,6 +21,7 @@ const tarea = (datos: Partial<Tarea> = {}): Tarea => ({
     enCurso: false,
     nombreCliente: null,
     nombreContacto: null,
+    codCliente: null,
     ...datos,
 });
 
@@ -32,6 +34,12 @@ describe("nivelAfinidad", () => {
         expect(nivelAfinidad(0.49)).toBe("baja");
         expect(nivelAfinidad(0.01)).toBe("baja");
         expect(nivelAfinidad(0)).toBeNull();
+    });
+
+    test("el porcentaje de afinidad no pasa del 100 % aunque el modelo dé más de 1", () => {
+        expect(porcentajeAfinidad(0.583)).toBe(58);
+        expect(porcentajeAfinidad(1.209)).toBe(100);
+        expect(nivelAfinidad(1.209)).toBe("muy_alta");
     });
 });
 

@@ -10,6 +10,8 @@ type TarjetaTareaProps = {
     tarea: Tarea;
     ahora?: Date;
     conFecha?: boolean;
+    // Distancia en línea recta del comercial al cliente (km), si se conoce.
+    distanciaKm?: number | null;
 };
 
 const textoEstado: Record<EstadoTarea, string> = {
@@ -33,7 +35,7 @@ const iconoTipo: Record<TipoTarea, string> = {
 
 const diaMes = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" });
 
-export const TarjetaTarea = ({ tarea, ahora, conFecha = false }: TarjetaTareaProps) => {
+export const TarjetaTarea = ({ tarea, ahora, conFecha = false, distanciaKm = null }: TarjetaTareaProps) => {
     const estado = estadoTarea(tarea, ahora);
     const interlocutores = [tarea.nombreCliente, tarea.nombreContacto].filter(Boolean).join(" · ");
 
@@ -49,6 +51,7 @@ export const TarjetaTarea = ({ tarea, ahora, conFecha = false }: TarjetaTareaPro
             <div className="contenido">
                 <strong className="interlocutores">{interlocutores || tarea.titulo}</strong>
                 {interlocutores && <span className="titulo">{tarea.titulo}</span>}
+                {distanciaKm !== null && <span className="distancia">a {distanciaKm.toFixed(1)} km</span>}
             </div>
             <div className="etiquetas">
                 <QEtiqueta variante="neutro" className={`tipo-${tarea.tipo.toLowerCase()}`}>

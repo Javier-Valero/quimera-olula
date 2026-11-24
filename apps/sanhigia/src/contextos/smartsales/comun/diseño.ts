@@ -44,6 +44,8 @@ export type Tarea = {
     enCurso: boolean;
     nombreCliente: string | null;
     nombreContacto: string | null;
+    // Cliente del trato o de la incidencia (para la distancia en la Agenda).
+    codCliente: string | null;
 };
 
 export type NumeroTrimestre = 1 | 2 | 3 | 4;

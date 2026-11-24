@@ -11,6 +11,7 @@ const tarea = (id: string, fecha: string, hora = "10:00:00"): Tarea => ({
     enCurso: false,
     nombreCliente: null,
     nombreContacto: null,
+    codCliente: null,
 });
 
 const miercoles = new Date(2026, 9, 28);

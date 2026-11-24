@@ -87,3 +87,8 @@
     color: var(--azul-9);
     box-shadow: none;
 }
+
+.TarjetaTarea .distancia {
+    font-size: 0.8rem;
+    color: var(--color-texto-secundario);
+}

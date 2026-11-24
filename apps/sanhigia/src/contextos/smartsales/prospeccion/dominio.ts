@@ -1,3 +1,5 @@
+import { ResumenCliente } from "../clientes/diseño.ts";
+import { nivelAfinidad, porcentajeAfinidad, textoNivelAfinidad } from "../comun/dominio.ts";
 import { distanciaKm, Posicion } from "../comun/geolocalizacion.ts";
 import { CAPITALES } from "./capitales.ts";
 import { Capital, ClienteMapa, ClienteMapaAPI, FiltrosProspeccion } from "./diseño.ts";
@@ -72,6 +74,43 @@ export const clienteMapaDesdeAPI = (cliente: ClienteMapaAPI): ClienteMapa => ({
     ultimaCompra: cliente.ultimacompra,
     ventas12Meses: cliente.ventas12meses === null ? null : Number(cliente.ventas12meses),
 });
+
+// Cliente buscado que no está entre los resultados (no pasa los filtros o queda fuera de los primeros):
+// se muestra igualmente con los datos de su resumen. Sin coordenadas no se puede situar en el mapa.
+export const clienteMapaDesdeResumen = (resumen: ResumenCliente): ClienteMapa | null => {
+    const direccion = resumen.direccion;
+    if (!direccion || direccion.latitud === null || direccion.longitud === null) return null;
+    return {
+        codCliente: resumen.codigo,
+        nombre: resumen.nombre,
+        direccion: direccion.direccion,
+        codPostal: direccion.codPostal,
+        ciudad: direccion.ciudad,
+        latitud: Number(direccion.latitud),
+        longitud: Number(direccion.longitud),
+        distancia: Number.NaN,
+        afinidad: null,
+        ultimaCompra: resumen.ultimaCompra,
+        ventas12Meses: resumen.ventas12Meses,
+    };
+};
+
+export const textoDistancia = (km: number) => (Number.isFinite(km) ? `${km.toFixed(1)} km` : "—");
+
+const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+
+const fechaCorta = (iso: string | null) => (iso ? new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString("es-ES") : "—");
+
+// Líneas de la ventana emergente del pin: ventas de 12 meses, última compra, distancia y afinidad.
+export const detallePopup = (cliente: ClienteMapa, km: number): string[] => {
+    const nivel = cliente.afinidad === null ? null : nivelAfinidad(cliente.afinidad);
+    return [
+        `Ventas 12 meses: ${cliente.ventas12Meses ? euros.format(cliente.ventas12Meses) : "—"}`,
+        `Última compra: ${fechaCorta(cliente.ultimaCompra)}`,
+        `Distancia: ${textoDistancia(km)}`,
+        ...(nivel && cliente.afinidad !== null ? [`Afinidad: ${textoNivelAfinidad[nivel]} · ${porcentajeAfinidad(cliente.afinidad)} %`] : []),
+    ];
+};
 
 export const ordenarClientes = (clientes: ClienteMapa[], orden: FiltrosProspeccion["orden"]) =>
     [...clientes].sort((a, b) =>

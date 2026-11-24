@@ -10,6 +10,8 @@ export type TareaAPI = {
     encurso: boolean | null;
     nombrecliente: string | null;
     nombrecontactotrato: string | null;
+    codcliente?: string | null;
+    codclienteincidencia?: string | null;
 };
 
 export type FiltroTareasRango = {
