@@ -1,5 +1,5 @@
 import { Periodo } from "../comun/diseño.ts";
-import { HistoricoAPI, MesHistorico, VentasFamilia, VentasFamiliaAPI } from "./diseño.ts";
+import { HistoricoAPI, MesGrafico, MesHistorico, VentasFamilia, VentasFamiliaAPI } from "./diseño.ts";
 
 export const parametrosPeriodo = (periodo: Periodo, agente: string | null): Record<string, string | boolean | number> => {
     const codAgente = agente ?? "TODOS";
@@ -37,10 +37,67 @@ export const historicoDesdeAPI = (historico: HistoricoAPI): MesHistorico[] =>
         prevision: historico.prevision[i] ?? null,
     }));
 
-export const maximoHistorico = (meses: MesHistorico[]) =>
-    Math.max(0, ...meses.flatMap((m) => [m.ventas ?? 0, m.objetivo, m.prevision ?? 0]));
+// Objetivo dinámico (propuesta pendiente de validar con el cliente): el backend reparte el objetivo del
+// trimestre a partes iguales entre sus tres meses. Aquí cada mes pasa a necesitar lo que quedaba del
+// trimestre entre los meses que faltaban: 1.º objetivo/3, 2.º (objetivo - ventas del 1.º)/2, 3.º lo que
+// quede. Un mes sin ventas todavía (futuro) se supone que cumple su parte, para que los siguientes no se
+// carguen con ella. Si ya se ha cubierto el trimestre, lo necesario es 0.
+export const mesesConObjetivoPendiente = (meses: MesHistorico[]): MesGrafico[] => {
+    const resultado: MesGrafico[] = [];
+    for (let inicio = 0; inicio < meses.length; inicio += 3) {
+        const trimestre = meses.slice(inicio, inicio + 3);
+        const objetivoTrimestre = trimestre.reduce((total, m) => total + m.objetivo, 0);
+        let restante = objetivoTrimestre;
+        trimestre.forEach((mes, i) => {
+            const necesario = Math.max(restante, 0) / (trimestre.length - i);
+            resultado.push({ mes: mes.mes, ventas: mes.ventas, prevision: mes.prevision, necesario, objetivoTrimestre });
+            restante -= mes.ventas ?? necesario;
+        });
+    }
+    return resultado;
+};
 
-export const familiaDesdeAPI = (familia: VentasFamiliaAPI): VentasFamilia => ({
+export const maximoHistorico = (meses: MesGrafico[]) =>
+    Math.max(0, ...meses.flatMap((m) => [m.ventas ?? 0, m.necesario, m.prevision ?? 0]));
+
+const claveMes = (fecha: Date) => `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+
+// Mes que aparece elegido al entrar: el actual si el gráfico es del año en curso.
+export const mesInicial = (meses: { mes: string }[], hoy: Date = new Date()): string | null => {
+    const actual = claveMes(hoy);
+    return meses.some((m) => m.mes === actual) ? actual : null;
+};
+
+const nombreMes = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" });
+const eurosMes = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+
+const verboNecesario = (mes: string, hoy: Date) => {
+    const actual = claveMes(hoy);
+    return mes < actual ? "Necesitabas" : mes === actual ? "Necesitas" : "Necesitarás";
+};
+
+// Línea de datos del mes elegido en el gráfico: ventas (o previsión si aún no ha llegado) y lo necesario
+// para el objetivo del trimestre, con el % cubierto.
+export const resumenMes = (mes: MesGrafico, hoy: Date = new Date()): string => {
+    const [año, numero] = mes.mes.split("-").map(Number);
+    const nombre = nombreMes.format(new Date(año, numero - 1, 1));
+    const partes = [nombre.charAt(0).toUpperCase() + nombre.slice(1)];
+    if (mes.ventas !== null) partes.push(`Ventas ${eurosMes.format(mes.ventas)}`);
+    else if (mes.prevision !== null) partes.push(`Previsión ${eurosMes.format(mes.prevision)}`);
+    else partes.push("Sin ventas ni previsión");
+    if (mes.objetivoTrimestre <= 0) {
+        partes.push("Sin objetivo");
+    } else if (mes.necesario <= 0) {
+        partes.push("Objetivo del trimestre cubierto");
+    } else {
+        const importe = mes.ventas ?? mes.prevision;
+        const porcentaje = importe !== null ? ` (${Math.round((importe * 100) / mes.necesario)} %)` : "";
+        partes.push(`${verboNecesario(mes.mes, hoy)} ${eurosMes.format(mes.necesario)}${porcentaje}`);
+    }
+    return partes.join(" · ");
+};
+
+export const familiaDesdeAPI =(familia: VentasFamiliaAPI): VentasFamilia => ({
     codigo: familia.codfamilia,
     descripcion: familia.descripcion,
     importe: Number(familia.importe) || 0,

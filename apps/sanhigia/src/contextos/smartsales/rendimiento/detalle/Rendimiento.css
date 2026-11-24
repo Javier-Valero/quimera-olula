@@ -134,6 +134,31 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    min-width: 0;
+    padding: 0.125rem;
+    border: none;
+    border-radius: 0.25rem;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.GraficoMensual .columna:hover,
+.GraficoMensual .columna[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--color-primario-oscuro) 10%, transparent);
+}
+
+.GraficoMensual .columna[aria-pressed="true"] .mes {
+    font-weight: 700;
+    color: var(--color-texto-primario);
+}
+
+.GraficoMensual .detalle-mes {
+    margin: 0;
+    min-height: 1.5em;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .GraficoMensual .zona {
@@ -178,7 +203,8 @@
 
 .GraficoMensual .leyenda {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
     font-size: 0.8rem;
     color: var(--color-texto-secundario);
 }

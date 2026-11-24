@@ -17,6 +17,16 @@ export type MesHistorico = {
     prevision: number | null;
 };
 
+// Mes del gráfico: "necesario" es lo que quedaba por vender del objetivo del trimestre, repartido entre
+// los meses que faltaban (dinámico: depende de lo vendido en los meses anteriores del trimestre).
+export type MesGrafico = {
+    mes: string;
+    ventas: number | null;
+    prevision: number | null;
+    necesario: number;
+    objetivoTrimestre: number;
+};
+
 export type HistoricoAPI = {
     meses: string[];
     ventas: (number | null)[];
