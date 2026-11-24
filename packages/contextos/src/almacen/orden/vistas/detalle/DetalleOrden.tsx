@@ -22,6 +22,7 @@ import { LineaOrdenAlmacen, OrdenAlmacen } from "../../diseño.ts";
 import {
     etiquetaEstadoOrden,
     hayAgenciasEnvio,
+    impresionEtiquetasActiva,
     metaOrden,
     ordenAlbaranable,
     ordenPermiteEnvio,
@@ -32,6 +33,7 @@ import { crearCajasOrden, getEtiquetaEnvio, getReportEtiquetasOrden } from "../.
 import { AlbaranarOrden } from "../albaranar/AlbaranarOrden.tsx";
 import { BorrarOrden } from "../borrar/BorrarOrden.tsx";
 import { GenerarEnvioOrden } from "../generar_envio/GenerarEnvioOrden.tsx";
+import { ImprimirEtiquetasOrden } from "../imprimir_etiquetas/ImprimirEtiquetasOrden.tsx";
 import { ColocacionOrden } from "../colocar/ColocacionOrden.tsx";
 import { RecorridoOrden } from "../recorrido/RecorridoOrden.tsx";
 import { TerminarOrden } from "../terminar/TerminarOrden.tsx";
@@ -165,6 +167,11 @@ export const DetalleOrden = ({
                 )}
                 <QBoton variante="borde" onClick={() => emitir("recorrido_solicitado")}>Recorrido</QBoton>
                 <QBoton variante="borde" onClick={imprimirEtiquetas}>Imprimir etiquetas</QBoton>
+                {impresionEtiquetasActiva() && (
+                    <QBoton variante="borde" onClick={() => emitir("impresion_etiquetas_solicitada")}>
+                        Etiquetas a impresora
+                    </QBoton>
+                )}
                 {sgaActivo && (
                     <QBoton variante="borde" onClick={generarCajas}>Crear cajas</QBoton>
                 )}
@@ -326,6 +333,9 @@ export const DetalleOrden = ({
             )}
             {ctx.estado === "GENERANDO_ENVIO" && (
                 <GenerarEnvioOrden publicar={emitir} orden={ctx.orden} />
+            )}
+            {ctx.estado === "IMPRIMIENDO_ETIQUETAS" && (
+                <ImprimirEtiquetasOrden publicar={emitir} orden={ctx.orden} />
             )}
         </Detalle>
     );
