@@ -29,8 +29,20 @@ export type Sugerencia = {
     score: number;
 };
 
+// Trato de un contacto, sin cliente, desde el que se abre Nueva tarea: la tarea se crea en ese trato
+// (como el alta de tarea de legacy) y no se pide cliente.
+export type TratoSinCliente = {
+    id: string;
+    titulo: string;
+    contacto: string | null;
+};
+
 export type FormularioTarea = {
     cliente: ClienteElegido | null;
+    tratoSinCliente: TratoSinCliente | null;
+    // Mientras el comercial no lo escribe, el título es el automático (tipo · cliente · motivo).
+    titulo: string;
+    tituloManual: boolean;
     idTrato: string | null;
     tipo: TipoTarea;
     fecha: string;

@@ -2,10 +2,14 @@ import { fechaIso, textoTipoTarea } from "../comun/dominio.ts";
 import { FormularioTarea, Motivo, NuevaTareaAPI, Sugerencia } from "./diseño.ts";
 
 export const MAX_NOTA = 1000;
+export const MAX_TITULO = 100;
 export const AFINIDAD_SUGERENCIA = 0.7;
 
 export const formularioVacio = (ahora: Date = new Date()): FormularioTarea => ({
     cliente: null,
+    tratoSinCliente: null,
+    titulo: "",
+    tituloManual: false,
     idTrato: null,
     tipo: "Cita",
     fecha: fechaIso(ahora),
@@ -17,19 +21,27 @@ export const formularioVacio = (ahora: Date = new Date()): FormularioTarea => ({
 
 export const erroresFormulario = (formulario: FormularioTarea): string[] =>
     [
-        !formulario.cliente && "Elige un cliente",
+        !formulario.cliente && !formulario.tratoSinCliente && "Elige un cliente",
+        formulario.tituloManual && !formulario.titulo.trim() && "Indica el título",
+        formulario.tituloManual && formulario.titulo.trim().length > MAX_TITULO && `El título no puede pasar de ${MAX_TITULO} caracteres`,
         !formulario.fecha && "Indica la fecha",
         !formulario.hora && "Indica la hora",
         formulario.nota.length > MAX_NOTA && `La nota no puede pasar de ${MAX_NOTA} caracteres`,
     ].filter((error): error is string => !!error);
 
-export const tituloTarea = (formulario: FormularioTarea, motivos: Motivo[]): string => {
+// Título automático: tipo · cliente (o contacto del trato) · motivo.
+export const tituloAutomatico = (formulario: FormularioTarea, motivos: Motivo[]): string => {
     const motivo = motivos.find((m) => m.id === formulario.idMotivo)?.descripcion;
-    return [textoTipoTarea[formulario.tipo], formulario.cliente?.nombre, motivo]
+    const interlocutor = formulario.cliente?.nombre ?? formulario.tratoSinCliente?.contacto ?? formulario.tratoSinCliente?.titulo;
+    return [textoTipoTarea[formulario.tipo], interlocutor, motivo]
         .filter(Boolean)
         .join(" · ")
-        .slice(0, 100);
+        .slice(0, MAX_TITULO);
 };
+
+// El que escribe el comercial o, si no lo ha tocado, el automático.
+export const tituloTarea = (formulario: FormularioTarea, motivos: Motivo[]): string =>
+    formulario.tituloManual ? formulario.titulo.trim() : tituloAutomatico(formulario, motivos);
 
 export const tareaParaAPI = (formulario: FormularioTarea, motivos: Motivo[]): NuevaTareaAPI => {
     const producto = formulario.producto;

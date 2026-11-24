@@ -14,7 +14,7 @@ import { NotaDictada } from "../../comun/componentes/NotaDictada.tsx";
 import { SelectorProducto } from "../../comun/componentes/SelectorProducto.tsx";
 import { SelectorTipoTarea } from "../../comun/componentes/SelectorTipoTarea.tsx";
 import { FormularioTarea, Motivo, Sugerencia, TratoCliente } from "../diseño.ts";
-import { erroresFormulario, formularioVacio, MAX_NOTA, sugerenciasVisibles, tareaParaAPI } from "../dominio.ts";
+import { erroresFormulario, formularioVacio, MAX_NOTA, sugerenciasVisibles, tareaParaAPI, tituloTarea } from "../dominio.ts";
 import {
     buscarClientes,
     crearTarea,
@@ -24,6 +24,7 @@ import {
     getSugerencias,
     getTratosAbiertosCliente,
 } from "../infraestructura.ts";
+import { getTrato } from "../../trato/infraestructura.ts";
 import "./NuevaTarea.css";
 
 const SIN_TRATO = "sin_trato";
@@ -60,6 +61,24 @@ export const NuevaTarea = () => {
         cargar().catch(() => undefined);
     }, [intentar, parametros]);
 
+    // Abierta desde un trato sin cliente (solo contacto): la tarea va a ese trato y no se pide cliente.
+    useEffect(() => {
+        const idTrato = parametros.get("trato");
+        if (!idTrato || parametros.get("cliente")) return;
+        const cargar = async () => {
+            const trato = await intentar(() => getTrato(idTrato));
+            if (trato.codCliente) {
+                setFormulario((actual) => ({ ...actual, cliente: { codigo: trato.codCliente!, nombre: trato.nombreCliente ?? trato.codCliente! } }));
+            } else {
+                setFormulario((actual) => ({
+                    ...actual,
+                    tratoSinCliente: { id: trato.id, titulo: trato.titulo, contacto: trato.nombreContacto },
+                }));
+            }
+        };
+        cargar().catch(() => undefined);
+    }, [intentar, parametros]);
+
     useEffect(() => {
         setTratos([]);
         setSugerencias([]);
@@ -81,17 +100,27 @@ export const NuevaTarea = () => {
     const guardar = async () => {
         const encontrados = erroresFormulario(formulario);
         setErrores(encontrados);
-        if (encontrados.length > 0 || !formulario.cliente) return;
+        if (encontrados.length > 0) return;
 
+        const { tratoSinCliente, cliente } = formulario;
         setGuardando(true);
         try {
             const tarea = tareaParaAPI(formulario, motivos);
+            // Con trato (también el de un contacto sin cliente) es el alta de tarea de legacy: ss_tareas con
+            // idtrato y el agente del usuario. Sin trato, tarea única.
+            const idTrato = tratoSinCliente?.id ?? formulario.idTrato;
             await intentar(() =>
-                formulario.idTrato
-                    ? crearTarea({ ...tarea, idtrato: Number(formulario.idTrato), codagente: agentePropio ?? "" })
-                    : crearTareaUnica({ ...tarea, codcliente: formulario.cliente!.codigo })
+                idTrato
+                    ? crearTarea({ ...tarea, idtrato: Number(idTrato), codagente: agentePropio ?? "" })
+                    : crearTareaUnica({ ...tarea, codcliente: cliente!.codigo })
             );
-            navigate(rutasSmartsales.agenda);
+            if (tratoSinCliente) {
+                // Como legacy: vuelve al trato desde el que se abrió.
+                if (window.history.state?.idx > 0) navigate(-1);
+                else navigate(rutasSmartsales.trato(tratoSinCliente.id));
+            } else {
+                navigate(rutasSmartsales.agenda);
+            }
         } catch {
             setGuardando(false);
         }
@@ -109,18 +138,28 @@ export const NuevaTarea = () => {
                 <h1>Nueva visita o tarea</h1>
 
                 <section className="tarjeta formulario">
-                    <QAutocompletar
-                        label="Cliente"
-                        nombre="cliente"
-                        valor={formulario.cliente?.codigo ?? ""}
-                        descripcion={formulario.cliente?.nombre}
-                        obtenerOpciones={async (texto) =>
-                            (await buscarClientes(texto)).map((c) => ({ valor: c.codigo, descripcion: c.nombre }))
-                        }
-                        onChange={(opcion) =>
-                            cambiar({ cliente: opcion ? { codigo: opcion.valor, nombre: opcion.descripcion } : null, idTrato: null })
-                        }
-                    />
+                    {formulario.tratoSinCliente ? (
+                        <div className="trato-sin-cliente">
+                            <span className="titulo-campo">Trato</span>
+                            <strong>{formulario.tratoSinCliente.titulo}</strong>
+                            {formulario.tratoSinCliente.contacto && (
+                                <span className="secundario">Contacto: {formulario.tratoSinCliente.contacto}</span>
+                            )}
+                        </div>
+                    ) : (
+                        <QAutocompletar
+                            label="Cliente"
+                            nombre="cliente"
+                            valor={formulario.cliente?.codigo ?? ""}
+                            descripcion={formulario.cliente?.nombre}
+                            obtenerOpciones={async (texto) =>
+                                (await buscarClientes(texto)).map((c) => ({ valor: c.codigo, descripcion: c.nombre }))
+                            }
+                            onChange={(opcion) =>
+                                cambiar({ cliente: opcion ? { codigo: opcion.valor, nombre: opcion.descripcion } : null, idTrato: null })
+                            }
+                        />
+                    )}
 
                     {formulario.cliente && (
                         <QSelect
@@ -133,6 +172,18 @@ export const NuevaTarea = () => {
                     )}
 
                     <SelectorTipoTarea valor={formulario.tipo} onChange={(tipo) => cambiar({ tipo })} />
+
+                    <div className="campo-titulo">
+                        <QInput
+                            label="Título"
+                            nombre="titulo"
+                            valor={tituloTarea(formulario, motivos)}
+                            onChange={(titulo) => cambiar({ titulo, tituloManual: true })}
+                        />
+                        {!formulario.tituloManual && (
+                            <span className="secundario">Se rellena solo con el tipo, el cliente y el motivo. Puedes cambiarlo.</span>
+                        )}
+                    </div>
 
                     <div className="fila">
                         <QInput label="Fecha" nombre="fecha" tipo="fecha" valor={formulario.fecha} onChange={(fecha) => cambiar({ fecha })} />

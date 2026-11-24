@@ -23,6 +23,8 @@ export const rutasSmartsales = {
     nuevaTarea: "/ss/mi-tarea/nueva",
     nuevaTareaPara: (codCliente: string, idTrato?: string | null) =>
         conParametros("/ss/mi-tarea/nueva", { cliente: codCliente, trato: idTrato }),
+    // Desde un trato: Nueva tarea lee el trato y, si no tiene cliente, crea la tarea en él sin pedirlo.
+    nuevaTareaDeTrato: (idTrato: string) => conParametros("/ss/mi-tarea/nueva", { trato: idTrato }),
     nuevoContacto: "/ss/mi-contacto/nuevo",
     contacto: (codContacto: string) => `/ss/mi-contacto/${codContacto}`,
     contactosCursos: "/ss/contactos/cursos/",
@@ -31,7 +33,6 @@ export const rutasSmartsales = {
     trato: (id: string) => `/ss/mi-trato/${id}`,
     tratoConAccion: (id: string, accion: "presupuesto" | "pedido" | "ganar") => conParametros(`/ss/mi-trato/${id}`, { accion }),
     tratoLegacy: (id: string) => `/ss/trato/${id}`,
-    nuevaTareaTratoLegacy: (id: string) => `/ss/trato/${id}/tarea/nueva`,
     presupuesto: (id: string) => `/ventas/presupuestos/${id}`,
     pedido: (id: string) => `/ventas/pedidos/${id}`,
     tarea: (id: string) => `/ss/mi-tarea/${id}`,

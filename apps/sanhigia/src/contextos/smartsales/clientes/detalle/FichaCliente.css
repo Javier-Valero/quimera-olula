@@ -116,6 +116,11 @@
     padding-inline: 0;
 }
 
+.FichaCliente .acciones-ficha {
+    display: flex;
+    justify-content: flex-end;
+}
+
 .FichaCliente .tratos {
     display: flex;
     flex-direction: column;

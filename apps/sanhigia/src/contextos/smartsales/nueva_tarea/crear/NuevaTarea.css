@@ -26,6 +26,27 @@
     color: var(--color-texto-secundario);
 }
 
+.NuevaTarea .campo-titulo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.NuevaTarea .trato-sin-cliente {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.NuevaTarea .trato-sin-cliente .titulo-campo {
+    margin-bottom: 0;
+}
+
+.NuevaTarea .secundario {
+    font-size: 0.85rem;
+    color: var(--color-texto-secundario);
+}
+
 .NuevaTarea .fila {
     display: grid;
     grid-template-columns: 1fr 1fr;

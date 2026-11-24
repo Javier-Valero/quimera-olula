@@ -141,6 +141,13 @@ export const FichaCliente = () => {
                     <AccionContacto href={enlaceComoLlegar(resumen.direccion)} icono="casa" texto="Cómo llegar" />
                 </nav>
 
+                {/* Siempre disponible; el de "Sin próxima acción" solo sale si no hay tareas futuras. */}
+                <div className="acciones-ficha">
+                    <QBoton enlace={rutasSmartsales.nuevaTareaPara(codCliente)} variante="borde" tamaño="pequeño">
+                        + Tarea
+                    </QBoton>
+                </div>
+
                 <div className="pestañas" role="tablist">
                     {pestañas.map(([valor, texto]) => (
                         <button key={valor} type="button" role="tab" aria-selected={pestaña === valor} onClick={() => setPestaña(valor)}>

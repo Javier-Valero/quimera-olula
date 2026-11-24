@@ -3,6 +3,9 @@ import { erroresFormulario, sugerenciasVisibles, tareaParaAPI, tituloTarea } fro
 
 const formulario = (datos: Partial<FormularioTarea> = {}): FormularioTarea => ({
     cliente: { codigo: "000123", nombre: "Clínica Dental ABC" },
+    tratoSinCliente: null,
+    titulo: "",
+    tituloManual: false,
     idTrato: null,
     tipo: "Cita",
     fecha: "2026-10-30",
@@ -20,6 +23,40 @@ describe("erroresFormulario", () => {
         expect(erroresFormulario(formulario())).toEqual([]);
         expect(erroresFormulario(formulario({ cliente: null }))).toEqual(["Elige un cliente"]);
         expect(erroresFormulario(formulario({ nota: "x".repeat(1001) }))).toHaveLength(1);
+    });
+
+    test("desde un trato sin cliente no se pide cliente", () => {
+        const tratoSinCliente = { id: "74793", titulo: "pruebas", contacto: "Contacto de prueba" };
+        expect(erroresFormulario(formulario({ cliente: null, tratoSinCliente }))).toEqual([]);
+    });
+});
+
+describe("título escrito por el comercial", () => {
+    test("se usa en lugar del automático y es obligatorio", () => {
+        const escrito = formulario({ titulo: "  Llevar catálogo nuevo  ", tituloManual: true });
+        expect(tituloTarea(escrito, motivos)).toBe("Llevar catálogo nuevo");
+        expect(tareaParaAPI(escrito, motivos).titulo).toBe("Llevar catálogo nuevo");
+        expect(erroresFormulario(formulario({ titulo: " ", tituloManual: true }))).toEqual(["Indica el título"]);
+        expect(erroresFormulario(formulario({ titulo: "x".repeat(101), tituloManual: true }))).toEqual([
+            "El título no puede pasar de 100 caracteres",
+        ]);
+    });
+
+    test("mientras no se escribe, el título vacío no es un error porque se usa el automático", () => {
+        expect(erroresFormulario(formulario())).toEqual([]);
+        expect(tareaParaAPI(formulario(), motivos).titulo).toBe("Visita · Clínica Dental ABC · Presentación");
+    });
+});
+
+describe("tituloTarea en un trato sin cliente", () => {
+    test("usa el contacto del trato o, si no lo tiene, su título", () => {
+        const tratoSinCliente = { id: "74793", titulo: "pruebas", contacto: "Contacto de prueba" };
+        expect(tituloTarea(formulario({ cliente: null, tratoSinCliente, tipo: "Llamada" }), motivos)).toBe(
+            "Llamada · Contacto de prueba · Presentación"
+        );
+        expect(tituloTarea(formulario({ cliente: null, tratoSinCliente: { ...tratoSinCliente, contacto: null }, idMotivo: null }), motivos)).toBe(
+            "Visita · pruebas"
+        );
     });
 });
 

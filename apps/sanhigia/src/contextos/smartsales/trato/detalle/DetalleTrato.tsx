@@ -332,7 +332,7 @@ export const DetalleTrato = () => {
 
     const rutaNuevaTarea = trato.codCliente
         ? rutasSmartsales.nuevaTareaPara(trato.codCliente, trato.id)
-        : rutasSmartsales.nuevaTareaTratoLegacy(trato.id);
+        : rutasSmartsales.nuevaTareaDeTrato(trato.id);
 
     return (
         // Mientras se editan los datos, el "Volver" de arriba cancela la edición (como "Cancelar").
