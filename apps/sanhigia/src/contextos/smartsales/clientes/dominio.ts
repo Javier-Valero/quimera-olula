@@ -24,10 +24,15 @@ export const enlaceComoLlegar = (direccion: DireccionCliente | null) => {
 
 export const textoEstadoTrato = (estado: string) => (estado === "-" ? "Abierto" : estado);
 
-// Filtro de la lista de clientes: nombre y estado (activo como en la ficha: no de baja y con pedidos recientes).
+// Filtro de la lista de clientes: el texto en el nombre (like_ua: sin distinguir tildes ni mayúsculas), el código
+// o el CIF/NIF, y el estado (activo como en la ficha: no de baja y con pedidos recientes).
 export const filtroClientes = (texto: string, estado: EstadoClienteFiltro) => {
     const clausulas: unknown[] = [];
-    if (texto) clausulas.push(["nombre", "like", texto]);
+    if (texto) clausulas.push({ or: [["nombre", "like_ua", texto], ["codcliente", "like", texto], ["cifnif", "like", texto]] });
     if (estado !== "todos") clausulas.push(["activo", "eq", estado === "activos"]);
     return clausulas.length ? { and: clausulas } : undefined;
 };
+
+// Búsqueda de contactos como legacy (ContactosMD): el texto en el nombre (sin distinguir tildes), el e-mail o el teléfono.
+export const filtroContactos = (texto: string) =>
+    texto ? { and: [{ or: [["nombre", "like_ua", texto], ["email", "like", texto], ["telefono1", "like", texto]] }] } : undefined;

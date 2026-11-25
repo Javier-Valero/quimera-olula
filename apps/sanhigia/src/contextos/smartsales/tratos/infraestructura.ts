@@ -108,7 +108,7 @@ export const getDescripcionProducto = async (tipo: "articulo" | "familia" | "sub
 // Como el selector de contacto legacy: si hay cliente, solo sus contactos.
 export const buscarContactos = async (texto: string, codCliente: string | null): Promise<{ codigo: string; nombre: string }[]> => {
     const clausulas = [
-        ...(texto ? [["nombre", "like", texto]] : []),
+        ...(texto ? [["nombre", "like_ua", texto]] : []),
         ...(codCliente ? [["codcliente", "eq", codCliente]] : []),
     ];
     const respuesta = await LegacyAPI.get<{ data: { codcontacto: string; nombre: string }[] }>(

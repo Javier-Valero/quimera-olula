@@ -127,7 +127,7 @@ export const buscarEventos = async (texto: string): Promise<Opcion[]> => {
                     and: [
                         ["fechaalta", "gte", fechaIso(haceDosMeses)],
                         ["tipoevento", "eq", "Curso"],
-                        { or: [["codevento", "like", texto], ["nombre", "like", texto]] },
+                        { or: [["codevento", "like", texto], ["nombre", "like_ua", texto]] },
                     ],
                 },
                 fields: ["codevento", "nombre"],
@@ -203,7 +203,7 @@ export const buscarPedidosCliente = async (codCliente: string | null, texto: str
                 filter: {
                     and: [
                         ...(codCliente ? [["codcliente", "eq", codCliente]] : []),
-                        { or: [["codigo", "like", texto], ["nombrecliente", "like", texto]] },
+                        { or: [["codigo", "like", texto], ["nombrecliente", "like_ua", texto]] },
                     ],
                 },
                 fields: ["idpedido", "codigo", "nombrecliente", "fecha"],

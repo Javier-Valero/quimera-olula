@@ -3,6 +3,7 @@ import {
     enlaceLlamar,
     enlaceWhatsapp,
     filtroClientes,
+    filtroContactos,
     textoEstadoTrato,
 } from "./dominio.ts";
 
@@ -40,9 +41,20 @@ describe("enlaces de la ficha", () => {
 });
 
 describe("lista de clientes", () => {
-    test("filtra por nombre y por activo o inactivo; todos no filtra por estado", () => {
+    test("busca en el nombre, el código o el CIF/NIF y filtra por activo o inactivo; todos no filtra por estado", () => {
         expect(filtroClientes("", "todos")).toBeUndefined();
-        expect(filtroClientes("clínica", "activos")).toEqual({ and: [["nombre", "like", "clínica"], ["activo", "eq", true]] });
+        expect(filtroClientes("clínica", "activos")).toEqual({
+            and: [{ or: [["nombre", "like_ua", "clínica"], ["codcliente", "like", "clínica"], ["cifnif", "like", "clínica"]] }, ["activo", "eq", true]],
+        });
         expect(filtroClientes("", "inactivos")).toEqual({ and: [["activo", "eq", false]] });
+    });
+});
+
+describe("búsqueda de contactos", () => {
+    test("busca el texto en el nombre, el e-mail o el teléfono, como legacy", () => {
+        expect(filtroContactos("")).toBeUndefined();
+        expect(filtroContactos("600")).toEqual({
+            and: [{ or: [["nombre", "like_ua", "600"], ["email", "like", "600"], ["telefono1", "like", "600"]] }],
+        });
     });
 });

@@ -2,7 +2,7 @@ import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
 import { Pagina, Tarea } from "../comun/diseño.ts";
 import { TareaAPI } from "../tareas/diseño.ts";
 import { tareaDesdeAPI } from "../tareas/infraestructura.ts";
-import { filtroClientes } from "./dominio.ts";
+import { filtroClientes, filtroContactos } from "./dominio.ts";
 import {
     ClienteLista,
     ContactoLista,
@@ -16,8 +16,6 @@ import {
 
 const LIMITE = 50;
 
-const filtroTexto = (campo: string, texto: string) => (texto ? { and: [[campo, "like", texto]] } : undefined);
-
 // Una página de clientes por orden alfabético (cursor page.next de la API legacy).
 export const getPaginaClientes = async (
     texto: string,
@@ -25,18 +23,18 @@ export const getPaginaClientes = async (
     limite: number,
     siguiente: unknown | null
 ): Promise<Pagina<ClienteLista>> => {
-    const respuesta = await LegacyAPI.get<{ data: { codcliente: string; nombre: string; activo: boolean | null }[]; page?: { next: unknown | null } }>(
+    const respuesta = await LegacyAPI.get<{ data: { codcliente: string; nombre: string; cifnif: string | null; activo: boolean | null }[]; page?: { next: unknown | null } }>(
         legacyUrl("clientes", {
             params: {
                 filter: filtroClientes(texto, estado),
-                fields: ["codcliente", "nombre", "activo"],
+                fields: ["codcliente", "nombre", "cifnif", "activo"],
                 order: { field: "nombre", direction: "ASC" },
                 page: siguiente ? { limit: limite, next: siguiente } : { limit: limite },
             },
         })
     );
     return {
-        elementos: respuesta.data.map((c) => ({ codigo: c.codcliente, nombre: c.nombre, activo: !!c.activo })),
+        elementos: respuesta.data.map((c) => ({ codigo: c.codcliente, nombre: c.nombre, cifNif: c.cifnif || null, activo: !!c.activo })),
         siguiente: respuesta.page?.next ?? null,
     };
 };
@@ -57,7 +55,7 @@ export const getPaginaContactos = async (texto: string, limite: number, siguient
             action: "get_contactos_visibles_agente",
             staticAction: true,
             params: {
-                filter: filtroTexto("nombre", texto),
+                filter: filtroContactos(texto),
                 order: { field: "nombre", direction: "ASC" },
                 page: siguiente ? { limit: limite, next: siguiente } : { limit: limite },
             },

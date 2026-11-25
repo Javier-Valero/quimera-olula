@@ -32,8 +32,8 @@ export const filtroTratos = (filtros: FiltrosTratos, conEstado = true) => {
         clausulas.push({ or: [["codagente", "eq", filtros.agente], ["codagenteobservador", "eq", filtros.agente]] });
     }
     if (conEstado && clausulaEstado[filtros.estado]) clausulas.push(clausulaEstado[filtros.estado]);
-    if (filtros.titulo) clausulas.push(["titulo", "like", filtros.titulo]);
-    if (filtros.contacto) clausulas.push(["nombrecontacto", "like", filtros.contacto]);
+    if (filtros.titulo) clausulas.push(["titulo", "like_ua", filtros.titulo]);
+    if (filtros.contacto) clausulas.push(["nombrecontacto", "like_ua", filtros.contacto]);
     if (filtros.codCliente) clausulas.push(["codcliente", "eq", filtros.codCliente]);
     if (filtros.cifNif) clausulas.push(["cifnif", "like", filtros.cifNif]);
     if (filtros.desde) clausulas.push(["fecha", "gte", filtros.desde]);

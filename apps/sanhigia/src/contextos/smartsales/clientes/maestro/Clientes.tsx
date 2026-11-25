@@ -83,7 +83,13 @@ export const Clientes = () => {
                     </div>
                 )}
 
-                <QInput label="Buscar" nombre="buscar" valor={texto} placeholder="Nombre" onChange={setTexto} />
+                <QInput
+                    label="Buscar"
+                    nombre="buscar"
+                    valor={texto}
+                    placeholder={pestaña === "contactos" ? "Nombre, e-mail o teléfono" : "Nombre, código o CIF/NIF"}
+                    onChange={setTexto}
+                />
 
                 {pestaña === "clientes" && (
                     <>
@@ -94,7 +100,7 @@ export const Clientes = () => {
                                     <Link to={rutasSmartsales.fichaCliente(cliente.codigo)} className="cliente">
                                         <span className="datos">
                                             <strong>{cliente.nombre}</strong>
-                                            <span className="secundario">{cliente.codigo}</span>
+                                            <span className="secundario">{[cliente.codigo, cliente.cifNif].filter(Boolean).join(" · ")}</span>
                                         </span>
                                         <QEtiqueta variante={cliente.activo ? "exito" : "gris"}>{cliente.activo ? "Activo" : "Inactivo"}</QEtiqueta>
                                     </Link>
@@ -107,7 +113,7 @@ export const Clientes = () => {
 
                 {pestaña === "contactos" && (
                     <>
-                        {contactos.cargada && contactos.elementos.length === 0 && <p className="vacio">No hay contactos con este nombre</p>}
+                        {contactos.cargada && contactos.elementos.length === 0 && <p className="vacio">No hay contactos que coincidan con la búsqueda</p>}
                         <ul className="lista">
                             {contactos.elementos.map((contacto) => (
                                 <li key={contacto.codigo}>

@@ -20,7 +20,7 @@ const buscar = async <T>(modelo: string, filtroTexto: unknown, fields: string[],
 // Como el selector de cliente legacy (base-ventas Cliente): sin los clientes dados de baja.
 export const buscarClientes = async (texto: string): Promise<ClienteElegido[]> =>
     (
-        await buscar<{ codcliente: string; nombre: string }>("clientes", ["nombre", "like", texto], ["codcliente", "nombre"], [["debaja", "eq", false]])
+        await buscar<{ codcliente: string; nombre: string }>("clientes", ["nombre", "like_ua", texto], ["codcliente", "nombre"], [["debaja", "eq", false]])
     ).map((cliente) => ({ codigo: cliente.codcliente, nombre: cliente.nombre }));
 
 const catalogos: Record<TipoProducto, { modelo: string; codigo: string }> = {
