@@ -1,7 +1,6 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QCargando } from "@olula/componentes/atomos/qcargando.tsx";
 import { QCheckbox } from "@olula/componentes/atomos/qcheckbox.tsx";
-import { QIcono } from "@olula/componentes/atomos/qicono.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QTextArea } from "@olula/componentes/atomos/qtextarea.tsx";
 import { ModalProcesando } from "../../comun/componentes/ModalProcesando.tsx";
@@ -14,6 +13,7 @@ import { rutasSmartsales } from "../../comun/rutas.ts";
 import { useAgenteSeguido } from "../../comun/useAgenteSeguido.ts";
 import { LayoutSmartsales } from "../../comun/componentes/LayoutSmartsales.tsx";
 import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
+import { AccionesContacto } from "../../comun/componentes/AccionesContacto.tsx";
 import { TarjetaTrato } from "../../comun/componentes/TarjetaTrato.tsx";
 import { enlaceEmail, enlaceLlamar, enlaceWhatsapp } from "../../clientes/dominio.ts";
 import { getNombreCliente } from "../../nueva_tarea/infraestructura.ts";
@@ -34,19 +34,6 @@ import "./Contacto.css";
 
 
 const fecha = (iso: string | null) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString("es-ES") : "—");
-
-const AccionContacto = ({ href, icono, texto }: { href: string | null; icono: string; texto: string }) =>
-    href ? (
-        <a className="accion" href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">
-            <QIcono nombre={icono} />
-            <span>{texto}</span>
-        </a>
-    ) : (
-        <span className="accion deshabilitada">
-            <QIcono nombre={icono} />
-            <span>{texto}</span>
-        </span>
-    );
 
 const Dato = ({ titulo, children }: { titulo: string; children: ReactNode }) => (
     <div className="dato">
@@ -172,11 +159,13 @@ export const FichaContacto = () => {
                     <h1>{contacto.nombre}</h1>
                 </header>
 
-                <nav className="acciones-contacto" aria-label="Contactar">
-                    <AccionContacto href={enlaceLlamar(contacto.telefono)} icono="telefono" texto="Llamar" />
-                    <AccionContacto href={enlaceEmail(contacto.email)} icono="correo" texto="Email" />
-                    <AccionContacto href={enlaceWhatsapp(contacto.telefono)} icono="whatsapp" texto="WhatsApp" />
-                </nav>
+                <AccionesContacto
+                    acciones={[
+                        { icono: "telefono", texto: "Llamar", href: enlaceLlamar(contacto.telefono) },
+                        { icono: "correo", texto: "Email", href: enlaceEmail(contacto.email) },
+                        { icono: "whatsapp", texto: "WhatsApp", href: enlaceWhatsapp(contacto.telefono) },
+                    ]}
+                />
 
                 <section className="tarjeta">
                     {edicion ? (
@@ -315,7 +304,7 @@ export const FichaContacto = () => {
 
                 {acceso && (
                     <div className="borrar">
-                        <QBoton variante="borde" onClick={() => setConfirmarBorrado(true)}>
+                        <QBoton variante="borde" destructivo onClick={() => setConfirmarBorrado(true)}>
                             Borrar contacto
                         </QBoton>
                     </div>
@@ -328,7 +317,7 @@ export const FichaContacto = () => {
                             <QBoton variante="borde" onClick={() => setConfirmarBorrado(false)}>
                                 Cancelar
                             </QBoton>
-                            <QBoton deshabilitado={procesando} onClick={() => borrar()}>
+                            <QBoton destructivo deshabilitado={procesando} onClick={() => borrar()}>
                                 Borrar
                             </QBoton>
                         </div>

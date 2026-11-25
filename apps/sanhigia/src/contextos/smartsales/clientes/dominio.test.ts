@@ -1,4 +1,10 @@
-import { enlaceComoLlegar, enlaceLlamar, enlaceWhatsapp, textoEstadoTrato } from "./dominio.ts";
+import {
+    enlaceComoLlegar,
+    enlaceLlamar,
+    enlaceWhatsapp,
+    filtroClientes,
+    textoEstadoTrato,
+} from "./dominio.ts";
 
 const direccion = {
     direccion: "C/ Dolores Ibárruri 2",
@@ -30,5 +36,13 @@ describe("enlaces de la ficha", () => {
     test("el estado '-' es un trato abierto", () => {
         expect(textoEstadoTrato("-")).toBe("Abierto");
         expect(textoEstadoTrato("Ganado")).toBe("Ganado");
+    });
+});
+
+describe("lista de clientes", () => {
+    test("filtra por nombre y por activo o inactivo; todos no filtra por estado", () => {
+        expect(filtroClientes("", "todos")).toBeUndefined();
+        expect(filtroClientes("clínica", "activos")).toEqual({ and: [["nombre", "like", "clínica"], ["activo", "eq", true]] });
+        expect(filtroClientes("", "inactivos")).toEqual({ and: [["activo", "eq", false]] });
     });
 });

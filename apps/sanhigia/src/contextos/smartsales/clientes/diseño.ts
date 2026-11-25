@@ -4,6 +4,8 @@ export type ClienteLista = {
     activo: boolean;
 };
 
+export type EstadoClienteFiltro = "activos" | "inactivos" | "todos";
+
 export type ContactoLista = {
     codigo: string;
     nombre: string;

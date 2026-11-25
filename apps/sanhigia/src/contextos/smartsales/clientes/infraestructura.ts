@@ -1,10 +1,12 @@
 import { LegacyAPI, legacyUrl } from "@olula/lib/api/legacy_api.ts";
-import { Tarea } from "../comun/diseño.ts";
+import { Pagina, Tarea } from "../comun/diseño.ts";
 import { TareaAPI } from "../tareas/diseño.ts";
 import { tareaDesdeAPI } from "../tareas/infraestructura.ts";
+import { filtroClientes } from "./dominio.ts";
 import {
     ClienteLista,
     ContactoLista,
+    EstadoClienteFiltro,
     DocumentoCliente,
     ResumenCliente,
     ResumenClienteAPI,
@@ -16,18 +18,27 @@ const LIMITE = 50;
 
 const filtroTexto = (campo: string, texto: string) => (texto ? { and: [[campo, "like", texto]] } : undefined);
 
-export const getClientes = async (texto: string): Promise<ClienteLista[]> => {
-    const respuesta = await LegacyAPI.get<{ data: { codcliente: string; nombre: string; activo: boolean | null }[] }>(
+// Una página de clientes por orden alfabético (cursor page.next de la API legacy).
+export const getPaginaClientes = async (
+    texto: string,
+    estado: EstadoClienteFiltro,
+    limite: number,
+    siguiente: unknown | null
+): Promise<Pagina<ClienteLista>> => {
+    const respuesta = await LegacyAPI.get<{ data: { codcliente: string; nombre: string; activo: boolean | null }[]; page?: { next: unknown | null } }>(
         legacyUrl("clientes", {
             params: {
-                filter: filtroTexto("nombre", texto),
+                filter: filtroClientes(texto, estado),
                 fields: ["codcliente", "nombre", "activo"],
                 order: { field: "nombre", direction: "ASC" },
-                page: { limit: LIMITE },
+                page: siguiente ? { limit: limite, next: siguiente } : { limit: limite },
             },
         })
     );
-    return respuesta.data.map((c) => ({ codigo: c.codcliente, nombre: c.nombre, activo: !!c.activo }));
+    return {
+        elementos: respuesta.data.map((c) => ({ codigo: c.codcliente, nombre: c.nombre, activo: !!c.activo })),
+        siguiente: respuesta.page?.next ?? null,
+    };
 };
 
 type ContactoAPI = {
@@ -39,22 +50,30 @@ type ContactoAPI = {
     num_tratos: number | null;
 };
 
-export const getContactos = async (texto: string): Promise<ContactoLista[]> => {
-    const respuesta = await LegacyAPI.get<{ data: ContactoAPI[] }>(
+// Una página de contactos visibles para el agente, por orden alfabético.
+export const getPaginaContactos = async (texto: string, limite: number, siguiente: unknown | null): Promise<Pagina<ContactoLista>> => {
+    const respuesta = await LegacyAPI.get<{ data: ContactoAPI[]; page?: { next: unknown | null } }>(
         legacyUrl("contactos", {
             action: "get_contactos_visibles_agente",
             staticAction: true,
-            params: { filter: filtroTexto("nombre", texto), page: { limit: LIMITE } },
+            params: {
+                filter: filtroTexto("nombre", texto),
+                order: { field: "nombre", direction: "ASC" },
+                page: siguiente ? { limit: limite, next: siguiente } : { limit: limite },
+            },
         })
     );
-    return respuesta.data.map((c) => ({
-        codigo: c.codcontacto,
-        nombre: c.nombre,
-        email: c.email,
-        telefono: c.telefono1,
-        codCliente: c.codcliente,
-        numTratos: Number(c.num_tratos) || 0,
-    }));
+    return {
+        elementos: respuesta.data.map((c) => ({
+            codigo: c.codcontacto,
+            nombre: c.nombre,
+            email: c.email,
+            telefono: c.telefono1,
+            codCliente: c.codcliente,
+            numTratos: Number(c.num_tratos) || 0,
+        })),
+        siguiente: respuesta.page?.next ?? null,
+    };
 };
 
 export const getResumenCliente = async (codCliente: string): Promise<ResumenCliente> => {

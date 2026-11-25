@@ -18,37 +18,6 @@
     gap: 0.25rem 0.5rem;
 }
 
-.FichaCliente .acciones-contacto {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-}
-
-.FichaCliente .accion {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem;
-    font-size: 0.75rem;
-    color: var(--color-texto-primario);
-    text-decoration: none;
-}
-
-.FichaCliente .accion > :first-child {
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    color: var(--color-primario);
-    background: var(--color-primario-selected);
-}
-
-.FichaCliente .accion.deshabilitada {
-    opacity: 0.4;
-}
-
 .FichaCliente .casillas {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -114,11 +83,6 @@
 
 .FichaCliente .tarjeta.tareas > .vacio {
     padding-inline: 0;
-}
-
-.FichaCliente .acciones-ficha {
-    display: flex;
-    justify-content: flex-end;
 }
 
 .FichaCliente .tratos {

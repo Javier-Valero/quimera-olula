@@ -1,4 +1,4 @@
-import { DireccionCliente } from "./diseño.ts";
+import { DireccionCliente, EstadoClienteFiltro } from "./diseño.ts";
 
 const soloDigitos = (telefono: string) => telefono.replace(/[^\d+]/g, "");
 
@@ -23,3 +23,11 @@ export const enlaceComoLlegar = (direccion: DireccionCliente | null) => {
 };
 
 export const textoEstadoTrato = (estado: string) => (estado === "-" ? "Abierto" : estado);
+
+// Filtro de la lista de clientes: nombre y estado (activo como en la ficha: no de baja y con pedidos recientes).
+export const filtroClientes = (texto: string, estado: EstadoClienteFiltro) => {
+    const clausulas: unknown[] = [];
+    if (texto) clausulas.push(["nombre", "like", texto]);
+    if (estado !== "todos") clausulas.push(["activo", "eq", estado === "activos"]);
+    return clausulas.length ? { and: clausulas } : undefined;
+};

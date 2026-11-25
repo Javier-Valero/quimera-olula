@@ -12,6 +12,7 @@ import { TarjetaTarea } from "../../comun/componentes/TarjetaTarea.tsx";
 import { Sugerencia } from "../../nueva_tarea/diseño.ts";
 import { getSugerencias } from "../../nueva_tarea/infraestructura.ts";
 import { DocumentoCliente, ResumenCliente, TipoDocumento, TratoFicha } from "../diseño.ts";
+import { AccionesContacto } from "../../comun/componentes/AccionesContacto.tsx";
 import { TarjetaTrato } from "../../comun/componentes/TarjetaTrato.tsx";
 import { enlaceComoLlegar, enlaceEmail, enlaceLlamar, enlaceWhatsapp } from "../dominio.ts";
 import {
@@ -37,19 +38,6 @@ const pestañas: [Pestaña, string][] = [
 const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 
 const fecha = (iso: string | null) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString("es-ES") : "—");
-
-const AccionContacto = ({ href, icono, texto }: { href: string | null; icono: string; texto: string }) =>
-    href ? (
-        <a className="accion" href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">
-            <QIcono nombre={icono} />
-            <span>{texto}</span>
-        </a>
-    ) : (
-        <span className="accion deshabilitada">
-            <QIcono nombre={icono} />
-            <span>{texto}</span>
-        </span>
-    );
 
 const Casilla = ({ valor, texto }: { valor: string; texto: string }) => (
     <div className="casilla">
@@ -134,19 +122,16 @@ export const FichaCliente = () => {
                     </div>
                 </header>
 
-                <nav className="acciones-contacto" aria-label="Contactar">
-                    <AccionContacto href={enlaceLlamar(resumen.telefono)} icono="telefono" texto="Llamar" />
-                    <AccionContacto href={enlaceEmail(resumen.email)} icono="correo" texto="Email" />
-                    <AccionContacto href={enlaceWhatsapp(resumen.telefono)} icono="whatsapp" texto="WhatsApp" />
-                    <AccionContacto href={enlaceComoLlegar(resumen.direccion)} icono="casa" texto="Cómo llegar" />
-                </nav>
-
-                {/* Siempre disponible; el de "Sin próxima acción" solo sale si no hay tareas futuras. */}
-                <div className="acciones-ficha">
-                    <QBoton enlace={rutasSmartsales.nuevaTareaPara(codCliente)} variante="borde" tamaño="pequeño">
-                        + Tarea
-                    </QBoton>
-                </div>
+                {/* "+ Tarea" siempre disponible; el de "Sin próxima acción" solo sale si no hay tareas futuras. */}
+                <AccionesContacto
+                    acciones={[
+                        { icono: "telefono", texto: "Llamar", href: enlaceLlamar(resumen.telefono) },
+                        { icono: "correo", texto: "Email", href: enlaceEmail(resumen.email) },
+                        { icono: "whatsapp", texto: "WhatsApp", href: enlaceWhatsapp(resumen.telefono) },
+                        { icono: "casa", texto: "Cómo llegar", href: enlaceComoLlegar(resumen.direccion) },
+                        { icono: "calendario_evento", texto: "+ Tarea", ruta: rutasSmartsales.nuevaTareaPara(codCliente) },
+                    ]}
+                />
 
                 <div className="pestañas" role="tablist">
                     {pestañas.map(([valor, texto]) => (
