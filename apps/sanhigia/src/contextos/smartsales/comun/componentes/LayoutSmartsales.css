@@ -5,6 +5,9 @@
     --color-primario-claro: color-mix(in srgb, var(--rojo-sanhigia) 45%, white);
     --color-primario-hover: color-mix(in srgb, var(--rojo-sanhigia) 85%, black);
     --color-primario-selected: color-mix(in srgb, var(--rojo-sanhigia) 12%, white);
+    /* Los botones (QBoton) usan este color y no --color-primario: sin él salían en el gris azulado del tema.
+       Blanco sobre este rojo: contraste 5,7 (AA). */
+    --color-primario-texto: var(--rojo-sanhigia);
     --alto-barra: 4.75rem;
     position: relative;
     display: flex;
@@ -176,4 +179,12 @@
     font: inherit;
     font-weight: 600;
     cursor: pointer;
+}
+
+/* Hover de los botones en SmartSales: el del tema (texto --color-primario-oscuro sobre --color-primario-claro)
+   da poco contraste con el rojo (2,5). Tinte suave del color del botón y texto de ese color, también en
+   las variantes (destructivo, éxito...). No se toca --color-primario-claro, que usa la barra de progreso. */
+.LayoutSmartsales quimera-boton :is(button, a):hover {
+    background-color: color-mix(in srgb, var(--color-boton) 12%, white);
+    color: var(--color-boton);
 }

@@ -543,7 +543,7 @@ export const DetalleTrato = () => {
 
                 {puedeBorrar(trato, agentePropio, tipoTratoFarma, puede("Trato:boton-borrar")) && (
                     <div className="borrar">
-                        <QBoton variante="borde" onClick={() => setDialogo({ tipo: "borrar" })}>
+                        <QBoton variante="borde" destructivo onClick={() => setDialogo({ tipo: "borrar" })}>
                             Borrar trato
                         </QBoton>
                     </div>
@@ -643,7 +643,7 @@ export const DetalleTrato = () => {
                             <QBoton variante="borde" onClick={cerrarDialogo}>
                                 Cancelar
                             </QBoton>
-                            <QBoton deshabilitado={procesando} onClick={() => confirmarBorrado().catch(() => undefined)}>
+                            <QBoton destructivo deshabilitado={procesando} onClick={() => confirmarBorrado().catch(() => undefined)}>
                                 Borrar
                             </QBoton>
                         </div>
