@@ -2,9 +2,12 @@ import { Entidad, Orden, Paginacion } from "@olula/lib/diseño.ts";
 import {
   calcularPaginacionSimplificada,
   formatearFechaDate,
+  formatearFechaHora,
+  formatearFechaHoraString,
   formatearFechaString,
   formatearHoraString,
   formatearMoneda,
+  resolverDivisa,
 } from "@olula/lib/dominio.ts";
 import { ReactNode } from "react";
 import { QBoton } from "./qboton.tsx";
@@ -24,8 +27,10 @@ type MetaColumna<T extends Entidad> = {
     | "fechahora"
     | "booleano"
     | undefined;
-  divisa?: string;
+  divisa?: string | ((entidad: T) => string);
   ancho?: string;
+  /** Énfasis visual: `destacado` en negrita (cliente, total), `secundario` en gris (código). */
+  estilo?: "destacado" | "secundario";
   render?: (entidad: T) => string | ReactNode;
 };
 
@@ -61,20 +66,30 @@ const fila = <T extends Entidad>(entidad: Entidad, metaTabla: MetaTabla<T>) => {
     tipo,
     divisa,
     ancho,
+    estilo,
   }: MetaColumna<T>) => {
     let datos = render?.(entidad as T) ?? (entidad[id] as unknown);
 
     // Formateo automático según tipo
-    if (tipo === "moneda" && typeof datos === "number") {
-      datos = formatearMoneda(datos, divisa ?? "EUR");
+    if (tipo === "moneda") {
+      if (typeof datos === "number" || typeof datos === "string") {
+        datos = formatearMoneda(
+          datos,
+          resolverDivisa(divisa, entidad as T) ?? "EUR"
+        );
+      }
     } else if (tipo === "fecha" && typeof datos === "string") {
       datos = formatearFechaString(datos);
     } else if (tipo === "fecha" && typeof datos === "object") {
       datos = formatearFechaDate(datos as Date);
     } else if (tipo === "hora" && typeof datos === "string") {
       datos = formatearHoraString(datos);
+    } else if (tipo === "fechahora" && typeof datos === "string") {
+      datos = formatearFechaHoraString(datos);
+    } else if (tipo === "fechahora" && typeof datos === "object") {
+      datos = formatearFechaHora(datos as Date);
     } else if (tipo === "numero" && typeof datos === "number") {
-      datos = datos.toLocaleString();
+      datos = datos.toLocaleString("es-ES");
     } else if (tipo === "booleano" && typeof datos === "boolean") {
       datos = datos ? "Sí" : "No";
     }
@@ -83,6 +98,7 @@ const fila = <T extends Entidad>(entidad: Entidad, metaTabla: MetaTabla<T>) => {
       <td
         key={[entidad.id, id].join("-")}
         className={`${id} ${tipo ?? ""}`}
+        data-estilo={estilo}
         style={ancho ? { width: ancho } : undefined}
       >
         {datos as string}
@@ -111,8 +127,15 @@ const paginacionControlador = (
     limite
   );
 
+  const desde = (pagina - 1) * limite + 1;
+  const hasta = Math.min(pagina * limite, totalEntidades);
+
   return (
     <quimera-tabla-paginacion>
+      <span className="paginacion-rango">
+        {desde.toLocaleString("es-ES")}–{hasta.toLocaleString("es-ES")} de{" "}
+        {totalEntidades.toLocaleString("es-ES")}
+      </span>
       <QBoton
         deshabilitado={pagina === 1 || totalPaginas === 0}
         tamaño="pequeño"
@@ -135,9 +158,9 @@ const paginacionControlador = (
         <QBoton
           key={numPagina}
           tamaño="pequeño"
-          deshabilitado={numPagina === pagina}
-          variante={numPagina === pagina ? "borde" : "texto"}
-          onClick={() => onPaginacion?.(numPagina, limite)}
+          variante={numPagina === pagina ? "solido" : "texto"}
+          props={numPagina === pagina ? { "aria-current": "page" } : undefined}
+          onClick={() => numPagina !== pagina && onPaginacion?.(numPagina, limite)}
         >
           {numPagina}
         </QBoton>

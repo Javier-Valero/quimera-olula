@@ -1,31 +1,47 @@
 import { QModalConfirmacion } from "@olula/componentes/moleculas/qmodalconfirmacion.tsx";
-import { ContextoError } from "@olula/lib/contexto.ts";
+import { useForm } from "@olula/lib/useForm.js";
 import { ProcesarEvento } from "@olula/lib/useMaquina.js";
-import { useCallback, useContext } from "react";
+import { useCallback } from "react";
+import { LineaPedido } from "../diseño.ts";
 import { deleteLinea } from "../infraestructura.ts";
+import {
+  TEXTO_CAMBIOS_EN_PREPARACION,
+  useOrdenesAlmacenDePedido,
+} from "../detalle/aviso_almacen/ordenes_almacen.ts";
 
 export const BorrarLinea = ({
   pedidoId,
   publicar,
-  idLinea,
+  linea,
 }: {
   pedidoId: string;
   publicar: ProcesarEvento;
-  idLinea: string;
+  linea: LineaPedido;
 }) => {
-  const { intentar } = useContext(ContextoError);
+  const borrar_ = useCallback(async () => {
+    await deleteLinea(pedidoId, linea.id);
+    publicar("linea_borrada", linea.id);
+  }, [pedidoId, linea, publicar]);
 
-  const borrar = useCallback(async () => {
-    await intentar(() => deleteLinea(pedidoId, idLinea));
-    publicar("linea_borrada");
-  }, [pedidoId, idLinea, publicar, intentar]);
+  const cancelar_ = useCallback(
+    () => publicar("borrar_linea_cancelado"),
+    [publicar]
+  );
+
+  const [borrar, cancelar] = useForm(borrar_, cancelar_);
+  const ordenesAlmacen = useOrdenesAlmacenDePedido(pedidoId);
+  const mensaje = ordenesAlmacen.length > 0
+    ? `El pedido está en preparación en almacén (${ordenesAlmacen.map((o) => o.id).join(", ")}). ` +
+      `${TEXTO_CAMBIOS_EN_PREPARACION} ¿Borrar la línea?`
+    : "¿Está seguro de que desea borrar esta línea?";
+
   return (
     <QModalConfirmacion
       nombre="confirmarBorrarLinea"
       abierto={true}
       titulo="Borrar línea"
-      mensaje="¿Está seguro de que desea borrar esta línea?"
-      onCerrar={() => publicar("borrar_linea_cancelado")}
+      mensaje={mensaje}
+      onCerrar={cancelar}
       onAceptar={borrar}
     />
   );

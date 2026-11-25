@@ -1,6 +1,6 @@
 import { Maquina } from "@olula/lib/diseño.js";
 import { ContextoMaestroPedido, EstadoMaestroPedido } from "./diseño.ts";
-import { Pedidos, ampliarPedidos, recargarPedidos } from "./dominio.ts";
+import { Pedidos, albaranarPedidos, ampliarPedidos, recargarPedidos } from "./maestro.ts";
 
 
 export const getMaquina: () => Maquina<EstadoMaestroPedido, ContextoMaestroPedido> = () => {
@@ -26,13 +26,29 @@ export const getMaquina: () => Maquina<EstadoMaestroPedido, ContextoMaestroPedid
             siguiente_pagina: [Pedidos.filtrar, ampliarPedidos],
 
             crear_pedido_solicitado: "CREANDO_PEDIDO",
+
+            seleccionados_cambiados: async (ctx, payload) => ({ ...ctx, seleccionados: payload as string[] }),
+
+            albaranado_multiple_solicitado: "ALBARANANDO_PEDIDOS",
         },
 
         CREANDO_PEDIDO: {
 
-            pedido_creado: [Pedidos.incluir, 'INICIAL'],
+            pedido_creado: [Pedidos.incluir, Pedidos.activar, 'INICIAL'],
 
             creacion_pedido_cancelada: "INICIAL",
+        },
+
+        ALBARANANDO_PEDIDOS: {
+
+            pedidos_albaranados: [albaranarPedidos],
+
+            albaranado_multiple_cancelado: "INICIAL",
+        },
+
+        ALBARANES_CREADOS: {
+
+            resultado_albaranado_cerrado: "INICIAL",
         },
     }
 }

@@ -1,0 +1,75 @@
+import { CamposLibroIva } from "#/contabilidad/comun/componentes/CamposLibroIva.tsx";
+import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { QModal } from "@olula/componentes/index.js";
+import { EmitirEvento } from "@olula/lib/diseño.js";
+import { useFocus } from "@olula/lib/useFocus.ts";
+import { useForm } from "@olula/lib/useForm.js";
+import { useModelo } from "@olula/lib/useModelo.ts";
+import { useCallback, useMemo } from "react";
+import { admiteNumeroDesde, admitePorcentaje } from "../dominio.ts";
+import { postLibroFacturasEmitidas } from "../infraestructura.ts";
+import {
+    metaNuevoLibroFacturasEmitidas,
+    nuevoLibroFacturasEmitidasInicial,
+} from "./crear.ts";
+
+export const CrearLibroFacturasEmitidas = ({
+    publicar,
+    ejercicioId,
+}: {
+    publicar: EmitirEvento;
+    ejercicioId: string;
+}) => {
+    // Memoizado: useModelo reinicia el formulario cada vez que cambia la
+    // identidad del inicial, así que pasarlo en línea entra en bucle.
+    const inicial = useMemo(
+        () => nuevoLibroFacturasEmitidasInicial(ejercicioId),
+        [ejercicioId]
+    );
+
+    const {
+        modelo: informe,
+        uiProps,
+        valido,
+    } = useModelo(metaNuevoLibroFacturasEmitidas, inicial);
+
+    const crear_ = useCallback(async () => {
+        const id = await postLibroFacturasEmitidas(informe);
+        publicar("informe_creado", id);
+    }, [informe, publicar]);
+
+    const cancelar_ = useCallback(
+        () => publicar("alta_de_informe_cancelada"),
+        [publicar]
+    );
+
+    const [crear, cancelar] = useForm(crear_, cancelar_);
+
+    const focus = useFocus();
+
+    return (
+        <QModal
+            abierto={true}
+            nombre="crearLibroFacturasEmitidas"
+            titulo="Nuevo libro de facturas emitidas"
+            onCerrar={cancelar}
+        >
+            <div className="CrearLibroFacturasEmitidas">
+                <quimera-formulario>
+                    <CamposLibroIva
+                        uiProps={uiProps}
+                        porcentajeEditable={admitePorcentaje(informe)}
+                        numeroDesdeEditable={admiteNumeroDesde(informe)}
+                        refDescripcion={focus}
+                    />
+                </quimera-formulario>
+
+                <div className="botones maestro-botones">
+                    <QBoton onClick={crear} deshabilitado={!valido}>
+                        Crear
+                    </QBoton>
+                </div>
+            </div>
+        </QModal>
+    );
+};

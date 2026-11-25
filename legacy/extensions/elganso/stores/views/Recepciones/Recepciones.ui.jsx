@@ -25,7 +25,7 @@ import {
   Icon,
   IconButton,
 } from "@quimera/comps";
-import { navigate } from "hookrouter";
+import { navigate } from "quimera/base";
 import Quimera, { PropValidation, useStateValue, util } from "quimera";
 import { useEffect, useState } from "react";
 import { useDbState } from "use-db-state";
@@ -450,6 +450,7 @@ function Recepciones() {
           columns={columns}
           slots={{ toolbar: CustomToolbar }}
           localeText={{
+            noRowsLabel: "No hay recepciones",
             toolbarQuickFilterPlaceholder: "Buscar...",
             paginationRowsPerPage: "Líneas por página",
             paginationDisplayedRows: ({ from, to, count }) =>

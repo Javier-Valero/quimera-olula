@@ -6,13 +6,30 @@ import {
   IconArrowBackUp,
   IconArrowBarRight,
   IconArrowForwardUp,
+  IconArrowUpRight,
+  IconBackground,
+  IconBarcode,
+  IconBasketDown,
+  IconBolt,
+  IconBoltOff,
+  IconBrain,
+  IconBrandAzure,
+  IconBrandGmail,
+  IconBrandGoogle,
+  IconBrandOpenai,
+  IconBrandTelegram,
+  IconBrandWhatsapp,
   IconBuildingStore,
   IconCalendar,
   IconCalendarEvent,
   IconCalendarMonth,
   IconCalendarWeek,
+  IconCameraRotate,
+  IconCalculator,
+  IconReceiptTax,
   IconChartBar,
   IconCheck,
+  IconDots,
   IconCheckbox,
   IconChecks,
   IconChevronDown,
@@ -27,11 +44,19 @@ import {
   IconCopy,
   IconCreditCard,
   IconDeviceFloppy,
+  IconDownload,
   IconEdit,
   IconEye,
   IconFile,
+  IconFilePlus,
+  IconFolder,
+  IconFolderOpen,
+  IconFolderPlus,
   IconHome,
   IconHourglass,
+  IconLayoutKanban,
+  IconLineHeight,
+  IconFilter,
   IconLink,
   IconList,
   IconListDetails,
@@ -40,6 +65,7 @@ import {
   IconLogout,
   IconMail,
   IconMenu2,
+  IconMessageChatbot,
   IconMinus,
   IconPackage,
   IconPackageExport,
@@ -51,14 +77,19 @@ import {
   IconPlus,
   IconQuestionMark,
   IconSearch,
+  IconServer,
   IconSettings,
   IconShoppingBag,
   IconShoppingCart,
+  IconSparkles,
+  IconStackBack,
+  IconStackBackward,
   IconStar,
   IconTable,
   IconTag,
   IconTool,
   IconTrash,
+  IconUpload,
   IconUser,
   IconUserCircle,
   IconUsers,
@@ -66,6 +97,16 @@ import {
   IconUsersGroup,
   IconX,
   type Icon,
+  IconBriefcase,
+  IconBuilding,
+  IconClock,
+  IconIdBadge2,
+  IconLayoutSidebarLeftCollapse,
+  IconLayoutSidebarLeftExpand,
+  IconShieldCheck,
+  IconStarFilled,
+  IconTruck,
+  IconWallet,
 } from "@tabler/icons-react";
 import "./qicono.css";
 
@@ -73,6 +114,7 @@ type QIconoProps = {
   nombre: string;
   tamaño?: "xs" | "sm" | "md" | "lg" | "xl";
   color?: string;
+  relleno?: boolean | string;
   style?: React.CSSProperties;
 };
 
@@ -86,11 +128,42 @@ const tamaños: Record<string, number> = {
 
 // https://tabler.io/icons
 const iconos: Record<string, Icon> = {
+  // Grupos del menú lateral
+  menu_ventas: IconShoppingCart,
+  menu_compras: IconTruck,
+  menu_almacen: IconPackage,
+  menu_tpv: IconBuildingStore,
+  menu_crm: IconUsers,
+  menu_tesoreria: IconWallet,
+  menu_predicciones: IconChartBar,
+  menu_contabilidad: IconCalculator,
+  menu_fiscalidad: IconReceiptTax,
+  menu_proyectos: IconBriefcase,
+  menu_rrhh: IconIdBadge2,
+  menu_empresa: IconBuilding,
+  menu_administracion: IconShieldCheck,
+  menu_tablas_generales: IconTable,
+  menu_grupo: IconFolder,
+  estrella_rellena: IconStarFilled,
+  reloj: IconClock,
+  menu_contraer: IconLayoutSidebarLeftCollapse,
+  menu_expandir: IconLayoutSidebarLeftExpand,
   añadir: IconCirclePlus,
   buscar: IconSearch,
+  "pendiente-nrj": IconBackground,
+  "parcial-nrj": IconStackBackward,
+  "preparado-nrj": IconStackBack,
+  "para-enviar-nrj": IconPackage,
+  "enviado-nrj": IconPackage,
   cerrar: IconX,
   inicio: IconHome,
   fichero: IconFile,
+  documento_nuevo: IconFilePlus,
+  carpeta: IconFolder,
+  carpeta_abierta: IconFolderOpen,
+  carpeta_nueva: IconFolderPlus,
+  subir: IconUpload,
+  descargar: IconDownload,
   grafico_barras: IconChartBar,
   candado: IconLock,
   candado_abierto: IconLockOpen,
@@ -101,6 +174,7 @@ const iconos: Record<string, Icon> = {
   copiar: IconCopy,
   usuario: IconUser,
   perfil: IconUser,
+  asistente: IconMessageChatbot,
   grupo: IconUsersGroup,
   cerrar_sesion: IconLogout,
   verdadero: IconCheck,
@@ -110,16 +184,21 @@ const iconos: Record<string, Icon> = {
   deshacer: IconArrowBackUp,
   rehacer: IconArrowForwardUp,
   enlace: IconLink,
+  arriba_derecha: IconArrowUpRight,
   alinear_izquierda: IconAlignLeft,
   alinear_centro: IconAlignCenter,
   alinear_derecha: IconAlignRight,
   menu: IconMenu2,
+  mas_opciones: IconDots,
+  densidad: IconLineHeight,
+  filtro: IconFilter,
   calendario_vacio: IconCalendar,
   check: IconCheck,
   checkdoble: IconChecks,
   x_circle: IconCircleX,
   minus: IconMinus,
   lista: IconList,
+  kanban: IconLayoutKanban,
   carrito: IconShoppingCart,
   tarjeta: IconCreditCard,
   etiqueta_compra: IconTag,
@@ -136,6 +215,15 @@ const iconos: Record<string, Icon> = {
   circulo_relleno: IconCircleFilled,
   telefono: IconPhone,
   correo: IconMail,
+  whatsapp: IconBrandWhatsapp,
+  telegram: IconBrandTelegram,
+  gmail: IconBrandGmail,
+  google: IconBrandGoogle,
+  openai: IconBrandOpenai,
+  anthropic: IconSparkles,
+  azure: IconBrandAzure,
+  mistral: IconBrain,
+  ollama: IconServer,
   casa: IconHome,
   tarea: IconCheckbox,
   estrella: IconStar,
@@ -156,20 +244,37 @@ const iconos: Record<string, Icon> = {
   usuarios: IconUsers,
   pausa: IconPlayerPause,
   pausa_relleno: IconPlayerPauseFilled,
+  devolucion: IconBasketDown,
+  codigo_barras: IconBarcode,
+  flash: IconBolt,
+  flash_off: IconBoltOff,
+  camara_girar: IconCameraRotate,
 };
 
 export const QIcono = ({
   nombre,
   tamaño = "md",
   color,
+  relleno,
   style,
 }: QIconoProps) => {
   const Icono = iconos[nombre] ?? IconQuestionMark;
   const size = tamaños[tamaño] ?? 20;
+  const fill =
+    typeof relleno === "string"
+      ? relleno
+      : relleno
+        ? "var(--color-primario-claro)"
+        : undefined;
 
   return (
     <quimera-icono>
-      <Icono size={size} color={color} style={style} />
+      <Icono
+        size={size}
+        color={color}
+        style={style}
+        {...(fill ? { fill } : {})}
+      />
     </quimera-icono>
   );
 };

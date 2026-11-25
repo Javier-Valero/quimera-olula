@@ -13,16 +13,18 @@ import {
   QSection,
   Typography,
 } from "@quimera/comps";
-import { CircularProgress } from "@quimera/thirdparty";
 import Quimera, { getSchemas, useStateValue, useWidth, util } from "quimera";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { ModalTraza } from "@olula/ctx/comun/componentes/traza/ModalTraza.tsx";
+import { getTrazaPresupuesto } from "@olula/ctx/ventas/presupuesto/infraestructura.ts";
 
 function PresupuestoCli({ callbackChanged, idPresupuesto, initPresupuesto, useStyles }) {
   const [
-    { generandoPedido, lineas, logic, modalVistaEnviarDocumento, presupuesto, vistaDetalle },
+    { lineas, logic, modalVistaEnviarDocumento, presupuesto, vistaDetalle },
     dispatch,
   ] = useStateValue();
   const classes = useStyles();
+  const [verTraza, setVerTraza] = useState(false);
   const width = useWidth();
 
   useEffect(() => {
@@ -97,16 +99,19 @@ function PresupuestoCli({ callbackChanged, idPresupuesto, initPresupuesto, useSt
               <QBoxButton
                 id="generarPedido"
                 title="Generar pedido"
-                icon={
-                  !generandoPedido ? (
-                    "assignment_ind"
-                  ) : (
-                    <CircularProgress size={30} color="#2676e9" />
-                  )
-                }
+                icon="assignment_ind"
                 disabled={!editable}
+                onClick={() =>
+                  (window.location.href = `/ventas/aprobar-presupuesto/${presupuesto.data.idPresupuesto}`)
+                }
               />
               <QBoxButton id="enviarEmail" title="Enviar por email" icon="email" />
+              <QBoxButton
+                id="verTraza"
+                title="Documentos relacionados"
+                icon="account_tree"
+                onClick={() => setVerTraza(true)}
+              />
             </>
           }
         >
@@ -229,6 +234,13 @@ function PresupuestoCli({ callbackChanged, idPresupuesto, initPresupuesto, useSt
           />
         </DialogContent>
       </Dialog>
+      {verTraza && (
+        <ModalTraza
+          id={String(presupuesto.data.idPresupuesto)}
+          getTraza={getTrazaPresupuesto}
+          onCerrar={() => setVerTraza(false)}
+        />
+      )}
     </Quimera.Template>
   );
 }

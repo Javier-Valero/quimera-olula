@@ -10,6 +10,15 @@ export default mergeConfig(config, {
             '#': '@olula/ctx',
         }
     },
+    server: {
+        allowedHosts: true,
+        proxy: {
+            '/public': {
+                target: 'http://localhost:5000',
+                changeOrigin: true,
+            },
+        },
+    },
     test: {
         setupFiles: ["../../setupTests.ts"]
     }

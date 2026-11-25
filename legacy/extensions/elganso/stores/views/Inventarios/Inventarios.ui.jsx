@@ -10,7 +10,7 @@ import {
   DataGrid, QuickFilter, QuickFilterClear, QuickFilterControl, QuickFilterTrigger, Toolbar, ToolbarButton
 } from "@mui/x-data-grid";
 import { Icon, IconButton } from "@quimera/comps";
-import { navigate } from "hookrouter";
+import { navigate } from "quimera/base";
 import Quimera, { PropValidation, useStateValue, useWidth } from "quimera";
 import { useEffect, useState } from "react";
 import { useDbState } from "use-db-state";
@@ -419,6 +419,7 @@ function Inventarios() {
             columns={columns}
             slots={{ toolbar: CustomToolbar }}
             localeText={{
+              noRowsLabel: "No hay inventarios",
               toolbarQuickFilterPlaceholder: "Buscar...",
               paginationRowsPerPage: "Líneas por página",
               paginationDisplayedRows: ({ from, to, count }) =>

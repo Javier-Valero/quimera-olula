@@ -4,7 +4,7 @@ import {
     ampliarPresupuestos,
     Presupuestos,
     recargarPresupuestos
-} from "./dominio.ts";
+} from "./maestro.ts";
 
 
 export const getMaquina: () => Maquina<EstadoMaestroPresupuesto, ContextoMaestroPresupuesto> = () => {
@@ -34,7 +34,7 @@ export const getMaquina: () => Maquina<EstadoMaestroPresupuesto, ContextoMaestro
 
         CREANDO_PRESUPUESTO: {
 
-            presupuesto_creado: [Presupuestos.incluir, 'INICIAL'],
+            presupuesto_creado: [Presupuestos.incluir, Presupuestos.activar, 'INICIAL'],
 
             creacion_presupuesto_cancelada: 'INICIAL',
         },

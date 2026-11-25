@@ -6,9 +6,11 @@ import {
     activarLinea,
     borrarLinea,
     borrarPedido,
+    cambiarAgente,
     cambiarCantidadLinea,
     cambiarCliente,
     cambiarDescuento,
+    cambiarDivisa,
     cambiarLinea,
     cambiarPedido,
     cancelarCambioPedido,
@@ -16,7 +18,7 @@ import {
     crearLinea,
     getContextoVacio,
     refrescarPedido
-} from "./dominio.ts";
+} from "./detalle.ts";
 
 
 export const getMaquina = (): Maquina<EstadoPedido, ContextoPedido> => {
@@ -35,6 +37,8 @@ export const getMaquina = (): Maquina<EstadoPedido, ContextoPedido> => {
 
         ABIERTO: {
 
+            traza_solicitada: "VIENDO_TRAZA",
+
             alta_linea_solicitada: "CREANDO_LINEA",
 
             baja_linea_solicitada: "BORRANDO_LINEA",
@@ -44,6 +48,10 @@ export const getMaquina = (): Maquina<EstadoPedido, ContextoPedido> => {
             borrar_solicitado: "BORRANDO_PEDIDO",
 
             cambio_cliente_solicitado: "CAMBIANDO_CLIENTE",
+
+            cambio_divisa_solicitado: "CAMBIANDO_DIVISA",
+
+            cambio_agente_solicitado: "CAMBIANDO_AGENTE",
 
             descuento_solicitado: "CAMBIANDO_DESCUENTO",
 
@@ -57,8 +65,6 @@ export const getMaquina = (): Maquina<EstadoPedido, ContextoPedido> => {
 
             linea_seleccionada: [activarLinea],
 
-            cliente_cambiado: [cambiarCliente],
-
             cambio_cantidad_linea_solicitado: cambiarCantidadLinea,
 
             pedido_deseleccionado: [
@@ -68,6 +74,8 @@ export const getMaquina = (): Maquina<EstadoPedido, ContextoPedido> => {
         },
 
         SERVIDO: {
+
+            traza_solicitada: "VIENDO_TRAZA",
 
             pedido_cargado: [abiertoOServido],
 
@@ -91,6 +99,20 @@ export const getMaquina = (): Maquina<EstadoPedido, ContextoPedido> => {
             cambio_cliente_cancelado: "ABIERTO",
         },
 
+        CAMBIANDO_DIVISA: {
+
+            cambio_divisa_listo: [cambiarDivisa],
+
+            cambio_divisa_cancelado: "ABIERTO",
+        },
+
+        CAMBIANDO_AGENTE: {
+
+            cambio_agente_listo: [cambiarAgente],
+
+            cambio_agente_cancelado: "ABIERTO",
+        },
+
         CAMBIANDO_DESCUENTO: {
 
             descuento_aplicado: [cambiarDescuento],
@@ -100,7 +122,7 @@ export const getMaquina = (): Maquina<EstadoPedido, ContextoPedido> => {
 
         CREANDO_LINEA: {
 
-            alta_linea_lista: [crearLinea],
+            linea_creada: crearLinea,
 
             crear_linea_cancelado: "ABIERTO",
         },
@@ -119,5 +141,9 @@ export const getMaquina = (): Maquina<EstadoPedido, ContextoPedido> => {
             borrar_linea_cancelado: "ABIERTO",
         },
 
+        VIENDO_TRAZA: {
+
+            traza_cerrada: [abiertoOServido],
+        },
     }
 }

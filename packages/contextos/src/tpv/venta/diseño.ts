@@ -43,6 +43,7 @@ export interface PagoVentaTpv extends Entidad {
     formaPago: string;
     fecha: Date;
     vale: string | null;
+    saldoVale: number | null;
     idArqueo: string;
     arqueoAbierto: boolean;
     idTipoTarjeta: string | null;
@@ -79,6 +80,7 @@ type PagoTpv = {
     formaPago: string;
     idVale?: string;
     idTipoTarjeta?: string | null;
+    entregado?: number;
 }
 
 // export const metaNuevoPagoEfectivo: MetaModelo<NuevoPagoEfectivo> = {
@@ -100,9 +102,11 @@ export type GetLineasFactura = (id: string) => Promise<LineaFactura[]>;
 
 export type GetPagosVentaTpv = (id: string) => Promise<PagoVentaTpv[]>;
 
-export type PostVentaTpv = () => Promise<string>;
+export type PostVentaTpv = (agenteId?: string) => Promise<string>;
 
-export type PostLinea = (id: string, linea: NuevaLineaVenta) => Promise<string>;
+export type PostLinea = <T extends NuevaLineaVenta>(id: string, linea: T) => Promise<T>;
+
+export type QueryNuevaLinea = <T extends NuevaLineaVenta>(id: string, linea: T) => Promise<T>;
 
 export type PostPago = (id: string, pago: PagoTpv) => Promise<string>;
 
@@ -134,10 +138,10 @@ export type GetReportVenta = (id: string) => Promise<Blob>;
 
 export type GetReportVale = (id: string) => Promise<Blob>;
 
+export type PatchEmitirVenta = (id: string) => Promise<void>;
 
-export type EstadoMaestroVentasTpv = (
-    'INICIAL'
-);
+
+export type EstadoMaestroVentasTpv = 'INICIAL' | 'CREANDO';
 
 
 export type ContextoMaestroVentasTpv = {

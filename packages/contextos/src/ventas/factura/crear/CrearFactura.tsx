@@ -1,8 +1,9 @@
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
-import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { QModal } from "@olula/componentes/moleculas/qmodal.tsx";
 import { ClienteVentaNoRegistrado } from "@olula/ctx/ventas/comun/componentes/moleculas/ClienteVenta/ClienteVentaNoRegistrado.tsx";
 import { ClienteVentaRegistrado } from "@olula/ctx/ventas/comun/componentes/moleculas/ClienteVenta/ClienteVentaRegistrado.tsx";
+import { EmpresaActual } from "#/comun/componentes/empresaActual.tsx";
+import { conEmpresaActual } from "#/valores/empresaActual.ts";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { HookModelo, useModelo } from "@olula/lib/useModelo.ts";
@@ -30,26 +31,38 @@ export const CrearFactura = ({
   onCancelar?: () => void;
 }) => {
   const [modoNoRegistrado, setModoNoRegistrado] = useState(false);
+  /* Lazy initializer: referencia estable para useModelo y empresa ya puesta en el
+     primer render, sin depender del efecto de EmpresaActual. */
+  const [inicialRegistrada] = useState(() =>
+    conEmpresaActual(altaFacturaRegistradaVacia, "idEmpresa")
+  );
+  const [inicialNoRegistrada] = useState(() =>
+    conEmpresaActual(altaFacturaNoRegistradaVacia, "idEmpresa")
+  );
   const facturaRegistrada = useModelo(
     metaModeloAltaFacturaRegistrada,
-    altaFacturaRegistradaVacia
+    inicialRegistrada
   );
   const facturaNoRegistrada = useModelo(
     metaModeloAltaFacturaNoRegistrada,
-    altaFacturaNoRegistradaVacia
+    inicialNoRegistrada
   );
 
   const toggleModoCliente = () => {
     const nuevoModo = !modoNoRegistrado;
     setModoNoRegistrado(nuevoModo);
 
-    facturaRegistrada.init(altaFacturaRegistradaVacia);
-    facturaNoRegistrada.init(altaFacturaNoRegistradaVacia);
+    facturaRegistrada.init(conEmpresaActual(altaFacturaRegistradaVacia, "idEmpresa"));
+    facturaNoRegistrada.init(
+      conEmpresaActual(altaFacturaNoRegistradaVacia, "idEmpresa")
+    );
   };
 
   const cancelar = () => {
-    facturaRegistrada.init(altaFacturaRegistradaVacia);
-    facturaNoRegistrada.init(altaFacturaNoRegistradaVacia);
+    facturaRegistrada.init(conEmpresaActual(altaFacturaRegistradaVacia, "idEmpresa"));
+    facturaNoRegistrada.init(
+      conEmpresaActual(altaFacturaNoRegistradaVacia, "idEmpresa")
+    );
     setModoNoRegistrado(false);
     onCancelar();
   };
@@ -130,11 +143,22 @@ const FormAltaFactura = ({
       </div>
       <quimera-formulario>
         {modoNoRegistrado ? (
-          <ClienteVentaNoRegistrado cliente={facturaNoRegistrada} />
+          <>
+            <EmpresaActual
+              nombre="idEmpresa"
+              onChange={(id) => facturaNoRegistrada.uiProps("idEmpresa").onChange(id)}
+            />
+            <ClienteVentaNoRegistrado cliente={facturaNoRegistrada} />
+          </>
         ) : (
-          <ClienteVentaRegistrado cliente={facturaRegistrada} />
+          <>
+            <EmpresaActual
+              nombre="idEmpresa"
+              onChange={(id) => facturaRegistrada.uiProps("idEmpresa").onChange(id)}
+            />
+            <ClienteVentaRegistrado cliente={facturaRegistrada} />
+          </>
         )}
-        <QInput label="Empresa" {...actual.uiProps("idEmpresa")} />
       </quimera-formulario>
       <div className="botones">
         <QBoton onClick={crear} deshabilitado={!actual.valido}>

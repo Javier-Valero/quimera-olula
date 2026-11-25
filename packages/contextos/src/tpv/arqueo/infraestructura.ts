@@ -85,14 +85,18 @@ export const getArqueos: GetArqueosTpv = async (
     paginacion: Paginacion
 ) => {
     const miPuntoVentaLocal = puntoVentaLocal.obtenerSeguro();
-    const filtroPuntoVenta: ClausulaFiltro = [
+    const clausulaFiltroPuntoVenta: ClausulaFiltro = [
         "punto_venta_id",
         miPuntoVentaLocal?.id ?? "",
     ];
 
-    const filtroCombinado: Filtro = Array.isArray(filtro)
-        ? [...filtro, filtroPuntoVenta]
-        : { and: [filtro, [filtroPuntoVenta]] };
+    const esListaDeClausulas =
+        Array.isArray(filtro) && (filtro.length === 0 || Array.isArray(filtro[0]));
+
+    const filtroCombinado: Filtro = esListaDeClausulas
+        ? [...(filtro as ClausulaFiltro[]), clausulaFiltroPuntoVenta]
+        : { and: [filtro, [clausulaFiltroPuntoVenta]] };
+
     const q = criteriaQuery(filtroCombinado, orden, paginacion);
 
     const respuesta = await RestAPI.get<{ datos: CabeceraArqueoTpvApi[]; total: number }>(`${baseUrl}_items` + q);
@@ -157,7 +161,9 @@ export const patchArqueo: PatchArqueo = async (anterior, arqueo) => {
 
     const cambios: {
         agente_apertura_id?: string,
-        efectivo_inicial?: number
+        efectivo_inicial?: number,
+        fechahora_apertura?: string,
+        fechahora_cierre?: string,
     } = {};
 
     if (anterior.idAgenteApertura !== arqueo.idAgenteApertura) {
@@ -165,6 +171,12 @@ export const patchArqueo: PatchArqueo = async (anterior, arqueo) => {
     }
     if (anterior.efectivoInicial !== arqueo.efectivoInicial) {
         cambios["efectivo_inicial"] = arqueo.efectivoInicial;
+    }
+    if (anterior.fechahoraApertura.toISOString() !== arqueo.fechahoraApertura.toISOString()) {
+        cambios["fechahora_apertura"] = arqueo.fechahoraApertura.toISOString();
+    }
+    if ((anterior.fechahoraCierre?.toISOString() ?? null) !== (arqueo.fechahoraCierre?.toISOString() ?? null) && arqueo.fechahoraCierre) {
+        cambios["fechahora_cierre"] = arqueo.fechahoraCierre.toISOString();
     }
 
     await RestAPI.patch(

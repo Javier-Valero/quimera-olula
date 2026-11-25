@@ -6,18 +6,24 @@ import {
     activarLinea,
     borrarAlbaran,
     borrarLinea,
+    borrarMovimientoLote,
+    cambiarAgente,
     cambiarAlbaran,
     cambiarCantidadLinea,
     cambiarCliente,
     cambiarDescuento,
+    cambiarDivisa,
     cambiarLinea,
     cancelarCambioAlbaran,
     cargarContexto,
     crearLinea,
+    crearLineaPorLotes,
+    crearMovimientoLote,
+    facturarAlbaran,
     getContextoVacio,
     refrescarAlbaran,
     refrescarLineas
-} from "./dominio.ts";
+} from "./detalle.ts";
 
 
 export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
@@ -36,6 +42,8 @@ export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
 
         ABIERTO: {
 
+            traza_solicitada: "VIENDO_TRAZA",
+
             linea_creada: [
                 refrescarAlbaran,
                 refrescarLineas
@@ -49,7 +57,13 @@ export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
 
             borrar_solicitado: "BORRANDO_ALBARAN",
 
+            facturar_solicitado: "FACTURANDO_ALBARAN",
+
             cambio_cliente_solicitado: "CAMBIANDO_CLIENTE",
+
+            cambio_divisa_solicitado: "CAMBIANDO_DIVISA",
+
+            cambio_agente_solicitado: "CAMBIANDO_AGENTE",
 
             descuento_solicitado: "CAMBIANDO_DESCUENTO",
 
@@ -63,8 +77,6 @@ export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
 
             linea_seleccionada: [activarLinea],
 
-            cliente_cambiado: [cambiarCliente],
-
             cambio_cantidad_linea_solicitado: cambiarCantidadLinea,
 
             albaran_deseleccionado: [
@@ -74,6 +86,8 @@ export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
         },
 
         FACTURADO: {
+
+            traza_solicitada: "VIENDO_TRAZA",
 
             albaran_cargado: [abiertoOFacturado],
 
@@ -90,11 +104,37 @@ export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
             borrar_cancelado: "ABIERTO",
         },
 
+        FACTURANDO_ALBARAN: {
+
+            facturacion_lista: [facturarAlbaran],
+
+            facturar_cancelado: "ABIERTO",
+        },
+
+        FACTURA_CREADA: {
+
+            factura_creada_cerrada: [abiertoOFacturado],
+        },
+
         CAMBIANDO_CLIENTE: {
 
             cambio_cliente_listo: [cambiarCliente, "ABIERTO"],
 
             cambio_cliente_cancelado: "ABIERTO",
+        },
+
+        CAMBIANDO_DIVISA: {
+
+            cambio_divisa_listo: [cambiarDivisa],
+
+            cambio_divisa_cancelado: "ABIERTO",
+        },
+
+        CAMBIANDO_AGENTE: {
+
+            cambio_agente_listo: [cambiarAgente],
+
+            cambio_agente_cancelado: "ABIERTO",
         },
 
         CAMBIANDO_DESCUENTO: {
@@ -106,7 +146,9 @@ export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
 
         CREANDO_LINEA: {
 
-            alta_linea_lista: [crearLinea],
+            linea_creada: crearLinea,
+
+            linea_por_lotes_creada: crearLineaPorLotes,
 
             crear_linea_cancelado: "ABIERTO",
         },
@@ -116,6 +158,10 @@ export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
             linea_actualizada: cambiarLinea,
 
             editar_linea_cancelado: "ABIERTO",
+
+            crear_movimiento_lote_solicitado: crearMovimientoLote,
+
+            borrar_movimiento_lote_solicitado: borrarMovimientoLote,
         },
 
         BORRANDO_LINEA: {
@@ -125,5 +171,9 @@ export const getMaquina: () => Maquina<EstadoAlbaran, ContextoAlbaran> = () => {
             borrar_linea_cancelado: "ABIERTO",
         },
 
+        VIENDO_TRAZA: {
+
+            traza_cerrada: [abiertoOFacturado],
+        },
     }
 }

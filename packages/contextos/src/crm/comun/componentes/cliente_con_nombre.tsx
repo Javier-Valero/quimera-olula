@@ -13,7 +13,9 @@ interface ClienteProps {
   nombre?: string;
   label?: string;
   deshabilitado?: boolean;
+  enlace?: string;
   onChange?: (opcion: { valor: string; descripcion: string } | null) => void;
+  [key: string]: unknown;
 }
 
 interface ClienteConNombreProps {
@@ -31,9 +33,12 @@ export const Cliente = ({
   nombre = "cliente_id",
   label = "Cliente",
   deshabilitado = false,
+  enlace = "/crm/cliente?id={id}",
   onChange,
   ...props
 }: ClienteProps) => {
+  const clienteRegistrado = !!valor && valor !== "None";
+
   const obtenerOpciones = async (texto: string) => {
     const criteria = {
       filtro: ["nombre", "~", texto],
@@ -66,7 +71,8 @@ export const Cliente = ({
       valor={valor}
       obtenerOpciones={obtenerOpciones}
       descripcion={descripcion}
-      deshabilitado={deshabilitado}
+      enlace={clienteRegistrado ? enlace : undefined}
+      soloLectura={deshabilitado}
       {...props}
     />
   );

@@ -183,7 +183,7 @@ export default {
   routes: {
     "/": { type: "view", view: "Home" },
     "/ss": { type: "view", view: "Dashboard" },
-    "/ss/dashboard": { type: "view", view: "Dashboard" },
+    "/ss/dashboard-legacy": { type: "view", view: "Dashboard" },
     "/ss/contacto/nuevo": { type: "view", view: "NuevoContacto" },
     "/ss/trato/nuevo": { type: "view", view: "NuevoTrato" },
     "/ss/tarea/nueva": { type: "view", view: "NuevaTarea" },
@@ -278,7 +278,7 @@ export default {
     "TratosFarma:visit": (check: (rule: string) => boolean) => check("crm.trato.farma"),
     "ss_informes:marketing": (check: (rule: string) => boolean) => check("crm.informe.marketing"),
     "ss_informes:todoslosagentes": (check: (rule: string) => boolean) =>
-      check("crm.informe.todos"),
+      check("crm.informe.todos_los_agentes"),
     "clientes:acceso": (check: (rule: string) => boolean) => check("ventas.cliente.leer"),
     "lead_pacientes:visit": (check: (rule: string) => boolean) =>
       check("crm.campana.lead_pacientes"),

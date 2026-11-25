@@ -1,4 +1,6 @@
+import { metaTablaLineaVentaResumida } from "#/ventas/venta/vistas/metatabla_linea_venta.tsx";
 import { ListadoSemiControlado } from "@olula/componentes/maestro/ListadoSemiControlado.tsx";
+import { useEsMovil } from "@olula/componentes/maestro/useEsMovil.ts";
 import { QuimeraAcciones } from "@olula/componentes/moleculas/qacciones.tsx";
 import { criteriaDefecto } from "@olula/lib/dominio.js";
 import { LineaFactura as Linea } from "../../diseño.ts";
@@ -11,6 +13,7 @@ export const LineasLista = ({
   onCambioCantidad,
   facturaEditable,
   cantidadEditable = false,
+  divisa,
   acciones,
   publicar,
 }: {
@@ -19,22 +22,40 @@ export const LineasLista = ({
   onCambioCantidad?: (linea: Linea, cantidad: number) => void;
   facturaEditable?: boolean;
   cantidadEditable?: boolean;
+  divisa?: string;
   acciones?: Parameters<typeof QuimeraAcciones>[0]["acciones"];
   publicar: (evento: string, payload?: unknown) => void;
 }) => {
+  const esMovil = useEsMovil();
+
   const setSeleccionada = (linea: Linea) => {
     if (!facturaEditable) return;
     publicar("linea_seleccionada", linea);
   };
 
+  const metaTablaBase = metaTablaLineaVentaResumida<Linea>({ divisa });
+  const metaTabla = cantidadEditable && onCambioCantidad ? {
+    ...metaTablaBase,
+    metaCols: {
+      ...metaTablaBase.metaCols,
+      cantidad: {
+        ...metaTablaBase.metaCols.cantidad,
+        render: (linea: Linea) => (
+          <EditarCantidadLinea linea={linea} onCantidadEditada={onCambioCantidad} />
+        ),
+      },
+    },
+  } : metaTablaBase;
+
   return (
     <ListadoSemiControlado
-      metaTabla={getMetaTablaLineas(onCambioCantidad, cantidadEditable)}
+      metaTabla={metaTabla}
       tarjeta={(linea) => (
         <TarjetaLinea
           linea={linea}
           cantidadEditable={cantidadEditable}
           onCambioCantidad={onCambioCantidad}
+          divisa={divisa}
         />
       )}
       entidades={lineas}
@@ -43,6 +64,7 @@ export const LineasLista = ({
       seleccionada={lineas.find((linea) => linea.id === seleccionada) ?? null}
       onSeleccion={setSeleccionada}
       criteriaInicial={criteriaDefecto}
+      modoInicial={esMovil ? "tarjetas" : "tabla"}
       onCriteriaChanged={() => null}
       renderAcciones={() =>
         facturaEditable && acciones && acciones.length > 0 ? (
@@ -53,51 +75,4 @@ export const LineasLista = ({
       }
     />
   );
-};
-
-const getMetaTablaLineas = (
-  onCambioCantidad?: (linea: Linea, cantidad: number) => void,
-  cantidadEditable = false
-) => {
-  return [
-    {
-      id: "linea",
-      cabecera: "Línea",
-      render: (linea: Linea) => `${linea.referencia}: ${linea.descripcion}`,
-    },
-    {
-      id: "cantidad",
-      cabecera: "Cantidad",
-      tipo: "numero" as const,
-      render: (linea: Linea) =>
-        cantidadEditable && onCambioCantidad ? (
-          <EditarCantidadLinea
-            linea={linea}
-            onCantidadEditada={onCambioCantidad}
-          />
-        ) : (
-          <span>{linea.cantidad}</span>
-        ),
-    },
-    {
-      id: "pvp_unitario",
-      cabecera: "Precio",
-      tipo: "moneda" as const,
-    },
-    {
-      id: "grupo_iva_producto_id",
-      cabecera: "IVA",
-    },
-    {
-      id: "dto_porcentual",
-      cabecera: "% Dto.",
-      render: (linea: Linea) =>
-        linea.dto_porcentual ? `${linea.dto_porcentual}%` : "",
-    },
-    {
-      id: "pvp_total",
-      cabecera: "Total",
-      tipo: "moneda" as const,
-    },
-  ];
 };

@@ -1,20 +1,16 @@
 import { authMiddleware } from "#/auth/middlewares.ts";
 import { Vista } from "@olula/componentes/index.ts";
-import "@olula/lib/comun.css";
 import { FactoryObj, FactoryProvider } from "@olula/lib/factory_ctx.tsx";
 import { crearMenu, MenuContextFactory } from "@olula/lib/menu.ts";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouteObject, RouterProvider } from "react-router";
 
 import { useTimerRefresco } from "#/auth/useTimerRefresco.ts";
-import { StrictMode } from "react";
 import { FactoryLegacy } from "./factory.ts";
 import { routerLegacy } from "./legacy.tsx";
 import { router } from "./router_factory.ts";
 
 const root = createRoot(document.getElementById("root")!);
-
-console.log(routerLegacy);
 
 const rutas = createBrowserRouter([
   {
@@ -42,9 +38,9 @@ const App = () => {
 };
 
 root.render(
-  <StrictMode>
-    <FactoryProvider>
-      <App />
-    </FactoryProvider>
-  </StrictMode>
+  // <StrictMode>
+  <FactoryProvider>
+    <App />
+  </FactoryProvider>
+  // </StrictMode>
 );

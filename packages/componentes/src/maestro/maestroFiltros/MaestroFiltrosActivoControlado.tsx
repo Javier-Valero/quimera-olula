@@ -1,10 +1,6 @@
-import {
-  ClausulaFiltro,
-  Entidad,
-  TipoInput,
-} from "@olula/lib/diseño.ts";
+import { ClausulaFiltro, Entidad, TipoInput } from "@olula/lib/diseño.ts";
 import { useModelo } from "@olula/lib/useModelo.js";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { QBoton } from "../../atomos/qboton.tsx";
 import { QCheckbox } from "../../atomos/qcheckbox.tsx";
 import { QDateInterval } from "../../atomos/qdateinterval.tsx";
@@ -13,7 +9,8 @@ import { QInput } from "../../atomos/qinput.tsx";
 import { QMonthYear } from "../../atomos/qmonthyear.tsx";
 import { Opcion, QMultiCheckbox } from "../../atomos/qmulticheckbox.tsx";
 import { QNumberInterval } from "../../atomos/qnumberinterval.tsx";
-import { MetaTabla } from "../../atomos/qtabla.tsx";
+import { MetaTabla, obtenerCols } from "../../atomos/qtablacontrolada.tsx";
+import { campoAncho, chipsFiltro, ordenarCamposPanel } from "./dominio.ts";
 import "./MaestroFiltrosActivoControlado.css";
 
 export const filtroTextos = (id: string, valor: unknown) => {
@@ -31,7 +28,10 @@ const fechaLocalStr = (fecha: Date): string => {
   return `${y}-${m}-${d}`;
 };
 
-export const filtroFechas = (id: string, valor: unknown): ClausulaFiltro | null => {
+export const filtroFechas = (
+  id: string,
+  valor: unknown
+): ClausulaFiltro | null => {
   if (!Array.isArray(valor)) return [id, "=", valor] as ClausulaFiltro;
 
   const [desde, hasta] = valor as [Date, Date];
@@ -57,7 +57,10 @@ export const filtroFechas = (id: string, valor: unknown): ClausulaFiltro | null 
   ] as ClausulaFiltro;
 };
 
-export const filtroNumeros = (id: string, valor: unknown): ClausulaFiltro | null => {
+export const filtroNumeros = (
+  id: string,
+  valor: unknown
+): ClausulaFiltro | null => {
   const [desde, hasta] = valor as [number, number];
 
   const hayDesde = desde !== undefined && desde !== null && !isNaN(desde);
@@ -81,7 +84,27 @@ export const filtroNumeros = (id: string, valor: unknown): ClausulaFiltro | null
   ] as ClausulaFiltro;
 };
 
-export const filtroMesAnyo = (id: string, valor: unknown): ClausulaFiltro | null => {
+export const filtroMesAnyoConManual = (
+  id: string,
+  valor: unknown
+): ClausulaFiltro | null => {
+  if (Array.isArray(valor)) {
+    const [desde, hasta] = valor as [string, string];
+    if (!desde && !hasta) return null;
+    const operador = desde && hasta ? "<>" : desde ? ">=" : "<=";
+    return [
+      id,
+      operador,
+      [desde, hasta].filter(Boolean).join("_"),
+    ] as ClausulaFiltro;
+  }
+  return filtroMesAnyo(id, valor);
+};
+
+export const filtroMesAnyo = (
+  id: string,
+  valor: unknown
+): ClausulaFiltro | null => {
   if (!valor || typeof valor !== "string") return null;
   const [anyo, mes] = valor.split("-").map(Number);
   if (!anyo || !mes) return null;
@@ -94,7 +117,7 @@ export const filtroMesAnyo = (id: string, valor: unknown): ClausulaFiltro | null
   return [id, "<>", `${desde}_${hasta}`];
 };
 
-type MetaCampoFiltro = {
+export type MetaCampoFiltro = {
   id: string;
   /** Nombre del campo en la API (snake_case). Si difiere de `id`, permite la hidratación
    * automática desde URL sin necesidad de declarar `fromFiltro`. */
@@ -108,52 +131,59 @@ type MetaCampoFiltro = {
    * Para renombrados simples (id ≠ campo API) basta con declarar `campo`. */
   fromFiltro?: (filtro: ClausulaFiltro[]) => unknown;
   render?: (valor: unknown, onChange: (v: unknown) => void) => ReactNode;
+  /** Texto del chip cuando el valor no se lee solo (p. ej. un código de cliente). */
+  describir?: (valor: unknown) => string;
 };
 
 export type MetaFiltro = Record<string, MetaCampoFiltro>;
 
+type OpcionesMetaFiltroDefecto = {
+  /** Nombre del campo en la API cuando difiere del id de la columna (p. ej. los
+   *  módulos con modelo en camelCase y API en snake_case: `camelASnake`). */
+  campoApi?: (id: string) => string;
+};
+
 export const getMetaFiltroDefecto = <T extends Entidad>(
-  metaTabla: MetaTabla<T>
+  metaTabla: MetaTabla<T>,
+  { campoApi = (id) => id }: OpcionesMetaFiltroDefecto = {}
 ): MetaFiltro => {
   const campos: Record<string, MetaCampoFiltro> = {};
 
-  for (const columna of metaTabla) {
+  for (const columna of obtenerCols(metaTabla)) {
     if (columna.id === "id") continue;
+    const campo = campoApi(columna.id);
+    const base = { id: columna.id, campo, label: columna.cabecera };
 
     switch (columna.tipo) {
       case "booleano":
         campos[columna.id] = {
-          id: columna.id,
-          label: columna.cabecera,
+          ...base,
           tipo: "checkbox",
-          filtro: (valor) => filtroBooleanos(columna.id, valor),
+          filtro: (valor) => filtroBooleanos(campo, valor),
         };
         break;
       case "fecha":
       case "fechahora":
       case "hora":
         campos[columna.id] = {
-          id: columna.id,
-          label: columna.cabecera,
+          ...base,
           tipo: "intervalo_fechas",
-          filtro: (valor) => filtroFechas(columna.id, valor),
+          filtro: (valor) => filtroFechas(campo, valor),
         };
         break;
       case "numero":
       case "moneda":
         campos[columna.id] = {
-          id: columna.id,
-          label: columna.cabecera,
+          ...base,
           tipo: "intervalo_numeros",
-          filtro: (valor) => filtroNumeros(columna.id, valor),
+          filtro: (valor) => filtroNumeros(campo, valor),
         };
         break;
       default:
         campos[columna.id] = {
-          id: columna.id,
-          label: columna.cabecera,
+          ...base,
           tipo: "texto",
-          filtro: (valor) => filtroTextos(columna.id, valor),
+          filtro: (valor) => filtroTextos(campo, valor),
         };
         break;
     }
@@ -178,7 +208,7 @@ export const filtroToValores = (filtro: ClausulaFiltro[], meta: MetaFiltro) => {
   }
 
   for (const clausula of filtro) {
-    const [campoApi, _, valor] = clausula;
+    const [campoApi, operador, valor] = clausula;
     const id = campoApiAId[campoApi] ?? campoApi;
 
     if (!meta[id]) continue;
@@ -202,11 +232,48 @@ export const filtroToValores = (filtro: ClausulaFiltro[], meta: MetaFiltro) => {
         );
         break;
       case "multiseleccion":
-        valores[id] = Array.isArray(valores[id]) ? valores[id] : [valores[id]];
+        {
+          const valoresSeleccionados = Array.isArray(valor_final)
+            ? valor_final.map(String)
+            : typeof valor_final === "string"
+              ? valor_final
+                  .split(",")
+                  .map((v) => v.trim())
+                  .filter(Boolean)
+              : valor_final === undefined || valor_final === null
+                ? []
+                : [String(valor_final)];
+
+          if (operador === "!in") {
+            const opciones = (meta[id].opciones ?? []).map((o) => o.valor);
+            valores[id] = opciones.length
+              ? opciones.filter(
+                  (opcion) => !valoresSeleccionados.includes(opcion)
+                )
+              : valoresSeleccionados;
+          } else {
+            valores[id] = valoresSeleccionados;
+          }
+        }
         break;
       case "fecha":
         valores[id] = new Date(Date.parse(valor_final as string));
         break;
+    }
+
+    if ((meta[id].tipo as string) === "mes_año" && Array.isArray(valor_final)) {
+      const [desde, hasta] = valor_final as [string, string];
+      if (desde && hasta) {
+        const [anyo, mes] = desde.split("-").map(Number);
+        if (anyo && mes) {
+          const ultimoDia = new Date(anyo, mes, 0).getDate();
+          const esperadoDesde = `${anyo}-${String(mes).padStart(2, "0")}-01`;
+          const esperadoHasta = `${anyo}-${String(mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+          if (desde === esperadoDesde && hasta === esperadoHasta) {
+            valores[id] = desde.slice(0, 7);
+          }
+        }
+      }
     }
   }
 
@@ -223,83 +290,35 @@ type MaestroFiltrosActivoControladoProps = {
   filtroInicial: ClausulaFiltro[];
   filtro: ClausulaFiltro[];
   onFiltroChanged: (filtro: ClausulaFiltro[]) => void;
+  /** Recuento con el filtro del panel antes de aplicarlo («Aplicar · 12»). */
+  contar?: (filtro: ClausulaFiltro[]) => Promise<number | null>;
 };
 
+const ESPERA_RECUENTO_MS = 300;
+
+/**
+ * Filtros del listado: botón «Filtros» con contador y los activos como chips (con
+ * × para quitarlos) en la propia cabecera; el botón abre un panel flotante (en
+ * móvil, una hoja inferior) que se aplica de una vez, con el recuento a la vista.
+ */
 export const MaestroFiltrosActivoControlado = ({
   metaFiltro,
   filtroInicial,
   filtro,
   onFiltroChanged,
+  contar,
 }: MaestroFiltrosActivoControladoProps) => {
-  const valoresIniciales = useMemo(
+  const valoresAplicados = useMemo(
     () => filtroToValores(filtro, metaFiltro),
     [filtro, metaFiltro]
   );
 
-  const valores = useModelo({ campos: metaFiltro }, valoresIniciales);
-  const { modelo, modeloInicial, uiProps, init } = valores;
+  const valores = useModelo({ campos: metaFiltro }, valoresAplicados);
+  const { modelo, uiProps, init } = valores;
 
-  const [mostrar, setMostar] = useState(false);
-
-  const renderFiltros = () => {
-    return Object.entries(metaFiltro).map(([_, campo]) => {
-      const renderInput = () => {
-        if (campo.render) {
-          const { valor, onChange: onChangeProp } = uiProps(campo.id);
-          const onChange = onChangeProp as (v: unknown) => void;
-          return campo.render(valor, onChange);
-        }
-        // Extraemos `tipo` del spread: en el contexto de filtros ese campo decide
-        // qué renderizador usar, pero no debe fluir hacia los componentes de UI
-        // individuales (que tienen sus propios subtipos para ese prop).
-        const { tipo: _, ...uiPropsBase } = uiProps(campo.id);
-        // "mes_año" es un tipo de filtro propio, no parte de TipoInput (form inputs).
-        // El cast es necesario porque MetaCampoFiltro.tipo es TipoInput en tiempo de tipos.
-        if ((campo.tipo as string) === "mes_año") {
-          return <QMonthYear {...uiPropsBase} label={campo.label} />;
-        }
-        switch (campo.tipo) {
-          case "intervalo_fechas":
-            return (
-              <QDateInterval
-                {...uiPropsBase}
-                tipo={"fecha"}
-                label={campo.label}
-              />
-            );
-          case "intervalo_numeros":
-            return (
-              <QNumberInterval
-                {...uiPropsBase}
-                tipo={"numero"}
-                label={campo.label}
-              />
-            );
-          case "multiseleccion":
-            return (
-              <QMultiCheckbox
-                {...uiPropsBase}
-                opciones={campo.opciones as Opcion[]}
-                label={campo.label}
-              />
-            );
-          case "checkbox":
-            return <QCheckbox {...uiPropsBase} label={campo.label} />;
-          default:
-            return <QInput {...uiPropsBase} label={campo.label} />;
-        }
-      };
-
-      return (
-        <div key={campo.id} className="campo-filtro">
-          {renderInput()}
-          <QBoton tamaño="pequeño" onClick={() => limpiarUno(campo.id)}>
-            <QIcono nombre="cerrar" tamaño="xs" color="currentColor" />
-          </QBoton>
-        </div>
-      );
-    });
-  };
+  const [abierto, setAbierto] = useState(false);
+  const [recuento, setRecuento] = useState<number | null>(null);
+  const refContenedor = useRef<HTMLDivElement>(null);
 
   const buildFiltros = (modeloOverride: Record<string, unknown>) => {
     return Object.entries(modeloOverride).flatMap(([id, valor]) => {
@@ -310,61 +329,187 @@ export const MaestroFiltrosActivoControlado = ({
     });
   };
 
-  const onBuscar = (): void => {
+  const borrador = abierto ? buildFiltros(modelo) : null;
+  const claveBorrador = JSON.stringify(borrador);
+
+  // Recuento del borrador (con espera) para el botón Aplicar.
+  useEffect(() => {
+    if (!borrador || !contar) return;
+    let cancelado = false;
+    const temporizador = setTimeout(() => {
+      contar(borrador)
+        .then((n) => !cancelado && setRecuento(n))
+        .catch(() => !cancelado && setRecuento(null));
+    }, ESPERA_RECUENTO_MS);
+    return () => {
+      cancelado = true;
+      clearTimeout(temporizador);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claveBorrador]);
+
+  const abrir = () => {
+    init(valoresAplicados);
+    setRecuento(null);
+    setAbierto(true);
+  };
+
+  const cancelar = () => setAbierto(false);
+
+  // Esc o clic fuera del panel descartan el borrador.
+  useEffect(() => {
+    if (!abierto) return;
+    const alPulsarTecla = (e: KeyboardEvent) => e.key === "Escape" && cancelar();
+    const alPulsarFuera = (e: MouseEvent) => {
+      if (!refContenedor.current?.contains(e.target as Node)) cancelar();
+    };
+    document.addEventListener("keydown", alPulsarTecla);
+    document.addEventListener("mousedown", alPulsarFuera);
+    return () => {
+      document.removeEventListener("keydown", alPulsarTecla);
+      document.removeEventListener("mousedown", alPulsarFuera);
+    };
+  }, [abierto]);
+
+  const aplicar = () => {
     onFiltroChanged(buildFiltros(modelo));
+    setAbierto(false);
   };
 
-  const onLimpiar = () => {
-    init(modeloInicial);
-    onFiltroChanged(filtroInicial);
+  const limpiarTodo = () => {
+    const iniciales = filtroToValores(filtroInicial, metaFiltro);
+    init(iniciales);
+    if (!abierto) onFiltroChanged(filtroInicial);
   };
 
-  const limpiarUno = (id: string) => {
-    const valorDefecto = metaFiltro[id]?.valorDefecto ?? undefined;
-    const campoApi = metaFiltro[id]?.campo ?? id;
+  const quitar = (id: string) => {
+    const siguiente = { ...valoresAplicados, [id]: metaFiltro[id]?.valorDefecto };
+    onFiltroChanged(buildFiltros(siguiente));
+  };
 
-    if (valorDefecto) {
-      const filtros = filtro.filter(([campo]) => campo !== campoApi);
-      const clausulaExistente = filtro.find(([campo]) => campo === campoApi);
-      if (!clausulaExistente) {
-        init({ ...modelo, [id]: valorDefecto });
-        return;
-      }
-      const [_, operador] = clausulaExistente;
-
-      init({ ...modelo, [id]: valorDefecto });
-      onFiltroChanged([...filtros, [campoApi, operador, valorDefecto as string]]);
-    } else {
-      const filtros = filtro.filter(([campo]) => campo !== campoApi);
-      onFiltroChanged(filtros);
+  const renderInput = (campo: MetaCampoFiltro) => {
+    if (campo.render) {
+      const { valor, onChange: onChangeProp } = uiProps(campo.id);
+      const onChange = onChangeProp as (v: unknown) => void;
+      return campo.render(valor, onChange);
+    }
+    // Extraemos `tipo` del spread: en el contexto de filtros ese campo decide
+    // qué renderizador usar, pero no debe fluir hacia los componentes de UI
+    // individuales (que tienen sus propios subtipos para ese prop).
+    const { tipo: _, ...uiPropsBase } = uiProps(campo.id);
+    // "mes_año" es un tipo de filtro propio, no parte de TipoInput (form inputs).
+    // El cast es necesario porque MetaCampoFiltro.tipo es TipoInput en tiempo de tipos.
+    if ((campo.tipo as string) === "mes_año") {
+      return <QMonthYear {...uiPropsBase} label={campo.label} />;
+    }
+    switch (campo.tipo) {
+      case "intervalo_fechas":
+        return (
+          <QDateInterval {...uiPropsBase} tipo={"fecha"} label={campo.label} />
+        );
+      case "intervalo_numeros":
+        return (
+          <QNumberInterval {...uiPropsBase} tipo={"numero"} label={campo.label} />
+        );
+      case "multiseleccion":
+        return (
+          <QMultiCheckbox
+            {...uiPropsBase}
+            opciones={campo.opciones as Opcion[]}
+            label={campo.label}
+          />
+        );
+      case "checkbox":
+        return <QCheckbox {...uiPropsBase} label={campo.label} />;
+      default:
+        return <QInput {...uiPropsBase} label={campo.label} />;
     }
   };
 
   if (!Object.keys(metaFiltro).length) return;
 
-  if (!mostrar)
-    return (
-      <div className="MaestroFiltrosControlado">
-        <QBoton tamaño="pequeño" onClick={() => setMostar(true)}>
-          Filtros ({filtro.length - filtroInicial.length})
-        </QBoton>
-      </div>
-    );
+  const chips = chipsFiltro(filtro, filtroInicial, metaFiltro, valoresAplicados);
+  const activos = chips.filter((chip) => chip.quitable).length;
+  const textoAplicar =
+    recuento === null ? "Aplicar" : `Aplicar (${recuento.toLocaleString("es-ES")})`;
 
   return (
-    <div className="MaestroFiltrosControlado">
-      <QBoton tamaño="pequeño" onClick={() => setMostar(false)}>
-        Cerrar filtros
-      </QBoton>
-      <quimera-formulario>{renderFiltros()}</quimera-formulario>
-      <footer>
-        <QBoton tamaño="pequeño" onClick={onBuscar}>
-          Buscar
-        </QBoton>
-        <QBoton variante="texto" tamaño="pequeño" onClick={onLimpiar}>
-          Limpiar
-        </QBoton>
-      </footer>
+    <div className="MaestroFiltrosControlado" ref={refContenedor}>
+      <button
+        type="button"
+        className="filtros-boton"
+        aria-expanded={abierto}
+        aria-haspopup="dialog"
+        onClick={abierto ? cancelar : abrir}
+      >
+        <QIcono nombre="filtro" tamaño="sm" />
+        Filtros
+        {activos > 0 && <span className="filtros-contador">{activos}</span>}
+      </button>
+
+      {chips.length > 0 && (
+        <ul className="filtros-chips" aria-label="Filtros activos">
+          {chips.map((chip) => (
+            <li key={chip.id} className="filtros-chip" title={`${chip.etiqueta}: ${chip.texto}`}>
+              <span className="filtros-chip-etiqueta">{chip.etiqueta}</span>
+              <span className="filtros-chip-texto">{chip.texto}</span>
+              {chip.quitable && (
+                <button
+                  type="button"
+                  aria-label={`Quitar filtro ${chip.etiqueta}`}
+                  onClick={() => quitar(chip.id)}
+                >
+                  ×
+                </button>
+              )}
+            </li>
+          ))}
+          {activos > 0 && (
+            <li>
+              <button type="button" className="filtros-limpiar" onClick={limpiarTodo}>
+                Limpiar
+              </button>
+            </li>
+          )}
+        </ul>
+      )}
+
+      {abierto && (
+        <>
+          <div className="filtros-fondo" onClick={cancelar} />
+          <div className="filtros-panel" role="dialog" aria-label="Filtros">
+            <header className="filtros-panel-cabecera">
+              <span>Filtros</span>
+              <button type="button" onClick={cancelar} aria-label="Cerrar filtros">
+                <QIcono nombre="cerrar" tamaño="sm" />
+              </button>
+            </header>
+            <quimera-formulario>
+              {ordenarCamposPanel(metaFiltro).map((campo) => (
+                <div
+                  key={campo.id}
+                  className="campo-filtro"
+                  data-ancho={campoAncho(campo) || undefined}
+                >
+                  {renderInput(campo)}
+                </div>
+              ))}
+            </quimera-formulario>
+            <footer>
+              <button type="button" className="filtros-limpiar" onClick={limpiarTodo}>
+                Limpiar todo
+              </button>
+              <span className="filtros-panel-hueco" />
+              <QBoton variante="borde" onClick={cancelar}>
+                Cancelar
+              </QBoton>
+              <QBoton onClick={aplicar}>
+                {textoAplicar}
+              </QBoton>
+            </footer>
+          </div>
+        </>
+      )}
     </div>
   );
 };

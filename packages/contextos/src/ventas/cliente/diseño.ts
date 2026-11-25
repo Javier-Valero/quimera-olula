@@ -1,4 +1,4 @@
-import { Entidad } from "@olula/lib/diseño.ts";
+import { Direccion, Entidad } from "@olula/lib/diseño.ts";
 
 export interface Cliente extends Entidad {
   id: string;
@@ -24,6 +24,8 @@ export interface Cliente extends Entidad {
   contacto_id: string;
   cuenta_domiciliada: string;
   descripcion_cuenta: string;
+  cuenta_remesa: string;
+  descripcion_cuenta_remesa: string;
   forma_pago: string;
   divisa: string;
   serie: string;
@@ -41,29 +43,26 @@ export type NuevoCliente = {
   empresa_id: string;
   tipo_id_fiscal: string;
   agente_id: string;
+  direccion?: NuevaDireccion;
 };
 
-export type DirCliente = {
+export interface DirCliente extends Direccion {
   id: string;
   dir_envio: boolean;
   dir_facturacion: boolean;
+};
+
+export type NuevaDireccion = {
   nombre_via: string;
   tipo_via: string;
   numero: string;
   otros: string;
   cod_postal: string;
   ciudad: string;
-  provincia_id: number;
   provincia: string;
   pais_id: string;
   apartado: string;
   telefono: string;
-};
-
-export type NuevaDireccion = {
-  nombre_via: string;
-  tipo_via: string;
-  ciudad: string;
 };
 
 export type FormBaja = {
@@ -75,32 +74,32 @@ export interface CuentaBanco extends Entidad {
   descripcion: string;
   iban: string;
   bic: string;
-};
-
-export type CuentaBancoAPI = {
-  descripcion: string;
-  cuenta: {
-    iban: string;
-    bic: string;
-  };
+  codigo_cuenta: string;
+  pais_id: string;
+  entidad: string;
+  agencia: string;
+  digito_control: string;
+  cuenta: string;
 };
 
 export type NuevaCuentaBanco = {
   descripcion: string;
   iban: string;
-  bic: string;
 };
 
+/** Contacto de la agenda del cliente (crm_contactos + contactosclientes, tablas del
+ *  módulo principal de facturación: no dependen del contexto CRM). */
 export interface CrmContacto extends Entidad {
   id: string;
   nombre: string;
+  cargo: string;
   email: string;
+  telefono1: string;
+  telefono2: string;
+  observaciones: string;
 };
 
-export type NuevoCrmContacto = {
-  nombre: string;
-  email: string;
-};
+export type NuevoCrmContacto = Omit<CrmContacto, "id">;
 
 
 export type GetCliente = (id: string) => Promise<Cliente>;

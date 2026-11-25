@@ -120,9 +120,19 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
   const classes = useStyles();
   const width = useWidth();
   const [anchoDescripcionCalculado, setAnchoDescripcionCalculado] = useState(600);
+  const [anchoPteCalculado, setAnchoPteCalculado] = useState(50);
+  const [anchoServidoCalculado, setAnchoServidoCalculado] = useState(80);
+  const [anchoCantCalculado, setAnchoCantCalculado] = useState(80);
+  const [anchoAEnviarCalculado, setAnchoAEnviarCalculado] = useState(80);
   const mobile = ["xs", "sm"].includes(width);
 
   const dataLineas = lineas.idList.map(id => lineas.dict[id]);
+
+  const hayLineasParaCerrar = dataLineas.some(linea =>
+    !linea.cerradaPDA &&
+    (linea.shCantAlbaran === 0 || linea.shCantAlbaran == null) &&
+    parseFloat(linea.canServida) < parseFloat(linea.cantidad)
+  );
 
   useEffect(() => {
     dispatch({
@@ -140,11 +150,32 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
 
   useEffect(() => {
     if (mobile && dataLineas.length > 0) {
-      const maxChars = Math.max(...dataLineas.map(l => (l.descripcion || "").length));
-      const anchoEstimado = Math.min(Math.max(150, maxChars * 7.5 + 40), 900);
-      setAnchoDescripcionCalculado(anchoEstimado);
+      const maxCharsDescripcion = Math.max(...dataLineas.map(l => (l.descripcion || "").length));
+      const anchoEstimadoDescripcion = Math.min(Math.max(150, maxCharsDescripcion * 8.5 + 40), 900);
+
+      const maxCharsPte = Math.max(...dataLineas.map(l => ((parseFloat(l.cantidad) - parseFloat(l.canServida)) || "").toString().length));
+      const anchoEstimadoPte = Math.min(Math.max(50, maxCharsPte * 7.5 + 40), 150);
+
+      const maxCharsServido = Math.max(...dataLineas.map(l => (l.totalEnAlbaran || "").length));
+      const anchoEstimadoServido = Math.min(Math.max(70, maxCharsServido * 7.5 + 40), 150);
+
+      const maxCharsCant = Math.max(...dataLineas.map(l => (l.cantidad || "").length));
+      const anchoEstimadoCant = Math.min(Math.max(70, maxCharsCant * 7.5 + 40), 150);
+
+      const maxCharsAEnviar = Math.max(...dataLineas.map(l => (Math.abs(l.shCantAlbaran) || 0).toString().length));
+      const anchoEstimadoAEnviar = Math.min(Math.max(70, maxCharsAEnviar * 7.5 + 40), 150);
+
+      setAnchoDescripcionCalculado(anchoEstimadoDescripcion);
+      setAnchoPteCalculado(anchoEstimadoPte);
+      setAnchoServidoCalculado(anchoEstimadoServido);
+      setAnchoCantCalculado(anchoEstimadoCant);
+      setAnchoAEnviarCalculado(anchoEstimadoAEnviar);
     } else {
       setAnchoDescripcionCalculado(600);
+      setAnchoPteCalculado(70);
+      setAnchoServidoCalculado(70);
+      setAnchoCantCalculado(70);
+      setAnchoAEnviarCalculado(70);
     }
   }, [dataLineas, mobile]);
 
@@ -211,8 +242,10 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
   };
 
   const lineaBloqueada = (linea) => {
-    return (linea.dtoLineal !== 0 && linea.shCantAlbaran !== 0.0 && parseFloat(linea.cantidad) !== (parseFloat(linea.canServida + linea.shCantAlbaran)))
+    return (linea.dtoLineal !== 0 && (linea.shCantAlbaran ?? 0) !== 0 && parseFloat(linea.cantidad) !== (parseFloat(linea.canServida + linea.shCantAlbaran)))
   };
+
+
 
   const anchoDetalle = 1;
   const schema = getSchemas().pedidos;
@@ -250,6 +283,12 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
                 icon="send"
                 disabled={pedido.buffer?.estadoPda !== "Preparado" || status.enviandoPda}
                 busy={status.enviandoPda}
+              />
+              <QBoxButton
+                id="cerrarLineasNoInformadas"
+                title="Cerrar líneas sin cantidad"
+                icon="lock"
+                disabled={!hayLineasParaCerrar}
               />
               <QBoxButton
                 id="quitarTrabajador"
@@ -380,6 +419,7 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
                         }
                         disabled={lineaBloqueada(linea)}
                       >
+                        {/* {console.log('mimensaje_lineas', linea.referencia, "dto", linea.dtoLineal, "cantAlb", linea.shCantAlbaran, "cantidad", parseFloat(linea.cantidad), "canServ", linea.canServida, "total", parseFloat(linea.canServida + linea.shCantAlbaran), linea.shCantAlbaran !== 0.0)} */}
                         <Icon className={lineaBloqueada(linea) ? classes.iconoBloqueado : classes.iconoCabecera}>
                           {linea.cerradaPDA ? "lock" : "lock_open"}
                         </Icon>
@@ -392,14 +432,15 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
                     order="pendiente"
                     pl={1}
                     value={linea => parseFloat(linea.cantidad) - parseFloat(linea.canServida)}
-                    width={50}
+                    width={anchoPteCalculado}
+                  // width={50}
                   />
                   <Column.Action
                     id="aenviar"
                     className={classes.numberColumnEditable}
                     header="A env"
                     align="right"
-                    width={80}
+                    width={anchoAEnviarCalculado}
                     value={(linea, idx) => (
                       <>
                         {!linea.porLotes && (
@@ -463,7 +504,7 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
                     order="refprov"
                     pl={2}
                     value={linea => linea.referenciaProv}
-                    width={160}
+                    width={180}
                   />
                   <Column.Decimal
                     id="totalenalbaran"
@@ -471,7 +512,7 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
                     order="ubicacion"
                     pl={2}
                     value={linea => linea.totalEnAlbaran}
-                    width={50}
+                    width={anchoServidoCalculado}
                   />
                   <Column.Decimal
                     id="cantidad"
@@ -479,7 +520,7 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
                     order="cantidad"
                     pl={2}
                     value={linea => linea.cantidad}
-                    width={110}
+                    width={anchoCantCalculado}
                   />
                   <Column.Decimal
                     id="disponible"
@@ -497,7 +538,7 @@ function PedidoGenerarPreparaciones({ callbackChanged, callbackPedidoEnviadoPda,
                     order="referencia"
                     pl={2}
                     value={linea => linea.referencia}
-                    width={160}
+                    width={180}
                   />
                   <Column.Text
                     id="dtolineal"

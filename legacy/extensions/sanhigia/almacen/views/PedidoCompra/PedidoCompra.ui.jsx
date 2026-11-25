@@ -109,6 +109,12 @@ function PedidoCompra({ callbackChanged, idPedido, initPedido, useStyles }) {
 
   const dataLineas = lineas.idList.map(id => lineas.dict[id]);
 
+  const hayLineasParaCerrar = dataLineas.some(linea =>
+    !linea.cerradaPDA &&
+    (linea.shCantAlbaran === 0 || linea.shCantAlbaran == null) &&
+    parseFloat(linea.totalEnAlbaran) < parseFloat(linea.cantidad)
+  );
+
   useEffect(() => {
     util.publishEvent(pedido.event, callbackChanged);
   }, [pedido.event.serial]);
@@ -116,7 +122,7 @@ function PedidoCompra({ callbackChanged, idPedido, initPedido, useStyles }) {
   useEffect(() => {
     if (mobile && dataLineas.length > 0) {
       const maxChars = Math.max(...dataLineas.map(l => (l.descripcion || "").length));
-      const anchoEstimado = Math.min(Math.max(150, maxChars * 7.5 + 40), 900);
+      const anchoEstimado = Math.min(Math.max(150, maxChars * 8.5 + 40), 900);
       setAnchoDescripcionCalculado(anchoEstimado);
     } else {
       setAnchoDescripcionCalculado(600);
@@ -213,6 +219,12 @@ function PedidoCompra({ callbackChanged, idPedido, initPedido, useStyles }) {
                 title="Generar Albaran"
                 icon="article"
                 disabled={procesandoGenerarAlbaran || pedido.buffer?.estadoPda !== "Listo PDA"}
+              />
+              <QBoxButton
+                id="cerrarLineasNoInformadas"
+                title="Cerrar líneas sin cantidad"
+                icon="lock"
+                disabled={!hayLineasParaCerrar}
               />
             </>
           }
@@ -394,7 +406,7 @@ function PedidoCompra({ callbackChanged, idPedido, initPedido, useStyles }) {
                     order="refprov"
                     pl={2}
                     value={linea => linea.referenciaProv}
-                    width={160}
+                    width={180}
                   />
                   <Column.Decimal
                     id="totalenalbaran"
@@ -415,10 +427,10 @@ function PedidoCompra({ callbackChanged, idPedido, initPedido, useStyles }) {
                   <Column.Text
                     id="referencia"
                     header="Referencia"
-                    order="refrencia"
+                    order="referencia"
                     pl={2}
                     value={linea => linea.referencia}
-                    width={160}
+                    width={180}
                   />
                 </Table>
               </Box>

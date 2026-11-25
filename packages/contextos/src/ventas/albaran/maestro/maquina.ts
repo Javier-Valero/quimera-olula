@@ -1,6 +1,6 @@
 import { Maquina } from "@olula/lib/diseño.js";
 import { ContextoMaestroAlbaran, EstadoMaestroAlbaran } from "./diseño.ts";
-import { Albaranes, ampliarAlbaranes, recargarAlbaranes } from "./dominio.ts";
+import { Albaranes, ampliarAlbaranes, recargarAlbaranes } from "./maestro.ts";
 
 
 export const getMaquina: () => Maquina<EstadoMaestroAlbaran, ContextoMaestroAlbaran> = () => {
@@ -30,7 +30,7 @@ export const getMaquina: () => Maquina<EstadoMaestroAlbaran, ContextoMaestroAlba
 
         CREANDO_ALBARAN: {
 
-            albaran_creado: [Albaranes.incluir, 'INICIAL'],
+            albaran_creado: [Albaranes.incluir, Albaranes.activar, 'INICIAL'],
 
             creacion_cancelada: "INICIAL",
         },

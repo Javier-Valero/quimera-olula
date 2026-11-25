@@ -1,11 +1,14 @@
+import { CamposDireccionVenta } from "#/ventas/comun/componentes/CamposDireccionVenta.tsx";
 import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
+import { EmpresaActual } from "#/comun/componentes/empresaActual.tsx";
 import { QModal } from "@olula/componentes/moleculas/qmodal.tsx";
-import { ContextoError } from "@olula/lib/contexto.ts";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { useFocus } from "@olula/lib/useFocus.js";
+import { useForm } from "@olula/lib/useForm.js";
 import { HookModelo, useModelo } from "@olula/lib/useModelo.ts";
-import { useContext, useState } from "react";
+import { useCallback, useState } from "react";
+import { conEmpresaActual } from "#/valores/empresaActual.ts";
 import { Cliente } from "../../comun/componentes/cliente.tsx";
 import { DirCliente } from "../../comun/componentes/dirCliente.tsx";
 import {
@@ -19,44 +22,49 @@ import {
   metaNuevoPresupuestoClienteNoRegistrado,
   nuevoPresupuestoClienteNoRegistradoVacio,
   nuevoPresupuestoVacio,
-} from "./dominio.ts";
+} from "./crear.ts";
 
 export const CrearPresupuesto = ({
   publicar = async () => {},
-  activo = false,
   onCancelar = () => {},
   modeloVacio = nuevoPresupuestoVacio,
 }: {
   publicar?: EmitirEvento;
-  activo: boolean;
   onCancelar?: () => void;
   modeloVacio?: NuevoPresupuesto;
 }) => {
+  const modeloConEmpresa = () => conEmpresaActual(modeloVacio);
+  const modeloNoRegistradoConEmpresa = () =>
+    conEmpresaActual(nuevoPresupuestoClienteNoRegistradoVacio);
+
   const [modoNoRegistrado, setModoNoRegistrado] = useState(false);
-  const presupuestoRegistrado = useModelo(metaNuevoPresupuesto, modeloVacio);
+  // Lazy initializer: se evalúa solo en el montaje, garantiza referencia estable para useModelo
+  const [modeloInicialRegistrado] = useState(modeloConEmpresa);
+  const [modeloInicialNoRegistrado] = useState(modeloNoRegistradoConEmpresa);
+  const presupuestoRegistrado = useModelo(metaNuevoPresupuesto, modeloInicialRegistrado);
   const presupuestoNoRegistrado = useModelo(
     metaNuevoPresupuestoClienteNoRegistrado,
-    nuevoPresupuestoClienteNoRegistradoVacio
+    modeloInicialNoRegistrado
   );
 
   const toggleModoCliente = () => {
     const nuevoModo = !modoNoRegistrado;
     setModoNoRegistrado(nuevoModo);
 
-    presupuestoRegistrado.init(modeloVacio);
-    presupuestoNoRegistrado.init(nuevoPresupuestoClienteNoRegistradoVacio);
+    presupuestoRegistrado.init(modeloConEmpresa());
+    presupuestoNoRegistrado.init(modeloNoRegistradoConEmpresa());
   };
 
   const cancelar = () => {
-    presupuestoRegistrado.init(modeloVacio);
-    presupuestoNoRegistrado.init(nuevoPresupuestoClienteNoRegistradoVacio);
+    presupuestoRegistrado.init(modeloConEmpresa());
+    presupuestoNoRegistrado.init(modeloNoRegistradoConEmpresa());
     setModoNoRegistrado(false);
     onCancelar();
   };
 
   return (
     <QModal
-      abierto={activo}
+      abierto={true}
       nombre="crear_presupuesto"
       titulo="Nuevo Presupuesto"
       onCerrar={cancelar}
@@ -88,10 +96,12 @@ const FormAltaPresupuesto = ({
   modeloVacio: NuevoPresupuesto;
   onToggleModoCliente: () => void;
 }) => {
-  const { intentar } = useContext(ContextoError);
   const focus = useFocus();
+  const modeloConEmpresa = () => conEmpresaActual(modeloVacio);
+  const modeloNoRegistradoConEmpresa = () =>
+    conEmpresaActual(nuevoPresupuestoClienteNoRegistradoVacio);
 
-  const crear = async () => {
+  const crear_ = useCallback(async () => {
     let modelo;
 
     if (modoNoRegistrado) {
@@ -100,77 +110,81 @@ const FormAltaPresupuesto = ({
       modelo = { ...presupuestoRegistrado.modelo };
     }
 
-    const id = await intentar(() => postPresupuesto(modelo));
+    const id = await postPresupuesto(modelo);
     const presupuestoCreada = await getPresupuesto(id);
     publicar("presupuesto_creado", presupuestoCreada);
 
-    presupuestoRegistrado.init(modeloVacio);
-    presupuestoNoRegistrado.init(nuevoPresupuestoClienteNoRegistradoVacio);
-  };
+    presupuestoRegistrado.init(modeloConEmpresa());
+    presupuestoNoRegistrado.init(modeloNoRegistradoConEmpresa());
+  }, [
+    modoNoRegistrado,
+    presupuestoNoRegistrado,
+    presupuestoRegistrado,
+    publicar,
+    modeloVacio,
+  ]);
 
-  const cancelar = () => {
+  const cancelar_ = useCallback(() => {
     publicar("creacion_presupuesto_cancelada");
-    presupuestoRegistrado.init(modeloVacio);
-    presupuestoNoRegistrado.init(nuevoPresupuestoClienteNoRegistradoVacio);
-  };
+    presupuestoRegistrado.init(modeloConEmpresa());
+    presupuestoNoRegistrado.init(modeloNoRegistradoConEmpresa());
+  }, [publicar, presupuestoRegistrado, presupuestoNoRegistrado, modeloVacio]);
+
+  const [crear, cancelar] = useForm(crear_, cancelar_);
 
   return (
     <>
       <div className="modo-cliente">
         <QBoton onClick={onToggleModoCliente} variante="texto" tipo="button">
-          {modoNoRegistrado ? "Cliente no registrado" : "Cliente registrado"}
+          {modoNoRegistrado ? "Cliente registrado" : "Cliente no registrado"}
         </QBoton>
       </div>
-      <quimera-formulario>
-        {modoNoRegistrado ? (
-          <>
-            <QInput
-              label="Nombre del Cliente"
-              {...presupuestoNoRegistrado.uiProps("nombre_cliente")}
-              ref={focus}
-            />
-            <QInput
-              label="ID Fiscal"
-              {...presupuestoNoRegistrado.uiProps("id_fiscal")}
-            />
-
-            <QInput
-              label="Tipo de Vía"
-              {...presupuestoNoRegistrado.uiProps("tipo_via")}
-            />
-            <QInput
-              label="Nombre de la Vía"
-              {...presupuestoNoRegistrado.uiProps("nombre_via")}
-            />
-            <QInput
-              label="Ciudad"
-              {...presupuestoNoRegistrado.uiProps("ciudad")}
-            />
-            <QInput
-              label="Empresa"
-              {...presupuestoNoRegistrado.uiProps("empresa_id")}
-            />
-          </>
-        ) : (
-          <>
-            <Cliente
-              {...presupuestoRegistrado.uiProps("cliente_id", "nombre")}
-              nombre="clientePresupuesto"
-              ref={focus}
-            />
-            <DirCliente
-              clienteId={presupuestoRegistrado.modelo.cliente.cliente_id}
-              {...presupuestoRegistrado.uiProps("direccion_id")}
-            />
-            <QInput
-              label="Empresa"
-              {...presupuestoRegistrado.uiProps("empresa_id")}
-            />
-          </>
-        )}
-      </quimera-formulario>
+      <div className="CrearPresupuesto campos-direccion">
+        <quimera-formulario>
+          {modoNoRegistrado ? (
+            <>
+              <EmpresaActual
+                onChange={(id) => presupuestoNoRegistrado.uiProps("empresa_id").onChange(id)}
+              />
+              <QInput
+                label="Nombre del Cliente"
+                {...presupuestoNoRegistrado.uiProps("nombre_cliente")}
+                ref={focus}
+              />
+              <QInput
+                label="ID Fiscal"
+                {...presupuestoNoRegistrado.uiProps("id_fiscal")}
+              />
+              <CamposDireccionVenta uiProps={presupuestoNoRegistrado.uiProps} />
+            </>
+          ) : (
+            <>
+              <EmpresaActual
+                onChange={(id) => presupuestoRegistrado.uiProps("empresa_id").onChange(id)}
+              />
+              <Cliente
+                {...presupuestoRegistrado.uiProps("cliente_id", "nombre")}
+                nombre="clientePresupuesto"
+                avisarObservaciones
+                ref={focus}
+              />
+              <DirCliente
+                clienteId={presupuestoRegistrado.modelo.cliente_id}
+                {...presupuestoRegistrado.uiProps("direccion_id")}
+              />
+            </>
+          )}
+        </quimera-formulario>
+      </div>
       <div className="botones">
-        <QBoton onClick={crear} deshabilitado={!presupuestoRegistrado.valido}>
+        <QBoton
+          onClick={crear}
+          deshabilitado={
+            modoNoRegistrado
+              ? !presupuestoNoRegistrado.valido
+              : !presupuestoRegistrado.valido
+          }
+        >
           Guardar
         </QBoton>
         <QBoton onClick={cancelar} variante="texto">

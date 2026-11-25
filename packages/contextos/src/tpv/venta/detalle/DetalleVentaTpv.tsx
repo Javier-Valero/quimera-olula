@@ -1,10 +1,10 @@
 import { CambiarDescuento } from "#/ventas/comun/componentes/moleculas/CambiarDescuento/CambiarDescuento.tsx";
-import { getReportFactura } from "#/ventas/factura/infraestructura.ts";
 import { TotalesVenta } from "#/ventas/venta/vistas/TotalesVenta.tsx";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { Detalle, QBoton, Tab, Tabs } from "@olula/componentes/index.js";
 import { EmitirEvento, Entidad } from "@olula/lib/diseño.js";
-import { abrirCajon, imprimir_blob } from "@olula/lib/impresion.ts";
+import { FactoryObj } from "@olula/lib/factory_ctx.tsx";
+import { abrirCajon } from "@olula/lib/impresion.ts";
 import { listaEntidadesInicial } from "@olula/lib/ListaEntidades.js";
 import { useModelo } from "@olula/lib/useModelo.js";
 import { useCallback, useEffect, useRef } from "react";
@@ -13,33 +13,20 @@ import { BorrarPagoVentaTpv } from "../borrar_pago/BorrarPagoVentaTpv.tsx";
 import { DevolverVentaTpv } from "../devolver/DevolverVentaTpv.tsx";
 import { LineaFactura, PagoVentaTpv, VentaTpv } from "../diseño.ts";
 import { ventaTpvVacia } from "../dominio.ts";
-import { getReportVale, getReportVenta } from "../infraestructura.ts";
+import { EmitirVentaTpv } from "../emitir/EmitirVentaTpv.tsx";
 import { PagarTarjetaVentaTpv } from "../pagar_con_tarjeta/PagarTarjetaVentaTpv.tsx";
+import { PagarQrVentaTpv } from "../pagar_con_qr/PagarQrVentaTpv.tsx";
 import { PagoValeVentaTpv } from "../pagar_con_vale/PagoValeVentaTpv.tsx";
 import { PagarEfectivoVentaTpv } from "../pagar_en_efectivo/PagarEfectivoVentaTpv.tsx";
 import { TiqueRegaloVentaTpv } from "../tique_regalo/TiqueRegaloVentaTpv.tsx";
+import { publicarEnVisor } from "#/tpv/visor/canal.ts";
+import { metodoCobroDeEstado, ventaVisorDesdeVenta } from "#/tpv/visor/dominio.ts";
 import { PendienteVenta } from "./comps/PendienteVenta.tsx";
-import { ContextoVentaTpv, guardarVenta, metaVentaTpv } from "./detalle.ts";
+import { ContextoVentaTpv, guardarVenta, imprimirTicketOFactura, imprimirVale, metaVentaTpv } from "./detalle.ts";
 import { Lineas } from "./lineas/Lineas.tsx";
 import { getMaquina } from "./maquina.ts";
 import { Pagos } from "./pagos/Pagos.tsx";
 import { TabCliente } from "./tabs/TabCliente.tsx";
-
-const imprimirTicketOFactura = async (venta: VentaTpv) => {
-    if (venta.cliente) {
-        const blob = await getReportFactura(venta.id);
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
-    } else {
-        const blob = await getReportVenta(venta.id);
-        imprimir_blob(blob)
-    }
-}
-
-const imprimirVale = async (venta: VentaTpv) => {
-    const blob = await getReportVale(venta.codigo);
-    imprimir_blob(blob)
-}
 
 export const DetalleVentaTpv = ({
   id,
@@ -57,10 +44,12 @@ export const DetalleVentaTpv = ({
 
     const { ctx, emitir } = useMaquina(getMaquina, contextoInicial, publicar);
 
+    const valesAntesQueTique = (FactoryObj.app.TPV?.venta_imprimirValesAntesQueTique as boolean | undefined) ?? false;
+
     const autoGuardar = useCallback(
         async (venta: VentaTpv) => {
-        await guardarVenta(ctx, venta);
-        await emitir("venta_guardada");
+            await guardarVenta(ctx, venta);
+            await emitir("venta_guardada");
         },
         [ctx, emitir]
     );
@@ -73,23 +62,36 @@ export const DetalleVentaTpv = ({
 
     const estadoAnterior = useRef(ctx.estado); // Referencia para saber cuándo imprimir el tique
     useEffect(() => {
-        const estadosPago = ["PAGANDO_EN_EFECTIVO", "PAGANDO_CON_TARJETA", "PAGANDO_CON_VALE"];
-        if (ctx.estado === 'EMITIDA' && estadosPago.includes(estadoAnterior.current)) {
-            imprimirTicketOFactura(ctx.venta);
+        const veniaDePagar = metodoCobroDeEstado(estadoAnterior.current) !== null;
+        if (ctx.estado === 'EMITIDA' && veniaDePagar && ctx.venta.pendiente === 0) {
+            // Antes que la foto de la venta, para que el visor calcule el cambio.
+            publicarEnVisor({ tipo: "pagado", ventaId: ctx.venta.id, importe: ctx.venta.total, divisaId: ctx.venta.divisa_id });
+            imprimirTicketOFactura(ctx.venta, ctx.pagos.lista, valesAntesQueTique);
         }
         estadoAnterior.current = ctx.estado;
     }, [ctx.estado, ctx.venta]);
 
+    // Visor de cliente: artículos, totales y método de cobro en curso.
+    useEffect(() => {
+        if (!ctx.venta.id) return;
+        publicarEnVisor({
+            tipo: "venta",
+            venta: ventaVisorDesdeVenta(ctx.venta, ctx.lineas.lista),
+            metodo: metodoCobroDeEstado(ctx.estado),
+        });
+    }, [ctx.venta, ctx.lineas.lista, ctx.estado]);
+
+    useEffect(() => () => publicarEnVisor({ tipo: "limpiar" }), []);
+
     if (!ctx.venta.id) return;
 
     const imprimir = async () => {
-        await imprimirTicketOFactura(ctx.venta);
+        await imprimirTicketOFactura(ctx.venta, ctx.pagos.lista);
     };
 
     const imprimir_vale = async () => {
-        await imprimirVale(ctx.venta);
+        await imprimirVale(ctx.venta.codigo);
     };
-
 
     const { estado, pagos, lineas, venta } = ctx;
 
@@ -113,6 +115,12 @@ export const DetalleVentaTpv = ({
             )}
             <QBoton texto="Imprimir" onClick={imprimir} />
             <QBoton texto="Cajón" onClick={abrirCajon} />
+            {estado === "ABIERTA" && (
+                <QBoton
+                texto="Emitir"
+                onClick={() => emitir("emision_solicitada")}
+                />
+            )}
             {estado == "EMITIDA" && venta.total > 0 && (
                 <QBoton
                 texto="Tique regalo"
@@ -129,39 +137,42 @@ export const DetalleVentaTpv = ({
             <Tabs
             children={[
                 <Tab
-                key="tab-1"
-                label="Cliente"
-                children={
-                    <TabCliente
-                    venta={venta}
-                    estado={estado}
-                    form={modeloVenta}
-                    publicar={emitir}
-                    />
-                }
+                    key="tab-1"
+                    label="Cliente"
+                    children={
+                        <TabCliente
+                            venta={venta}
+                            estado={estado}
+                            form={modeloVenta}
+                            publicar={emitir}
+                        />
+                    }
                 />,
                 <Tab
-                key="tab-3"
-                label="Pagos"
-                children={
-                    <Pagos
-                    pagoActivo={pagos.activo}
-                    pagos={pagos.lista}
-                    estado={estado}
-                    publicar={emitir}
-                    />
-                }
+                    key="tab-3"
+                    label="Pagos"
+                    children={
+                        <Pagos
+                            pagoActivo={pagos.activo}
+                            pagos={pagos.lista}
+                            publicar={emitir}
+                        />
+                    }
                 />,
             ]}
             ></Tabs>
 
-            <TotalesVenta publicar={emitir} modeloVenta={modeloVenta} />
+            <TotalesVenta
+              publicar={emitir}
+              modeloVenta={modeloVenta}
+              formato="linea"
+            />
 
             {estado === "CAMBIANDO_DESCUENTO" && (
                 <CambiarDescuento publicar={emitir} venta={venta}/>
             )}
 
-            {estado !== "EMITIDA" && (
+            {venta.pendiente !== 0 && (
                 <PendienteVenta publicar={emitir} venta={venta} />
             )}
             <Lineas
@@ -173,11 +184,17 @@ export const DetalleVentaTpv = ({
             {estado === "BORRANDO_VENTA" && (
                 <BorrarVentaTpv publicar={emitir} venta={venta} />
             )}
+            {estado === "EMITIENDO_VENTA" && (
+                <EmitirVentaTpv publicar={emitir} venta={venta} />
+            )}
             {estado === "PAGANDO_EN_EFECTIVO" && (
                 <PagarEfectivoVentaTpv publicar={emitir} venta={venta} />
             )}
             {estado === "PAGANDO_CON_TARJETA" && (
                 <PagarTarjetaVentaTpv publicar={emitir} venta={venta} />
+            )}
+            {estado === "PAGANDO_CON_QR" && (
+                <PagarQrVentaTpv publicar={emitir} venta={venta} />
             )}
             {estado === "PAGANDO_CON_VALE" && (
                 <PagoValeVentaTpv publicar={emitir} venta={venta} />

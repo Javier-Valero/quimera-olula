@@ -9,15 +9,17 @@ import { MaestroDetalle } from "@olula/componentes/maestro/MaestroDetalle.tsx";
 import {
   criteriaDefecto,
   formatearFechaDate,
-  formatearMoneda,
 } from "@olula/lib/dominio.js";
+import { FactoryObj } from "@olula/lib/factory_ctx.tsx";
 import { listaActivaEntidadesInicial } from "@olula/lib/ListaActivaEntidades.js";
 import { getUrlParams, useUrlParams } from "@olula/lib/url-params.js";
-import { useLayout } from "@olula/lib/useLayout.js";
+import { Layout, useLayout } from "@olula/lib/useLayout.js";
 import { useCallback, useEffect, useMemo } from "react";
+import { CrearVentaTpv as CrearVentaTpvBase } from "../crear/CrearVentaTpv.tsx";
 import { DetalleVentaTpv } from "../detalle/DetalleVentaTpv.tsx";
 import { VentaTpv } from "../diseño.ts";
 import { metaTablaFactura } from "./maestro.ts";
+import { TotalPendienteVentaTpv } from "./TotalPendienteVentaTpv.tsx";
 import "./MaestroConDetalleVentaTpv.css";
 import { getMaquina } from "./maquina.ts";
 
@@ -29,7 +31,8 @@ export const MaestroConDetalleVentaTpv = () => {
     };
   }, []);
 
-  const { layout, cambiarLayout } = useLayout("TARJETA");
+  const layoutInicial = (FactoryObj.app.TPV?.venta_layoutInicial as Layout | undefined) ?? "TARJETA";
+  const { layout, cambiarLayout } = useLayout(layoutInicial);
 
   const { id, criteria } = getUrlParams();
   const criteriaInicial =
@@ -67,8 +70,10 @@ export const MaestroConDetalleVentaTpv = () => {
                 onClick={cambiarLayout}
               />
             </div>
-            <PuntoVentaTpvActual onChange={handle_punto_venta_cambiado} />
-            <AgenteTpvActual />
+            <div className="tpv-puesto">
+              <PuntoVentaTpvActual onChange={handle_punto_venta_cambiado} />
+              <AgenteTpvActual />
+            </div>
             <Listado<VentaTpv>
               metaTabla={metaTablaFactura}
               criteria={ctx.ventas.criteria}
@@ -79,9 +84,7 @@ export const MaestroConDetalleVentaTpv = () => {
               seleccionada={ctx.ventas.activo}
               renderAcciones={() => (
                 <div className="maestro-botones">
-                  <QBoton
-                    onClick={() => emitir("creacion_de_venta_solicitada")}
-                  >
+                  <QBoton onClick={() => emitir("crear_venta_solicitada")}>
                     Nueva Venta
                   </QBoton>
                 </div>
@@ -101,6 +104,10 @@ export const MaestroConDetalleVentaTpv = () => {
         seleccionada={ctx.ventas.activo}
         modoDisposicion="maestro-50"
       />
+      {ctx.estado === "CREANDO" && (() => {
+        const CrearVenta_ = (FactoryObj.app.TPV?.venta_CrearVenta as typeof CrearVentaTpvBase) ?? CrearVentaTpvBase;
+        return <CrearVenta_ publicar={emitir} />;
+      })()}
     </div>
   );
 };
@@ -124,7 +131,7 @@ const TarjetaVentaTpv = (venta: VentaTpv) => {
         </div>
       </div>
       <div className="tarjeta-venta-derecha">
-        {`${formatearMoneda(venta.total, venta.divisa_id)}`}
+        <TotalPendienteVentaTpv venta={venta} />
       </div>
     </div>
   );

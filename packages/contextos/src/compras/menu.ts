@@ -1,0 +1,16 @@
+export const menuCompras = {
+    "Compras": { icono: "menu_compras", area: "Operaciones" },
+    "Compras/Resumen": { url: "/dashboard/compras" },
+    "Compras/Pedidos": { url: "/compras/pedido", regla: "compras.pedido" },
+    "Compras/Albaranes": { url: "/compras/albaran", regla: "compras.albaran" },
+    "Compras/Facturas": { alias: ["facturas recibidas", "proveedores"], url: "/compras/factura", regla: "compras.factura" },
+    "Compras/Proveedores": { url: "/compras/proveedor", regla: "compras.proveedor" },
+    "Compras/Artículos": { url: "/compras/articulo", regla: "compras.articulo" },
+    "Compras/Informes": {
+        alias: ["resumen de pedidos de proveedor", "resumen de albaranes de proveedor", "resumen de facturas de proveedor", "acumulado de compras"],
+        url: "/compras/informe",
+        // Las reglas de los documentos de cada pestaña (REGLAS_INFORMES_COMPRAS).
+        regla: ["compras.pedido", "compras.albaran", "compras.factura"],
+    },
+    "Compras/Configuración": { alias: ["artículos de proveedor"], url: "/compras/config", regla: "compras.config" },
+};

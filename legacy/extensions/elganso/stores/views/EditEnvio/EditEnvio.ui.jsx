@@ -4,7 +4,7 @@ import { LinearProgress } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, Field, Icon, IconButton } from "@quimera/comps";
 import { Checkbox } from "@quimera/thirdparty";
-import { navigate } from "hookrouter";
+import { navigate } from "quimera/base";
 import Quimera, { PropValidation, useStateValue } from "quimera";
 import { useEffect, useRef, useState } from "react";
 import { useDbState } from "use-db-state";
@@ -433,6 +433,7 @@ function EditEnvio({ ...props }) {
               }
             }}
             localeText={{
+              noRowsLabel: "No hay artículos",
               toolbarQuickFilterPlaceholder: "Buscar...",
               paginationRowsPerPage: "Líneas por página",
               paginationDisplayedRows: ({ from, to, count }) =>

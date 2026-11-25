@@ -4,6 +4,9 @@ import { RouterFactoryComunOlula } from "#/comun/router_factory.ts";
 // import { RouterFactoryVentasOlula } from "#/ventas/router_factory.ts";
 import { crearRouter } from "@olula/lib/router.ts";
 import { RouteObject } from "react-router";
+import { RouterFactoryCrmSanhigia } from "./contextos/crm/router_factory.ts";
+import { RouterFactoryInformesSanhigia } from "./contextos/informes/router_factory.ts";
+import { RouterFactorySmartsalesSanhigia } from "./contextos/smartsales/router_factory.ts";
 import { RouterFactoryVentasSanhigia } from "./contextos/ventas/router_factory.ts";
 
 
@@ -14,6 +17,9 @@ import { RouterFactoryVentasSanhigia } from "./contextos/ventas/router_factory.t
 export class RouterFactoryLegacy {
     Almacen = RouterFactoryAlmacenOlula;
     Ventas = RouterFactoryVentasSanhigia;
+    Crm = RouterFactoryCrmSanhigia;
+    Informes = RouterFactoryInformesSanhigia;
+    Smartsales = RouterFactorySmartsalesSanhigia;
     Auth = RouterFactoryAuthOlula;
     Comun = RouterFactoryComunOlula;
 }

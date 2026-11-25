@@ -1,13 +1,14 @@
 import { Cliente } from "#/ventas/comun/componentes/cliente.tsx";
-import { DirCliente } from "#/ventas/comun/componentes/dirCliente.tsx";
+import { formatearDireccionVenta } from "#/ventas/comun/dominio.ts";
 import { CambioClienteVenta } from "#/ventas/comun/componentes/moleculas/CambioClienteVenta/CambioClienteVenta.tsx";
 import { CambioCliente } from "#/ventas/comun/componentes/moleculas/CambioClienteVenta/diseño.ts";
-import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { BotonCambiar } from "#/ventas/comun/componentes/BotonCambiar.tsx";
 import { QInput } from "@olula/componentes/atomos/qinput.tsx";
 import { HookModelo } from "@olula/lib/useModelo.ts";
 import { Pedido } from "../../diseño.ts";
 import { EstadoPedido } from "../diseño.ts";
-import { editable } from "../dominio.ts";
+import { pedidoPendiente } from "../../dominio.ts";
+import { editable } from "../detalle.ts";
 import "./TabCliente.css";
 
 interface TabClienteProps {
@@ -22,7 +23,7 @@ export const TabCliente = ({
   publicar = async () => {},
 }: TabClienteProps) => {
   const { modelo } = pedido;
-  const clienteEditable = editable(modelo);
+  const clienteEditable = editable(modelo) && pedidoPendiente(modelo);
 
   const onGuardarCambioCliente = async (cambios: CambioCliente) => {
     publicar("cambio_cliente_listo", cambios);
@@ -35,45 +36,35 @@ export const TabCliente = ({
           nombre="cliente_id"
           valor={modelo.cliente.cliente_id ?? ""}
           descripcion={modelo.cliente.nombre_cliente}
-          deshabilitado={true}
+          soloLectura={true}
         />
         <QInput
           nombre="id_fiscal"
           label="ID Fiscal"
           valor={modelo.cliente.id_fiscal}
-          deshabilitado={true}
+          soloLectura={true}
         />
 
         {clienteEditable && (
           <div className="TabCliente-accion">
-            <QBoton onClick={() => publicar("cambio_cliente_solicitado")}>
-              Cambiar Cliente
-            </QBoton>
+            <BotonCambiar
+              titulo="Cambiar cliente y dirección"
+              onClick={() => publicar("cambio_cliente_solicitado")}
+            />
           </div>
         )}
 
-        {modelo.cliente.cliente_id !== null ? (
-          <DirCliente
-            clienteId={modelo.cliente.cliente_id ?? undefined}
-            nombre="direccion_id"
-            valor={modelo.cliente.direccion_id ?? ""}
-            deshabilitado={!clienteEditable}
-            onChange={() => {}}
-          />
-        ) : (
-          <QInput
-            deshabilitado={true}
-            label="Direccion"
-            nombre="direccion_cliente"
-            valor={`${modelo.cliente.direccion.tipo_via} ${modelo.cliente.direccion.nombre_via}, ${modelo.cliente.direccion.ciudad}`}
-          />
-        )}
+        <QInput
+          soloLectura={true}
+          label="Dirección"
+          nombre="direccion_cliente"
+          valor={formatearDireccionVenta(modelo.cliente.direccion)}
+        />
       </quimera-formulario>
 
       {clienteEditable && estado === "CAMBIANDO_CLIENTE" && (
         <CambioClienteVenta
           venta={pedido}
-          inicializarDesdeVenta={true}
           onGuardar={onGuardarCambioCliente}
           onCancelar={() => publicar("cambio_cliente_cancelado")}
         />

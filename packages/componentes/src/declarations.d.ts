@@ -26,23 +26,28 @@ declare namespace React {
             'quimera-tabla': NodoComun;
             'quimera-lista': NodoComun;
             'quimera-tabla-paginacion': NodoComun;
+            'quimera-tabla-multinivel': NodoComun;
             'quimera-textarea': NodoComun;
             'quimera-icono': NodoComun;
             'box-icon': BoxIcon;
             'quimera-tarjetas': NodoComun;
             'quimera-tarjeta': NodoComun;
+            'quimera-tarjeta-resumen': NodoComun;
             'maestro-detalle': NodoComun;
             'etiqueta-filtro': NodoComun;
             'etiquetas-filtro': NodoComun;
             'quimera-acciones': NodoComun;
             'quimera-autocompletar': NodoComun;
+            'quimera-acordeon': NodoComun;
             'quimera-modal': NodoComun;
             'qhistorias-componente': NodoComun;
             'qhistorias-historia': NodoComun;
             'quimera-historias': NodoComun;
             'menu-lateral': NodoComun;
             'menu-usuario': NodoComun;
+            'panel-asistente': NodoComun;
             'quimera-editor-enriquecido': NodoComun;
+            'quimera-cargando': NodoComun;
         }
     }
 }

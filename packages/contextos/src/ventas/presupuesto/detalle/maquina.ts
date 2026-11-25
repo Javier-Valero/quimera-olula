@@ -7,6 +7,7 @@ import {
     aprobarPresupuesto,
     borrarLinea,
     borrarPresupuesto,
+    cambiarAgente,
     cambiarCantidadLinea,
     cambiarCliente,
     cambiarDescuento,
@@ -19,7 +20,7 @@ import {
     getContextoVacio,
     refrescarLineas,
     refrescarPresupuesto
-} from "./dominio.ts";
+} from "./detalle.ts";
 
 
 export const getMaquina: () => Maquina<EstadoPresupuesto, ContextoPresupuesto> = () => {
@@ -37,6 +38,8 @@ export const getMaquina: () => Maquina<EstadoPresupuesto, ContextoPresupuesto> =
         },
 
         ABIERTO: {
+
+            traza_solicitada: "VIENDO_TRAZA",
 
             linea_creada: [
                 refrescarPresupuesto,
@@ -57,6 +60,8 @@ export const getMaquina: () => Maquina<EstadoPresupuesto, ContextoPresupuesto> =
 
             cambio_cliente_solicitado: "CAMBIANDO_CLIENTE",
 
+            cambio_agente_solicitado: "CAMBIANDO_AGENTE",
+
             descuento_solicitado: "CAMBIANDO_DESCUENTO",
 
             presupuesto_cargado: [abiertoOAprobadoContexto],
@@ -69,8 +74,6 @@ export const getMaquina: () => Maquina<EstadoPresupuesto, ContextoPresupuesto> =
 
             linea_seleccionada: [activarLinea],
 
-            cliente_cambiado: [cambiarCliente],
-
             cambio_cantidad_linea_solicitado: cambiarCantidadLinea,
 
             presupuesto_deseleccionado: [
@@ -80,6 +83,8 @@ export const getMaquina: () => Maquina<EstadoPresupuesto, ContextoPresupuesto> =
         },
 
         APROBADO: {
+
+            traza_solicitada: "VIENDO_TRAZA",
 
             presupuesto_cargado: [abiertoOAprobadoContexto],
 
@@ -103,6 +108,11 @@ export const getMaquina: () => Maquina<EstadoPresupuesto, ContextoPresupuesto> =
             aprobacion_cancelada: "ABIERTO",
         },
 
+        PEDIDO_CREADO: {
+
+            pedido_creado_cerrado: [abiertoOAprobadoContexto],
+        },
+
         CAMBIANDO_DIVISA: {
 
             cambio_divisa_listo: cambiarDivisa,
@@ -115,6 +125,13 @@ export const getMaquina: () => Maquina<EstadoPresupuesto, ContextoPresupuesto> =
             cambio_cliente_listo: [cambiarCliente],
 
             cambio_cliente_cancelado: "ABIERTO",
+        },
+
+        CAMBIANDO_AGENTE: {
+
+            cambio_agente_listo: [cambiarAgente],
+
+            cambio_agente_cancelado: "ABIERTO",
         },
 
         CAMBIANDO_DESCUENTO: {
@@ -145,5 +162,9 @@ export const getMaquina: () => Maquina<EstadoPresupuesto, ContextoPresupuesto> =
             borrar_linea_cancelado: "ABIERTO",
         },
 
+        VIENDO_TRAZA: {
+
+            traza_cerrada: [abiertoOAprobadoContexto],
+        },
     }
 }

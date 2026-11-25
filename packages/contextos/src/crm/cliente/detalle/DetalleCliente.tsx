@@ -1,7 +1,9 @@
-import { TabCrmContactos } from "#/ventas/cliente/detalle/CRMContactos/TabCrmContactos.tsx";
-import { TabDirecciones } from "#/ventas/cliente/detalle/Direcciones/TabDirecciones.tsx";
+import { apiAgendaCliente } from "#/ventas/cliente/infraestructura.ts";
+import { TabCrmContactos } from "#/ventas/cliente/detalle/crm_contactos/TabCrmContactos.tsx";
+import { CambiarIdFiscal } from "#/ventas/comun/componentes/moleculas/CambiarIdFiscal/CambiarIdFiscal.tsx";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { Detalle, QBoton, Tab, Tabs } from "@olula/componentes/index.js";
+import { QuimeraAcciones } from "@olula/componentes/moleculas/qacciones.tsx";
 import { EmitirEvento, Entidad } from "@olula/lib/diseño.js";
 import { useModelo } from "@olula/lib/useModelo.js";
 import { useEffect } from "react";
@@ -55,23 +57,27 @@ export const DetalleCliente = ({
     >
       {!!clienteId && (
         <div className="DetalleCliente">
-          <div className="maestro-botones ">
-            <QBoton onClick={() => emitir("borrado_cliente_solicitado")}>
-              Borrar
-            </QBoton>
+          <div className="maestro-botones">
+            <QuimeraAcciones
+              vertical
+              acciones={[
+                {
+                  icono: "eliminar",
+                  texto: "Borrar",
+                  onClick: () => emitir("borrado_cliente_solicitado"),
+                  advertencia: true,
+                },
+              ]}
+            />
           </div>
 
           <Tabs>
             <Tab label="General">
-              <TabGeneral cliente={cliente} emitir={publicar} />
+              <TabGeneral cliente={cliente} emitir={emitir} />
             </Tab>
 
             <Tab label="Contactos">
-              <TabCrmContactos clienteId={clienteId} />
-            </Tab>
-
-            <Tab label="Direcciones">
-              <TabDirecciones clienteId={clienteId} />
+              <TabCrmContactos entidadId={clienteId} api={apiAgendaCliente} />
             </Tab>
 
             <Tab label="Oportunidades">
@@ -99,6 +105,13 @@ export const DetalleCliente = ({
                 Cancelar
               </QBoton>
             </div>
+          )}
+          {ctx.estado === "CAMBIANDO_ID_FISCAL" && (
+            <CambiarIdFiscal
+              publicar={emitir}
+              tipoIdFiscal={ctx.cliente.tipo_id_fiscal}
+              idFiscal={ctx.cliente.id_fiscal}
+            />
           )}
           {ctx.estado === "BORRANDO" && (
             <BorrarCliente publicar={emitir} cliente={modelo} />

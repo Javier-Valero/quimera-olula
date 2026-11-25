@@ -1,10 +1,11 @@
 import ApiUrls from "#/tpv/comun/urls.ts";
 import Ventas_Urls from "#/ventas/comun/urls.ts";
+import { articuloDeLinea, NuevaLineaVentaApiReq, NuevaLineaVentaApiRes, peticionNuevaLineaApi, respuestaNuevaLineaApi } from "#/ventas/venta/infraestructura.ts";
 import { RestAPI } from "@olula/lib/api/rest_api.ts";
-import { ClausulaFiltro, Direccion, Filtro, Orden, Paginacion } from "@olula/lib/diseño.ts";
+import { ClausulaFiltro, Direccion, Filtro } from "@olula/lib/diseño.ts";
 import { criteriaQuery } from "@olula/lib/infraestructura.ts";
 import { agenteActivo, puntoVentaLocal } from "../comun/infraestructura.ts";
-import { DeleteLinea, DeletePago, DeleteVentaTpv, GetLineasFactura, GetPagosVentaTpv, GetReportVale, GetReportVenta, GetVentasTpv, GetVentaTpv, GetVentaTpvADevolver, LineaFactura, LineaParaTiqueRegalo, PagoVentaTpv, PatchArticuloLinea, PatchCantidadLinea, PatchClienteFactura, PatchDevolverVenta, PatchFechaVenta, PatchLinea, PatchVenta, PostEmitirVale, PostLinea, PostLineaPorBarcode, PostPago, PostVentaTpv, VentaTpv, VentaTpvADevolver } from "./diseño.ts";
+import { DeleteLinea, DeletePago, DeleteVentaTpv, GetLineasFactura, GetPagosVentaTpv, GetReportVale, GetReportVenta, GetVentasTpv, GetVentaTpv, GetVentaTpvADevolver, LineaFactura, LineaParaTiqueRegalo, PagoVentaTpv, PatchArticuloLinea, PatchCantidadLinea, PatchClienteFactura, PatchDevolverVenta, PatchEmitirVenta, PatchFechaVenta, PatchLinea, PatchVenta, PostEmitirVale, PostLinea, PostLineaPorBarcode, PostPago, PostVentaTpv, QueryNuevaLinea, VentaTpv, VentaTpvADevolver } from "./diseño.ts";
 
 const baseUrl = new ApiUrls().VENTA;
 const baseUrlFactura = new Ventas_Urls().FACTURA;
@@ -39,6 +40,7 @@ type VentaTpvAPI = {
     neto: number;
     total_iva: number;
     total_irpf: number;
+    total_recargo: number;
     total_divisa_empresa: number;
     forma_pago_id: string;
     nombre_forma_pago: string;
@@ -64,8 +66,9 @@ type PagoVentaTpvApi = {
     fecha: string;
     vale: string | null;
     arqueo_id: string;
+    saldo_vale: number | null;
     arqueo_abierto: boolean;
-    tipo_tarjeta: string | null;
+    tipo_tarjeta_id: string | null;
 }
 
 interface VentaTpvADevolverAPI extends VentaTpvAPI {
@@ -103,9 +106,10 @@ export const pagoVentaTpvDesdeAPI = (p: PagoVentaTpvApi): PagoVentaTpv => (
         formaPago: p.forma_pago,
         fecha: new Date(Date.parse(p.fecha)),
         vale: p.vale,
+        saldoVale: p.saldo_vale,
         idArqueo: p.arqueo_id,
         arqueoAbierto: p.arqueo_abierto,
-        idTipoTarjeta: p.tipo_tarjeta
+        idTipoTarjeta: p.tipo_tarjeta_id
     }
 );
 
@@ -124,18 +128,20 @@ export const getVentaADevolver: GetVentaTpvADevolver = async (codigo) => {
 };
 
 export const getVentas: GetVentasTpv = async (
-    filtro: Filtro,
-    orden: Orden,
-    paginacion: Paginacion
+    filtro, orden, paginacion
 ) => {
     const miPuntoVentaLocal = puntoVentaLocal.obtenerSeguro();
     const filtroPuntoVenta: ClausulaFiltro = [
         "punto_venta_id",
+        "=",
         miPuntoVentaLocal?.id ?? "",
     ];
 
-    const filtroCombinado: Filtro = Array.isArray(filtro)
-        ? [...filtro, filtroPuntoVenta]
+    const esListaDeClausulas =
+        Array.isArray(filtro) && (filtro.length === 0 || Array.isArray(filtro[0]));
+
+    const filtroCombinado: Filtro = esListaDeClausulas
+        ? [...(filtro as ClausulaFiltro[]), filtroPuntoVenta]
         : { and: [filtro, [filtroPuntoVenta]] };
     const q = criteriaQuery(filtroCombinado, orden, paginacion);
 
@@ -144,9 +150,9 @@ export const getVentas: GetVentasTpv = async (
 };
 
 
-export const postVenta: PostVentaTpv = async () => {
+export const postVenta: PostVentaTpv = async (agenteId?: string) => {
     const payload = {
-        agente_id: agenteActivo.obtener()?.id,
+        agente_id: agenteId ?? agenteActivo.obtener()?.id,
         punto_venta_id: puntoVentaLocal.obtener()?.id,
     };
     return await RestAPI.post(baseUrl, payload, "Error al crear la venta").then((respuesta) => respuesta.id);
@@ -211,6 +217,7 @@ export const postPago: PostPago = async (id, pago) => {
         forma_pago: pago.formaPago,
         vale_id: pago.idVale,
         tipo_tarjeta_id: pago.idTipoTarjeta,
+        entregado: pago.entregado,
     }
     return await RestAPI.post(`${baseUrl}/${id}/pago`,
         body,
@@ -221,16 +228,22 @@ export const postPago: PostPago = async (id, pago) => {
 };
 
 export const postLinea: PostLinea = async (id, linea) => {
-    const body = {
-        articulo_id: linea.referencia,
-        cantidad: linea.cantidad
-    }
-    return await RestAPI.post(`${baseUrl}/${id}/linea`,
-        body,
-        "Error al crear linea de venta").then((respuesta) => {
-            const miRespuesta = respuesta as unknown as { id: string };
-            return miRespuesta.id;
-        });
+    const lineaApi = peticionNuevaLineaApi(linea);
+    const respuesta = await RestAPI.post(`${baseUrl}/${id}/linea`,
+        lineaApi, "Error al crear línea de venta");
+    return { id: respuesta.id } as unknown as typeof linea;
+    // const miRespuesta = respuesta as unknown as NuevaLineaVentaApiRes[];
+    // const lineaActualizada = respuestaNuevaLineaApi(linea, miRespuesta[0]);
+    // return { ...lineaActualizada, id: miRespuesta[0].id } as unknown as typeof linea;
+};
+
+export const queryNuevaLinea: QueryNuevaLinea = async (id, linea) => {
+    const lineaApi = peticionNuevaLineaApi(linea);
+    const respuesta = await RestAPI.query<NuevaLineaVentaApiReq, NuevaLineaVentaApiRes>(
+        `${baseUrl}/${id}/nueva_linea`, lineaApi,
+        "Error al obtener la nueva línea de venta")
+    const lineaActualizada = respuestaNuevaLineaApi(linea, respuesta);
+    return lineaActualizada;
 };
 
 export const postLineaPorBarcode: PostLineaPorBarcode = async (id, linea) => {
@@ -254,23 +267,22 @@ export const patchArticuloLinea: PatchArticuloLinea = async (id, lineaId, refere
             },
         },
     };
-    await RestAPI.patch(`${baseUrlFactura}/${id}/linea/${lineaId}`, payload, "Error al actualizar artículo de la línea de factura");
+    await RestAPI.patch(`${baseUrl}/${id}/linea/${lineaId}`, payload, "Error al actualizar artículo de la línea de venta TPV");
 };
 
 export const patchLinea: PatchLinea = async (id, linea) => {
     const payload = {
         cambios: {
-            articulo: {
-                articulo_id: linea.referencia
-            },
+            articulo: articuloDeLinea(linea),
             cantidad: linea.cantidad,
             pvp_unitario: linea.pvp_unitario,
             iva_incluido: linea.iva_incluido,
             dto_porcentual: linea.dto_porcentual,
+            dto_lineal: linea.dto_lineal,
             grupo_iva_producto_id: linea.grupo_iva_producto_id,
         },
     };
-    await RestAPI.patch(`${baseUrlFactura}/${id}/linea/${linea.id}`, payload, "Error al actualizar línea de factura");
+    await RestAPI.patch(`${baseUrl}/${id}/linea/${linea.id}`, payload, "Error al actualizar línea de venta TPV");
 };
 
 export const patchCantidadLinea: PatchCantidadLinea = async (id, linea, cantidad) => {
@@ -282,13 +294,13 @@ export const patchCantidadLinea: PatchCantidadLinea = async (id, linea, cantidad
             cantidad: cantidad,
         },
     };
-    await RestAPI.patch(`${baseUrlFactura}/${id}/linea/${linea.id}`, payload, "Error al actualizar cantidad de la línea de factura");
+    await RestAPI.patch(`${baseUrl}/${id}/linea/${linea.id}`, payload, "Error al actualizar cantidad de la línea de venta TPV");
 };
 
 export const deleteLinea: DeleteLinea = async (id, lineaId): Promise<void> => {
-    await RestAPI.patch(`${baseUrlFactura}/${id}/linea/borrar`, {
-        lineas: [lineaId]
-    }, "Error al borrar línea de venta");
+    await RestAPI.delete(`${baseUrl}/${id}/linea/${lineaId}`,
+        "Error al borrar línea de venta"
+    );
 };
 
 export const getReportVenta: GetReportVenta = async (id) =>
@@ -347,56 +359,12 @@ export const patchFechaVenta: PatchFechaVenta = async (id, fecha) => {
 };
 
 export const patchCambiarDescuento = async (id: string, dto_porcentual: number): Promise<void> => {
-    await RestAPI.patch(`${baseUrlFactura}/${id}`, {
-        cambios: {
-            por_descuento: dto_porcentual,
-        }
+    await RestAPI.patch(`${baseUrl}/${id}`, {
+        por_descuento: dto_porcentual,
     }, "Error al cambiar descuento de la venta");
 };
 
-// export const patchVentaClienteRegistrado: PatchVentaClienteRegistrado = async (id, cliente) => {
-
-//     const payload = {
-//         cambios: {
-//             cliente: {
-//                 cliente_id: cliente.id,
-//                 // direccion_id: cliente.idDireccion
-//             }
-//         }
-//     };
-
-//     await RestAPI.patch(`${baseUrlFactura}/${id}`, payload,
-//         'Error al guardar la venta'
-//     );
-// };
-
-// export const patchVentaClienteNoRegistrado: PatchVentaClienteNoRegistrado = async (id, cliente) => {
-
-//     const payload = {
-//         cambios: {
-//             cliente: {
-//                 nombre: cliente.nombre,
-//                 id_fiscal: cliente.idFiscal,
-//                 direccion: {
-//                     tipo_via: '',
-//                     nombre_via: cliente.direccion.nombreVia,
-//                     numero: '',
-//                     otros: '',
-//                     ciudad: '',
-//                     provincia_id: '',
-//                     provincia: '',
-//                     cod_postal: cliente.direccion.codPostal,
-//                     pais_id: '',
-//                     apartado: '',
-//                     telefono: ''
-//                 }
-//             }
-//         }
-//     };
-
-//     await RestAPI.patch(`${baseUrlFactura}/${id}`, payload,
-//         'Error al guardar la venta'
-//     );
-// };
-
+export const patchEmitirVenta: PatchEmitirVenta = async (id) => {
+    await RestAPI.patch(`${baseUrlFactura}/${id}/emitir`, {}, "Error al emitir la venta");
+};
 

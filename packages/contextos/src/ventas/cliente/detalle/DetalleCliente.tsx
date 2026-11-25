@@ -1,20 +1,28 @@
-import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { mostrarPestanaContabilidad } from "#/contabilidad/subcuentas_tercero/dominio.ts";
+import { TabContabilidad } from "#/contabilidad/subcuentas_tercero/detalle/TabContabilidad.tsx";
+import { CambiarIdFiscal } from "#/ventas/comun/componentes/moleculas/CambiarIdFiscal/CambiarIdFiscal.tsx";
 import { Detalle } from "@olula/componentes/detalle/Detalle.tsx";
 import { Tab, Tabs } from "@olula/componentes/detalle/tabs/Tabs.tsx";
 import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { QuimeraAcciones } from "@olula/componentes/moleculas/qacciones.tsx";
 import { QModal } from "@olula/componentes/moleculas/qmodal.tsx";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
+import { puede, puedeAlguna } from "@olula/lib/dominio.ts";
 import { useModelo } from "@olula/lib/useModelo.js";
 import { useCallback, useEffect } from "react";
 import { useParams } from "react-router";
+import { TabPreciosArticulo } from "#/ventas/precio_articulo/detalle/TabPreciosArticulo.tsx";
+import { muestraPreciosArticulo } from "#/ventas/precio_articulo/dominio.ts";
 import { BorrarCliente } from "../borrar/BorrarCliente.tsx";
 import { BajaCliente } from "../dar_de_baja/BajaCliente.tsx";
 import { Cliente } from "../diseño.ts";
-import { TabCrmContactos } from "./CRMContactos/TabCrmContactos.tsx";
-import { TabCuentasBanco } from "./CuentasBanco/TabCuentasBanco.tsx";
+import { apiAgendaCliente } from "../infraestructura.ts";
+import { TabCrmContactos } from "./crm_contactos/TabCrmContactos.tsx";
+import { TabCuentasBanco } from "./cuentas_banco/TabCuentasBanco.tsx";
 import "./DetalleCliente.css";
-import { TabDirecciones } from "./Direcciones/TabDirecciones.tsx";
+import { documentos } from "./documentos/documentos.ts";
+import { TabDocumentos } from "./documentos/TabDocumentos.tsx";
+import { TabDirecciones } from "./direcciones/TabDirecciones.tsx";
 import { clienteVacio, metaCliente } from "./dominio.ts";
 import { getMaquina } from "./maquina.ts";
 import { TabComercial } from "./TabComercial.tsx";
@@ -40,7 +48,14 @@ export const DetalleCliente = ({
     publicar
   );
 
-  const cliente = useModelo(metaCliente, ctx.cliente);
+  const autoGuardar = useCallback(
+    async (modelo: Cliente) => {
+      emitir("edicion_de_cliente_lista", modelo);
+    },
+    [emitir]
+  );
+
+  const cliente = useModelo(metaCliente, ctx.cliente, autoGuardar);
 
   useEffect(() => {
     emitir("cliente_id_cambiado", clienteId, true);
@@ -48,17 +63,8 @@ export const DetalleCliente = ({
   }, [clienteId]);
 
   const { estado } = ctx;
-  const { modificado, valido } = cliente;
 
   const titulo = (cliente: Cliente) => cliente.nombre as string;
-
-  const handleGuardar = useCallback(() => {
-    emitir("edicion_de_cliente_lista", cliente.modelo);
-  }, [emitir, cliente]);
-
-  const handleCancelar = useCallback(() => {
-    emitir("edicion_de_cliente_cancelada");
-  }, [emitir]);
 
   if (!ctx.cliente.id) return;
 
@@ -138,31 +144,63 @@ export const DetalleCliente = ({
                     <TabCuentasBanco cliente={ctx.cliente} publicar={emitir} />
                   }
                 />,
-                <Tab
-                  key="tab-5"
-                  label="Agenda"
-                  children={
-                    <div className="detalle-cliente-tab-contenido">
-                      <TabCrmContactos clienteId={ctx.cliente.id} />
-                    </div>
-                  }
-                />,
+                ...(puede("ventas.contacto")
+                  ? [
+                      <Tab
+                        key="tab-5"
+                        label="Agenda"
+                        children={
+                          <div className="detalle-cliente-tab-contenido">
+                            <TabCrmContactos entidadId={ctx.cliente.id} api={apiAgendaCliente} />
+                          </div>
+                        }
+                      />,
+                    ]
+                  : []),
+                ...(puedeAlguna(documentos.map((documento) => documento.regla))
+                  ? [
+                      <Tab
+                        key="tab-6"
+                        label="Documentos"
+                        children={<TabDocumentos clienteId={ctx.cliente.id} />}
+                      />,
+                    ]
+                  : []),
+                ...(mostrarPestanaContabilidad()
+                  ? [
+                      <Tab
+                        key="tab-7"
+                        label="Contabilidad"
+                        children={
+                          <div className="detalle-cliente-tab-contenido">
+                            <TabContabilidad
+                              tipo="cliente"
+                              terceroId={ctx.cliente.id}
+                            />
+                          </div>
+                        }
+                      />,
+                    ]
+                  : []),
+                ...(muestraPreciosArticulo()
+                  ? [
+                      <Tab
+                        key="tab-8"
+                        label="Precios por artículo"
+                        children={
+                          <TabPreciosArticulo clienteId={ctx.cliente.id} />
+                        }
+                      />,
+                    ]
+                  : []),
               ]}
             />
-            {modificado && (
-              <div className="maestro-botones">
-                <QBoton onClick={handleGuardar} deshabilitado={!valido}>
-                  Guardar
-                </QBoton>
-                <QBoton
-                  tipo="reset"
-                  variante="texto"
-                  onClick={handleCancelar}
-                  deshabilitado={!modificado}
-                >
-                  Cancelar
-                </QBoton>
-              </div>
+            {estado === "CAMBIANDO_ID_FISCAL" && (
+              <CambiarIdFiscal
+                publicar={emitir}
+                tipoIdFiscal={ctx.cliente.tipo_id_fiscal}
+                idFiscal={ctx.cliente.id_fiscal}
+              />
             )}
 
             {estado === "BORRANDO_CLIENTE" && (

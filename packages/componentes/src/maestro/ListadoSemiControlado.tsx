@@ -1,15 +1,20 @@
 import { ClausulaFiltro, Criteria, Entidad } from "@olula/lib/diseño.ts";
 import { criteriaDefecto } from "@olula/lib/dominio.js";
 import { useCallback, useEffect, useState } from "react";
-import { QIcono } from "../atomos/qicono.tsx";
-import { MetaTabla } from "../atomos/qtabla.tsx";
+import { MetaTabla, obtenerCols } from "../atomos/qtablacontrolada.tsx";
 import { QTablaControlada } from "../atomos/qtablacontrolada.tsx";
 import { QTarjetas } from "../atomos/qtarjetas.tsx";
 import { QTarjetaMetatabla } from "../moleculas/qtarjeta_metatabla.tsx";
 import { SinDatos } from "../SinDatos/SinDatos.tsx";
 import "./Listado.css";
+import { SelectorModo } from "./SelectorModo.tsx";
+import { useListadoMovilEnDetalle } from "./contexto_maestro.ts";
+import { useEsMovil } from "./useEsMovil.ts";
 import { filtrarEntidad } from "./maestroFiltros/filtro.ts";
-import { MaestroFiltrosActivoControlado, MetaFiltro } from "./maestroFiltros/MaestroFiltrosActivoControlado.tsx";
+import {
+  MaestroFiltrosActivoControlado,
+  MetaFiltro,
+} from "./maestroFiltros/MaestroFiltrosActivoControlado.tsx";
 
 const datosCargando = <T extends Entidad>() =>
   new Array(10).fill(null).map(
@@ -37,8 +42,11 @@ type MaestroProps<T extends Entidad> = {
   seleccionada: T | null;
   onSeleccion: (seleccionada: T) => void;
   modo?: Modo;
+  modoInicial?: Modo;
+  modosDisponibles?: Modo[];
   onModoChanged?: (modo: Modo) => void;
   onCriteriaChanged: (criteria: Criteria) => void;
+  mensajeSinDatos?: string;
 };
 
 export const ListadoSemiControlado = <T extends Entidad>({
@@ -53,13 +61,45 @@ export const ListadoSemiControlado = <T extends Entidad>({
   totalEntidades,
   seleccionada,
   onSeleccion,
-  modo,
+  modo: modoPantalla,
+  modoInicial,
+  modosDisponibles,
   onModoChanged,
   onCriteriaChanged,
+  mensajeSinDatos,
 }: MaestroProps<T>) => {
   const [criteria, setCriteria] = useState<Criteria>(criteriaInicial);
-  const [modoEstado, setModoEstado] = useState<Modo>(modo ?? "tabla");
-  const modoInterno = modo ?? modoEstado;
+  // En móvil, tarjetas si la pantalla no fija el modo (las tablas no caben).
+  const esMovil = useEsMovil();
+  const tarjetasCompactas = useListadoMovilEnDetalle(esMovil);
+  const modo = tarjetasCompactas ? undefined : modoPantalla;
+  const [modoEstado, setModoEstado] = useState<Modo>(
+    tarjetasCompactas
+      ? "tarjetas"
+      : (modo ?? modoInicial ?? (esMovil ? "tarjetas" : "tabla"))
+  );
+  // `modo` es el modo con el que se muestra, pero el selector puede cambiarlo
+  // aunque la pantalla no escuche `onModoChanged`. Si la pantalla cambia `modo`
+  // (p. ej. su propio conmutador de layout), manda el nuevo valor.
+  useEffect(() => {
+    if (modo !== undefined) setModoEstado(modo);
+  }, [modo]);
+  const modoInterno = modoEstado;
+
+  const puedeTabla = metaTabla !== undefined;
+  const puedeTarjetas = true;
+
+  const modosDisponiblesCalculados: Modo[] = modosDisponibles
+    ? modosDisponibles.filter((m) => {
+        if (m === "tabla") return puedeTabla;
+        if (m === "tarjetas") return puedeTarjetas;
+        return false;
+      })
+    : [...(puedeTabla ? (["tabla"] as Modo[]) : []), "tarjetas"];
+
+  const modoEfectivo = modosDisponiblesCalculados.includes(modoInterno)
+    ? modoInterno
+    : (modosDisponiblesCalculados[0] ?? "tarjetas");
 
   const cambiarCriteria = useCallback(
     (c: Criteria) => {
@@ -76,30 +116,17 @@ export const ListadoSemiControlado = <T extends Entidad>({
   const tarjetaGenerica =
     metaTabla !== undefined
       ? (entidad: T) => (
-          <QTarjetaMetatabla entidad={entidad} metaTabla={metaTabla} />
+          <QTarjetaMetatabla entidad={entidad} metaTabla={obtenerCols(metaTabla)} />
         )
       : undefined;
-  const puedeTabla = metaTabla !== undefined;
-  const puedeTarjetas = tarjeta !== undefined;
-
-  const modoEfectivo =
-    modoInterno === "tabla" && puedeTabla
-      ? "tabla"
-      : modoInterno === "tarjetas" && puedeTarjetas
-        ? "tarjetas"
-        : puedeTabla
-          ? "tabla"
-          : puedeTarjetas
-            ? "tarjetas"
-            : null;
 
   const cambiarModo = (nuevoModo: Modo) => {
-    if (modo === undefined) setModoEstado(nuevoModo);
+    setModoEstado(nuevoModo);
     onModoChanged?.(nuevoModo);
   };
 
-  const mostrarCambioModo = puedeTabla && puedeTarjetas && modoEfectivo;
-  // const mostrarCambioModo = false;
+  const mostrarCambioModo =
+    modosDisponiblesCalculados.length > 1 && modoEfectivo;
   const acciones = renderAcciones?.();
   const mostrarCabecera = metaFiltro || mostrarCambioModo || Boolean(acciones);
 
@@ -154,7 +181,7 @@ export const ListadoSemiControlado = <T extends Entidad>({
   };
 
   const renderEntidades = () => {
-    if (!entidadesFiltradas.length && !cargando) return <SinDatos />;
+    if (!entidadesFiltradas.length && !cargando) return <SinDatos mensaje={mensajeSinDatos} />;
 
     const datos = entidadesFiltradas.length
       ? entidadesFiltradas
@@ -179,7 +206,10 @@ export const ListadoSemiControlado = <T extends Entidad>({
   }, [idReiniciarCriteria, criteriaInicial, setCriteria]);
 
   return (
-    <div className="Listado">
+    <div
+      className="Listado"
+      data-densidad={tarjetasCompactas ? "compacta" : undefined}
+    >
       {mostrarCabecera && (
         <div className="listado-cabecera">
           <div className="listado-cabecera-izquierda">
@@ -200,20 +230,12 @@ export const ListadoSemiControlado = <T extends Entidad>({
 
           <div className="listado-cabecera-derecha">
             {acciones}
-            {mostrarCambioModo && (
-              <div className="cambio-modo">
-                <span
-                  className="cambio-modo-icono"
-                  onClick={() =>
-                    cambiarModo(modoEfectivo === "tabla" ? "tarjetas" : "tabla")
-                  }
-                >
-                  <QIcono
-                    nombre={modoEfectivo === "tabla" ? "lista" : "tabla"}
-                    tamaño="md"
-                  />
-                </span>
-              </div>
+            {mostrarCambioModo && modoEfectivo && (
+              <SelectorModo
+                modos={modosDisponiblesCalculados}
+                modo={modoEfectivo}
+                onCambio={cambiarModo}
+              />
             )}
           </div>
         </div>

@@ -1,4 +1,14 @@
+import { EtiquetaEstado } from "#/comun/componentes/etiqueta_estado/EtiquetaEstado.tsx";
+import { ModalTraza } from "#/comun/componentes/traza/ModalTraza.tsx";
+import { IndicadorGuardado } from "#/ventas/comun/componentes/IndicadorGuardado.tsx";
+import { CambiarAgente } from "#/ventas/comun/componentes/moleculas/CambiarAgente/CambiarAgente.tsx";
 import { CambiarDescuento } from "#/ventas/comun/componentes/moleculas/CambiarDescuento/CambiarDescuento.tsx";
+import { CambiarDivisa } from "#/ventas/comun/componentes/moleculas/CambiarDivisa/CambiarDivisa.tsx";
+import "#/ventas/comun/estilos/campos.css";
+import "#/ventas/comun/estilos/detalle_documento.css";
+import { tituloDocumentoVenta } from "#/ventas/venta/dominio.ts";
+import { useDatosClaveDocumentoVenta } from "#/ventas/venta/vistas/useDatosClaveDocumentoVenta.ts";
+import { etiquetaEstadoPedido } from "../maestro/maestro.ts";
 import { TotalesVenta } from "#/ventas/venta/vistas/TotalesVenta.tsx";
 import { Detalle } from "@olula/componentes/detalle/Detalle.tsx";
 import { Tab, Tabs } from "@olula/componentes/detalle/tabs/Tabs.tsx";
@@ -6,14 +16,18 @@ import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { QuimeraAcciones } from "@olula/componentes/index.js";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { FactoryCtx } from "@olula/lib/factory_ctx.js";
+import { imprimir_blob } from "@olula/lib/impresion.ts";
 import { useModelo } from "@olula/lib/useModelo.js";
 import { useCallback, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { BorrarPedido } from "../borrar/BorrarPedido.tsx";
 import { Pedido } from "../diseño.ts";
+import { pedidoPendiente } from "../dominio.ts";
+import { getReportPedido, getTrazaPedido } from "../infraestructura.ts";
+import { editable, metaPedido, pedidoVacio } from "./detalle.ts";
 import "./DetallePedido.css";
-import { editable, metaPedido, pedidoVacio } from "./dominio.ts";
-import { Lineas } from "./Lineas/Lineas.tsx";
+import { AvisoPreparacionAlmacen } from "./aviso_almacen/AvisoPreparacionAlmacen.tsx";
+import { Lineas } from "./lineas/Lineas.tsx";
 import { getMaquina } from "./maquina.ts";
 import { TabCliente } from "./TabCliente/TabCliente.tsx";
 import { TabDatosBase as TabDatos } from "./TabDatos.tsx";
@@ -54,9 +68,15 @@ export const DetallePedidoBase = ({
     publicar
   );
 
-  const pedido = useModelo(metaPedido, ctx.pedido);
-  const { valido } = pedido;
-  const modificadoFormulario = pedido.modificado;
+  const autoGuardar = useCallback(
+    async (modelo: Pedido) => {
+      await emitir("edicion_de_pedido_lista", modelo);
+    },
+    [emitir]
+  );
+
+  const pedido = useModelo(metaPedido, ctx.pedido, autoGuardar);
+  const datosClave = useDatosClaveDocumentoVenta();
 
   useEffect(() => {
     emitir("pedido_id_cambiado", pedidoId, true);
@@ -65,15 +85,8 @@ export const DetallePedidoBase = ({
 
   const { estado, lineaActiva } = ctx;
 
-  const titulo = (pedido: Pedido) => pedido.codigo || "Nuevo Pedido";
-
-  const handleGuardar = useCallback(() => {
-    emitir("edicion_de_pedido_lista", pedido.modelo);
-  }, [emitir, pedido]);
-
-  const handleCancelar = useCallback(() => {
-    emitir("edicion_de_pedido_cancelada");
-  }, [emitir]);
+  const titulo = (pedido: Pedido) =>
+    tituloDocumentoVenta(pedido, "Nuevo Pedido");
 
   const handleAlbaranar = useCallback(() => {
     const id = ctx.pedido.id ?? params.id;
@@ -82,31 +95,33 @@ export const DetallePedidoBase = ({
 
   if (!ctx.pedido.id) return;
 
+  const esEditable = editable(ctx.pedido);
+
+  const imprimir = async () => {
+    const blob = await getReportPedido(ctx.pedido.id);
+    imprimir_blob(blob);
+  };
+
   const acciones = [
     {
-      texto: "Albaranar",
+      texto: "Albaran parcial",
       onClick: handleAlbaranar,
-      deshabilitado: false,
+      deshabilitado: !esEditable,
+    },
+    {
+      texto: "Imprimir",
+      onClick: imprimir,
+    },
+    {
+      texto: "Documentos relacionados",
+      onClick: () => emitir("traza_solicitada"),
     },
     {
       icono: "eliminar",
       texto: "Borrar",
       advertencia: true,
       onClick: () => emitir("borrar_solicitado"),
-      deshabilitado: false,
-    },
-  ];
-
-  const accionesEdicion = [
-    {
-      texto: "Guardar Cambios",
-      onClick: handleGuardar,
-      deshabilitado: !valido,
-    },
-    {
-      texto: "Cancelar",
-      variante: "texto" as const,
-      onClick: handleCancelar,
+      deshabilitado: !pedidoPendiente(ctx.pedido),
     },
   ];
 
@@ -114,19 +129,41 @@ export const DetallePedidoBase = ({
     <Detalle
       id={ctx.pedido.id}
       obtenerTitulo={titulo}
+      obtenerEstado={(pedido: Pedido) => (
+        <EtiquetaEstado {...etiquetaEstadoPedido(pedido)} />
+      )}
+      obtenerDatosClave={datosClave}
       setEntidad={() => {}}
       entidad={ctx.pedido}
       cerrarDetalle={() => emitir("pedido_deseleccionado", null)}
     >
-      {editable(ctx.pedido) && <QuimeraAcciones acciones={acciones} vertical />}
+      <div className="fila-acciones-documento">
+        <IndicadorGuardado
+          modificado={pedido.modificado}
+          error={pedido.errorGuardado}
+          guardados={pedido.guardados}
+        />
+        <QuimeraAcciones acciones={acciones} vertical />
+      </div>
+
+      <AvisoPreparacionAlmacen pedido={ctx.pedido} />
 
       <Tabs>
+        <Tab label="Líneas">
+          <Lineas
+            pedido={ctx.pedido}
+            lineaActiva={lineaActiva}
+            publicar={emitir}
+            estadoPedido={estado}
+          />
+        </Tab>
+
         <Tab label="Cliente">
           <TabCliente pedido={pedido} estado={estado} publicar={emitir} />
         </Tab>
 
         <Tab label="Datos">
-          <TabDatos pedido={pedido} />
+          <TabDatos pedido={pedido} estado={estado} publicar={emitir} />
         </Tab>
 
         <Tab label="Observaciones">
@@ -134,37 +171,39 @@ export const DetallePedidoBase = ({
         </Tab>
       </Tabs>
 
-      {editable(ctx.pedido) && (
-        <div
-          className={
-            modificadoFormulario
-              ? "edicion-botones edicion-botones-visible"
-              : "edicion-botones"
-          }
-        >
-          <div className="botones maestro-botones">
-            {modificadoFormulario && (
-              <QuimeraAcciones acciones={accionesEdicion} />
-            )}
-          </div>
-        </div>
-      )}
-
       <TotalesVenta modeloVenta={pedido} publicar={emitir} />
 
       {estado === "CAMBIANDO_DESCUENTO" && (
         <CambiarDescuento publicar={emitir} venta={ctx.pedido} />
       )}
 
-      <Lineas
-        pedido={ctx.pedido}
-        lineaActiva={lineaActiva}
-        publicar={emitir}
-        estadoPedido={estado}
-      />
+      {estado === "CAMBIANDO_DIVISA" && (
+        <CambiarDivisa
+          publicar={emitir}
+          divisaId={ctx.pedido.divisa_id}
+          tasaConversion={ctx.pedido.tasa_conversion}
+        />
+      )}
+
+      {estado === "CAMBIANDO_AGENTE" && (
+        <CambiarAgente
+          publicar={emitir}
+          agenteId={ctx.pedido.agente_id}
+          nombreAgente={ctx.pedido.nombre_agente}
+          porComision={ctx.pedido.por_comision}
+        />
+      )}
 
       {estado === "BORRANDO_PEDIDO" && (
         <BorrarPedido pedido={ctx.pedido} publicar={emitir} />
+      )}
+
+      {estado === "VIENDO_TRAZA" && (
+        <ModalTraza
+          id={ctx.pedido.id}
+          getTraza={getTrazaPedido}
+          onCerrar={() => emitir("traza_cerrada")}
+        />
       )}
     </Detalle>
   );

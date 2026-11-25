@@ -1,0 +1,74 @@
+import { QBoton } from "@olula/componentes/atomos/qboton.tsx";
+import { QModal } from "@olula/componentes/index.js";
+import { EmitirEvento } from "@olula/lib/diseño.js";
+import { useFocus } from "@olula/lib/useFocus.ts";
+import { useForm } from "@olula/lib/useForm.js";
+import { useModelo } from "@olula/lib/useModelo.ts";
+import { useRangosEjercicio } from "#/contabilidad/comun/use_rangos_ejercicio.ts";
+import { useCallback, useMemo } from "react";
+import { CamposLibroMayor } from "../detalle/CamposLibroMayor.tsx";
+import { postLibroMayor } from "../infraestructura.ts";
+import { metaNuevoLibroMayor, nuevoLibroMayorInicial } from "./crear.ts";
+
+export const CrearLibroMayor = ({
+    publicar,
+    ejercicioId,
+}: {
+    publicar: EmitirEvento;
+    ejercicioId: string;
+}) => {
+    // Memoizado: useModelo reinicia el formulario cada vez que cambia la
+    // identidad del inicial, así que pasarlo en línea entra en bucle.
+    const inicial = useMemo(
+        () => nuevoLibroMayorInicial(ejercicioId),
+        [ejercicioId]
+    );
+
+    const {
+        modelo: informe,
+        uiProps,
+        valido,
+        set,
+    } = useModelo(metaNuevoLibroMayor, inicial);
+
+    useRangosEjercicio(informe, set, { subcuentas: true });
+
+    const crear_ = useCallback(async () => {
+        const id = await postLibroMayor(informe);
+        publicar("informe_creado", id);
+    }, [informe, publicar]);
+
+    const cancelar_ = useCallback(
+        () => publicar("alta_de_informe_cancelada"),
+        [publicar]
+    );
+
+    const [crear, cancelar] = useForm(crear_, cancelar_);
+
+    const focus = useFocus();
+
+    return (
+        <QModal
+            abierto={true}
+            nombre="crearLibroMayor"
+            titulo="Nuevo libro mayor"
+            onCerrar={cancelar}
+        >
+            <div className="CrearLibroMayor">
+                <quimera-formulario>
+                    <CamposLibroMayor
+                        uiProps={uiProps}
+                        informe={informe}
+                        refDescripcion={focus}
+                    />
+                </quimera-formulario>
+
+                <div className="botones maestro-botones">
+                    <QBoton onClick={crear} deshabilitado={!valido}>
+                        Crear
+                    </QBoton>
+                </div>
+            </div>
+        </QModal>
+    );
+};

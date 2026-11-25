@@ -1,0 +1,14 @@
+/* -----------------------------------------------------------------------
+ * Wrapper centrado — contiene la cabecera, los botones y la tabla.
+ * ----------------------------------------------------------------------- */
+.aprobar-bloque {
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.aprobar-bloque .maestro-botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}

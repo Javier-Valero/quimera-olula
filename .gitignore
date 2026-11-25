@@ -25,3 +25,6 @@ dev-dist/
 _tmp/
 *.tmp
 *.env*
+.claude/settings.json
+doc/
+docs/*

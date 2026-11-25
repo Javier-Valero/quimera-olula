@@ -411,6 +411,7 @@ function PedidoWeb({ _estilos, ...props }) {
               }
             }}
             localeText={{
+              noRowsLabel: "No hay artículos",
               toolbarQuickFilterPlaceholder: "Buscar...",
               paginationRowsPerPage: "Líneas por página",
               paginationDisplayedRows: ({ from, to, count }) =>
@@ -570,7 +571,7 @@ function PedidoWeb({ _estilos, ...props }) {
             <DialogTitle id="form-packaging-title">Packaging:</DialogTitle>
             <div className="packagingWrapper">
               {Object.keys(JSON.parse(packaging)).map(key => (
-                <div className="packagingArticle">
+                <div className="packagingArticle" key={key}>
                   <div className="packagingTitle">{key}</div>
                   <NumeroBultos
                     numBultosDefecto={rowPackaging[JSON.parse(packaging)[key]]}

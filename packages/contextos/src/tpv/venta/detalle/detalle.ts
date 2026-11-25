@@ -1,11 +1,13 @@
 import { ejecutarListaProcesos, MetaModelo, publicar } from "@olula/lib/dominio.ts";
 
+import { getReportFactura } from "#/ventas/factura/infraestructura.ts";
 import { cambioClienteVentaVacio, metaCambioClienteVenta, metaVenta } from "#/ventas/venta/dominio.ts";
 import { ProcesarContexto } from "@olula/lib/diseño.js";
+import { imprimir_blob } from "@olula/lib/impresion.js";
 import { accionesListaEntidades, ListaEntidades, ProcesarListaEntidades } from "@olula/lib/ListaEntidades.js";
 import { CambioClienteFactura, LineaFactura, PagoVentaTpv, VentaTpv } from "../diseño.ts";
 import { ventaTpvVacia } from "../dominio.ts";
-import { getLineas, getPagos, getVenta, patchCambiarDescuento, patchFechaVenta, patchVenta, postEmitirVale, postLineaPorBarcode } from "../infraestructura.ts";
+import { getLineas, getPagos, getReportVale, getReportVenta, getVenta, patchCambiarDescuento, patchFechaVenta, patchVenta, postEmitirVale, postLineaPorBarcode } from "../infraestructura.ts";
 
 
 export const cambioClienteFacturaVacio: CambioClienteFactura = cambioClienteVentaVacio;
@@ -16,8 +18,8 @@ export const metaCambioClienteFactura: MetaModelo<CambioClienteFactura> = metaCa
 
 export type EstadoVentaTpv = (
     'INICIAL' | "ABIERTA" | "EMITIDA"
-    | "BORRANDO_VENTA"
-    | "PAGANDO_EN_EFECTIVO" | "PAGANDO_CON_TARJETA" | "PAGANDO_CON_VALE"
+    | "BORRANDO_VENTA" | "EMITIENDO_VENTA"
+    | "PAGANDO_EN_EFECTIVO" | "PAGANDO_CON_TARJETA" | "PAGANDO_CON_VALE" | "PAGANDO_CON_QR"
     | "BORRANDO_PAGO" | "CAMBIANDO_CLIENTE" | "CAMBIANDO_DESCUENTO"
     | "CREANDO_LINEA" | "BORRANDO_LINEA" | "CAMBIANDO_LINEA"
     | "DEVOLVIENDO_VENTA"
@@ -236,21 +238,21 @@ export const onVentaBorrada: ProcesarVentaTpv = async (contexto) => {
 
 export const onLineaCreada: ProcesarVentaTpv = async (contexto, payload) => {
 
-    const idLinea = payload as string;
+    const { id } = payload as { id: string };
 
     return pipeVentaTpv(contexto, [
         refrescarCabecera,
         refrescarLineas,
-        activarLineaPorId(idLinea),
+        activarLineaPorId(id),
     ]);
 }
 
 export const crearLineaPorBarcode: ProcesarVentaTpv = async (contexto, payload) => {
 
-    const barcode = payload as string;
+    const { barcode, cantidad } = payload as { barcode: string; cantidad: number };
     const idLinea = await postLineaPorBarcode(contexto.venta.id, {
         barcode,
-        cantidad: 1
+        cantidad
     });
 
     return pipeVentaTpv(contexto, [
@@ -303,11 +305,14 @@ export const emitirVale: ProcesarVentaTpv = async (contexto, payload) => {
     const venta = payload as VentaTpv
     await postEmitirVale(venta)
 
-    return pipeVentaTpv(contexto, [
+    const [ctx, eventos] = await pipeVentaTpv(contexto, [
         refrescarCabecera,
         refrescarPagos,
         abiertaOEmitidaContexto,
     ]);
+    await imprimirVale(ctx.venta.codigo);
+    await imprimirTicketOFactura(ctx.venta, ctx.pagos.lista);
+    return [ctx, eventos];
 }
 
 
@@ -373,6 +378,43 @@ export const cargarContexto: ProcesarVentaTpv = async (contexto, payload) => {
     } else {
         return getContextoVacio(contexto);
     }
+}
+
+
+
+export const imprimirTicketOFactura = async (
+    venta: VentaTpv,
+    pagos: PagoVentaTpv[],
+    valesAntesQueTique = false
+) => {
+    if (venta.cliente) {
+        const blob = await getReportFactura(venta.id);
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+        return;
+    }
+    const imprimirTique = async () => imprimir_blob(await getReportVenta(venta.id));
+    const imprimirValesConSaldo = async () => {
+        const pagosVale = pagos.filter((p) => p.vale && p.saldoVale && p.saldoVale > 0);
+        for (const p of pagosVale) {
+            await imprimirVale(p.vale!);
+        }
+    };
+    if (valesAntesQueTique) {
+        await imprimirValesConSaldo();
+        await imprimirTique();
+    } else {
+        await imprimirTique();
+        await imprimirValesConSaldo();
+    }
+}
+
+export const imprimirVale = async (idVale: string) => {
+    console.log("getReportVale llamado con", idVale);
+    const blob = await getReportVale(idVale);
+    console.log("blob recibido", blob?.size, blob?.type);
+    await imprimir_blob(blob);
+    console.log("imprimir_blob completado para vale");
 }
 
 
