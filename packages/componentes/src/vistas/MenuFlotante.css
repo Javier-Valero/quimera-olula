@@ -44,7 +44,7 @@
   }
 
   &:disabled {
-    color: var(--color-deshabilitado);
+    color: light-dark(var(--gris-6), var(--gris-5));
     cursor: default;
   }
 }

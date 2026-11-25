@@ -136,8 +136,9 @@
     border: 0;
     border-radius: var(--redondeo-borde-xs);
     background: transparent;
-    color: var(--color-primario);
+    color: var(--color-texto-primario);
     font: inherit;
+    font-weight: var(--grosor-letra-5);
     text-align: left;
     cursor: pointer;
 
@@ -150,10 +151,12 @@
       outline-offset: -2px;
     }
 
-    /* --color-texto-deshabilitado coincide con --color-primario en el tema
-       claro: se usa el gris de los botones deshabilitados (QBoton). */
+    /* Ni --color-texto-deshabilitado (es el mismo que --color-primario en el
+       tema claro) ni --color-deshabilitado (1,2:1, no se lee): gris medio,
+       legible (3,2:1 en claro, 3,9:1 en oscuro) y distinto del activo. */
     &:disabled {
-      color: var(--color-deshabilitado);
+      color: light-dark(var(--gris-6), var(--gris-5));
+      font-weight: var(--grosor-letra-4);
       cursor: default;
     }
   }
