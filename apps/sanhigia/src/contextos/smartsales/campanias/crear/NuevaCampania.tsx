@@ -59,6 +59,20 @@ export const NuevaCampania = () => {
 
     const tipoProducto = tipoProductoDe(formulario);
 
+    const accionesVistaPrevia = (
+        <>
+            <Errores errores={errores} />
+            <div className="acciones">
+                <QBoton variante="borde" deshabilitado={enviando} onClick={() => enviar("volver")}>
+                    Modificar filtros
+                </QBoton>
+                <QBoton deshabilitado={enviando || estado !== "REVISANDO" || clientes.length === 0} onClick={() => enviar("crear")}>
+                    Crear campaña
+                </QBoton>
+            </div>
+        </>
+    );
+
     if (estado !== "DEFINIENDO") {
         return (
             // En la vista previa, el "Volver" de arriba regresa al formulario, no a la lista de campañas.
@@ -72,6 +86,8 @@ export const NuevaCampania = () => {
                         {clientes.length} {clientes.length === 1 ? "cliente entrará" : "clientes entrarán"} en la campaña. Se creará un trato
                         publicado para cada uno.
                     </p>
+                    {/* La lista puede ser larga: los botones van arriba y abajo. */}
+                    {accionesVistaPrevia}
                     <ul className="lista">
                         {clientes.map((cliente) => (
                             <li key={cliente.codCliente}>
@@ -83,15 +99,7 @@ export const NuevaCampania = () => {
                             </li>
                         ))}
                     </ul>
-                    <Errores errores={errores} />
-                    <div className="acciones">
-                        <QBoton variante="borde" deshabilitado={enviando} onClick={() => enviar("volver")}>
-                            Modificar filtros
-                        </QBoton>
-                        <QBoton deshabilitado={enviando || estado !== "REVISANDO" || clientes.length === 0} onClick={() => enviar("crear")}>
-                            Crear campaña
-                        </QBoton>
-                    </div>
+                    {clientes.length > 0 && accionesVistaPrevia}
                 </div>
             </LayoutSmartsales>
         );
