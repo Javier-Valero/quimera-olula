@@ -3,6 +3,7 @@ import { Criteria } from "@olula/lib/diseño.ts";
 import { MetaTabla } from "../atomos/qtablacontrolada.tsx";
 import * as infra from "../vistas/infraestructura.ts";
 import { ConfigVista } from "../vistas/diseño.ts";
+import { olvidarPreferenciasVista } from "../vistas/usePreferenciasVista.ts";
 import { Listado } from "./Listado.tsx";
 
 vi.mock("../vistas/infraestructura.ts", () => ({
@@ -58,6 +59,7 @@ const cabeceras = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  olvidarPreferenciasVista();
   guardarVista.mockResolvedValue(undefined);
   restaurarVista.mockResolvedValue(undefined);
 });

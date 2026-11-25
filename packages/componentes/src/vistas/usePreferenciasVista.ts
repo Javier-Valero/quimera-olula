@@ -1,10 +1,67 @@
-import { useCallback, useEffect, useState } from "react";
+import { AUTH_STORAGE_CHANGED_EVENT } from "@olula/lib/api/auth_storage_events.ts";
+import { tokenAcceso } from "@olula/lib/api/token_acceso.ts";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { ConfigVista, OrigenVista } from "./diseño.ts";
 import {
   getVistaUsuario,
   guardarVistaUsuario,
   restaurarVistaUsuario,
 } from "./infraestructura.ts";
+
+type Estado = {
+  config?: ConfigVista;
+  origen: OrigenVista;
+  /** El servidor respondió: se puede personalizar. */
+  disponible: boolean;
+  cargada: boolean;
+};
+
+const PENDIENTE: Estado = { origen: null, disponible: false, cargada: false };
+const FIJA: Estado = { origen: null, disponible: false, cargada: true };
+
+// Una sola copia por pantalla y vista, compartida por todos los componentes que
+// la usan (el listado y el detalle de una misma pantalla guardan en la misma
+// fila: con copias separadas, guardar desde uno pisaría lo del otro).
+const estados = new Map<string, Estado>();
+const oyentes = new Map<string, Set<() => void>>();
+const cargas = new Map<string, Promise<void>>();
+
+const claveDe = (pantalla: string, vista: string) => `${pantalla}:${vista}`;
+
+const fijar = (clave: string, estado: Estado) => {
+  estados.set(clave, estado);
+  oyentes.get(clave)?.forEach((avisar) => avisar());
+};
+
+const cargar = (pantalla: string, vista: string): Promise<void> => {
+  const clave = claveDe(pantalla, vista);
+  const enCurso = cargas.get(clave);
+  if (enCurso) return enCurso;
+  const carga = getVistaUsuario(pantalla, vista)
+    .then((respuesta) =>
+      fijar(clave, {
+        config: respuesta.config ?? undefined,
+        origen: respuesta.origen,
+        disponible: true,
+        cargada: true,
+      })
+    )
+    .catch(() => fijar(clave, { origen: null, disponible: false, cargada: true }))
+    .finally(() => cargas.delete(clave));
+  cargas.set(clave, carga);
+  return carga;
+};
+
+/** Olvida lo cargado (tests, cambio de usuario). */
+export const olvidarPreferenciasVista = () => {
+  estados.clear();
+  cargas.clear();
+};
+
+// Al cerrar sesión (no al refrescar el token) se olvida la del usuario anterior.
+window.addEventListener(AUTH_STORAGE_CHANGED_EVENT, () => {
+  if (!tokenAcceso.obtener()) olvidarPreferenciasVista();
+});
 
 /**
  * Configuración de vista que ve el usuario en `pantalla`: la suya, si no la de
@@ -13,61 +70,58 @@ import {
  * `pantalla` la vista es fija: no se pide nada.
  */
 export const usePreferenciasVista = (pantalla: string | undefined, vista = "") => {
-  const [config, setConfig] = useState<ConfigVista | undefined>(undefined);
-  const [origen, setOrigen] = useState<OrigenVista>(null);
-  const [disponible, setDisponible] = useState(false);
-  const [cargada, setCargada] = useState(!pantalla);
+  const clave = pantalla ? claveDe(pantalla, vista) : undefined;
+
+  const suscribir = useCallback(
+    (avisar: () => void) => {
+      if (!clave) return () => undefined;
+      const conjunto = oyentes.get(clave) ?? new Set();
+      conjunto.add(avisar);
+      oyentes.set(clave, conjunto);
+      return () => conjunto.delete(avisar);
+    },
+    [clave]
+  );
+  const estado = useSyncExternalStore(suscribir, () =>
+    clave ? (estados.get(clave) ?? PENDIENTE) : FIJA
+  );
 
   useEffect(() => {
-    if (!pantalla) return;
-    let cancelado = false;
-    getVistaUsuario(pantalla, vista)
-      .then((respuesta) => {
-        if (cancelado) return;
-        setConfig(respuesta.config ?? undefined);
-        setOrigen(respuesta.origen);
-        setDisponible(true);
-      })
-      .catch(() => !cancelado && setDisponible(false))
-      .finally(() => !cancelado && setCargada(true));
-    return () => {
-      cancelado = true;
-    };
-  }, [pantalla, vista]);
+    if (pantalla && clave && !estados.has(clave)) void cargar(pantalla, vista);
+  }, [pantalla, vista, clave]);
 
-  // Optimista: la vista cambia al momento y vuelve atrás si el servidor falla.
+  // Optimista: la vista cambia al momento y vuelve atrás si el servidor falla
+  // (salvo que entretanto haya cambiado otra vez).
   const guardar = useCallback(
     async (nueva: ConfigVista) => {
-      if (!pantalla) return;
-      const anterior = { config, origen };
-      setConfig(nueva);
-      setOrigen("usuario");
+      if (!pantalla || !clave) return;
+      const anterior = estados.get(clave) ?? PENDIENTE;
+      const optimista: Estado = { ...anterior, config: nueva, origen: "usuario" };
+      fijar(clave, optimista);
       try {
         await guardarVistaUsuario(pantalla, nueva, vista);
       } catch {
-        setConfig(anterior.config);
-        setOrigen(anterior.origen);
+        if (estados.get(clave) === optimista) fijar(clave, anterior);
       }
     },
-    [pantalla, vista, config, origen]
+    [pantalla, vista, clave]
   );
 
   const restaurar = useCallback(async () => {
-    if (!pantalla) return;
+    if (!pantalla || !clave) return;
     await restaurarVistaUsuario(pantalla, vista);
-    const respuesta = await getVistaUsuario(pantalla, vista);
-    setConfig(respuesta.config ?? undefined);
-    setOrigen(respuesta.origen);
-  }, [pantalla, vista]);
+    estados.delete(clave);
+    await cargar(pantalla, vista);
+  }, [pantalla, vista, clave]);
 
   return {
-    config,
-    origen,
+    config: estado.config,
+    origen: estado.origen,
     /** Hay configuración propia o de empresa (para el aviso «vista personalizada»). */
-    personalizada: origen !== null,
-    personalizable: !!pantalla && disponible,
+    personalizada: estado.origen !== null,
+    personalizable: !!pantalla && estado.disponible,
     /** Ya se sabe qué config aplicar: evita pintar la del código y cambiarla. */
-    cargada,
+    cargada: estado.cargada,
     guardar,
     restaurar,
   };

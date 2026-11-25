@@ -1,5 +1,5 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
-import { usePreferenciasVista } from "./usePreferenciasVista.ts";
+import { olvidarPreferenciasVista, usePreferenciasVista } from "./usePreferenciasVista.ts";
 import * as infra from "./infraestructura.ts";
 
 vi.mock("./infraestructura.ts", () => ({
@@ -11,7 +11,10 @@ vi.mock("./infraestructura.ts", () => ({
 const getVista = vi.mocked(infra.getVistaUsuario);
 const guardarVista = vi.mocked(infra.guardarVistaUsuario);
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  olvidarPreferenciasVista();
+});
 
 describe("usePreferenciasVista", () => {
   test("sin pantalla la vista es fija: no pide nada ni deja personalizar", () => {
@@ -79,5 +82,27 @@ describe("usePreferenciasVista", () => {
 
     expect(result.current.config).toEqual({ modo: "tabla" });
     expect(result.current.origen).toBe("empresa");
+  });
+
+  test("dos componentes de la misma pantalla comparten configuración y carga", async () => {
+    getVista.mockResolvedValue({
+      pantalla: "ventas.pedido", vista: "", config: { tabla: { columnas: ["codigo"] } },
+      origen: "usuario",
+    });
+    guardarVista.mockResolvedValue(undefined);
+
+    const listado = renderHook(() => usePreferenciasVista("ventas.pedido"));
+    const detalle = renderHook(() => usePreferenciasVista("ventas.pedido"));
+    await waitFor(() => expect(detalle.result.current.cargada).toBe(true));
+    expect(getVista).toHaveBeenCalledTimes(1);
+
+    const config = detalle.result.current.config;
+    await act(() => detalle.result.current.guardar({ ...config, acciones: { detalle: ["imprimir"] } }));
+
+    // El listado ve lo guardado desde el detalle, sin perder sus columnas.
+    expect(listado.result.current.config).toEqual({
+      tabla: { columnas: ["codigo"] },
+      acciones: { detalle: ["imprimir"] },
+    });
   });
 });
