@@ -511,7 +511,7 @@ export const DetalleTrato = () => {
                     <header>
                         <h2>Tareas</h2>
                         {(esMio || usuario?.superusuario) && (
-                            <QBoton tamaño="pequeño" enlace={rutaNuevaTarea}>
+                            <QBoton variante="borde" tamaño="pequeño" enlace={rutaNuevaTarea}>
                                 + Tarea
                             </QBoton>
                         )}

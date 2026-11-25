@@ -59,7 +59,7 @@ const TarjetaCliente = ({ cliente, posicion, conVisita }: { cliente: ClienteCamp
             <div className="lado">
                 {cliente.afinidad !== null && <EtiquetaAfinidad score={cliente.afinidad} conPorcentaje />}
                 {conVisita && (
-                    <QBoton tamaño="pequeño" enlace={rutasSmartsales.nuevaTareaPara(cliente.codCliente, cliente.idTrato)}>
+                    <QBoton variante="borde" tamaño="pequeño" enlace={rutasSmartsales.nuevaTareaPara(cliente.codCliente, cliente.idTrato)}>
                         + Visita
                     </QBoton>
                 )}

@@ -181,7 +181,7 @@ export const MapaClientes = () => {
                                 Ver cliente
                             </QBoton>
                             <QBoton ancho enlace={rutasSmartsales.nuevaTareaPara(elegido.codCliente)}>
-                                + Añadir visita
+                                + Visita
                             </QBoton>
                         </div>
                     </section>
@@ -224,7 +224,7 @@ export const MapaClientes = () => {
                                 </Link>
                                 <div className="lado">
                                     {cliente.afinidad !== null && <EtiquetaAfinidad score={cliente.afinidad} conPorcentaje />}
-                                    <QBoton tamaño="pequeño" enlace={rutasSmartsales.nuevaTareaPara(cliente.codCliente)}>
+                                    <QBoton variante="borde" tamaño="pequeño" enlace={rutasSmartsales.nuevaTareaPara(cliente.codCliente)}>
                                         + Visita
                                     </QBoton>
                                 </div>

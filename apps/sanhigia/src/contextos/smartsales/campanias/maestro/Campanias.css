@@ -54,8 +54,10 @@
     gap: 0.5rem;
 }
 
+/* Solo el enlace del nombre del cliente: con "a" a secas también pillaba el botón "+ Visita" (un <a> de
+   QBoton) y lo dejaba en negro. */
 .Campanias .lista a,
-.Campanias .cliente-campania a {
+.Campanias .cliente-campania .datos {
     color: inherit;
 }
 

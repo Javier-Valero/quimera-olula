@@ -158,7 +158,7 @@ export const FichaCliente = () => {
                                     <span>Este cliente no tiene ninguna tarea futura programada.</span>
                                 </div>
                                 <QBoton enlace={rutasSmartsales.nuevaTareaPara(codCliente)} variante="borde" tamaño="pequeño">
-                                    + Programar visita
+                                    + Tarea
                                 </QBoton>
                             </div>
                         )}
