@@ -72,25 +72,55 @@ export const configTablaDesdeVisibles = (
   };
 };
 
+export type RepartoAcciones<A> = { botones: A[]; menu: A[] };
+
 /**
- * Acciones de un grupo ordenadas por la prioridad guardada. Las que no tienen
- * id no se pueden personalizar y conservan su sitio relativo; las nuevas van
- * detrás de la que les precede en el código.
+ * Qué acciones salen como botón y cuáles en el desplegable. Con `destacadas`
+ * (las que eligió el usuario, en su orden) salen esas, aunque estén
+ * deshabilitadas, para que no cambien de sitio según el estado; las que no
+ * tienen id o son nuevas van al desplegable en el orden del código. Sin
+ * configuración manda el código (`principal`).
  */
-export const aplicarAcciones = <A extends AccionCatalogo>(
+export const repartirAcciones = <A extends AccionCatalogo>(
   acciones: A[],
-  prioridad?: string[]
-): A[] => {
-  if (!prioridad?.length) return acciones;
+  destacadas: string[] | undefined,
+  principal: (acciones: A[]) => A | undefined
+): RepartoAcciones<A> => {
+  const botones = destacadas
+    ? destacadas
+        .map((id) => acciones.find((accion) => accion.id === id))
+        .filter((accion): accion is A => accion !== undefined)
+    : [principal(acciones)].filter((accion): accion is A => accion !== undefined);
+  return { botones, menu: acciones.filter((accion) => !botones.includes(accion)) };
+};
 
-  const claves = acciones.map((accion, i) => accion.id ?? `#${i}`);
-  const porClave = new Map(claves.map((clave, i) => [clave, acciones[i]]));
-  const colocadas = prioridad.filter((id) => porClave.has(id));
-  const nuevas = new Set(claves.filter((clave) => !colocadas.includes(clave)));
+/** Los botones que no caben pasan, en su orden, al principio del desplegable. */
+export const desbordarAcciones = <A>(
+  { botones, menu }: RepartoAcciones<A>,
+  caben: number
+): RepartoAcciones<A> => ({
+  botones: botones.slice(0, Math.max(0, caben)),
+  menu: [...botones.slice(Math.max(0, caben)), ...menu],
+});
 
-  return insertarNuevos(colocadas, claves, nuevas)
-    .map((clave) => porClave.get(clave))
-    .filter((accion): accion is A => accion !== undefined);
+/**
+ * Cuántos botones caben en `ancho`, dados sus anchos, el hueco entre ellos y el
+ * del botón del desplegable (que solo se reserva si queda algo en él).
+ */
+export const botonesQueCaben = (
+  anchos: number[],
+  ancho: number,
+  hueco: number,
+  anchoDesplegable: number,
+  hayMenu: boolean
+): number => {
+  const ocupado = (n: number) =>
+    anchos.slice(0, n).reduce((total, a) => total + a, 0) + hueco * Math.max(0, n - 1);
+  for (let n = anchos.length; n > 0; n--) {
+    const conMenu = hayMenu || n < anchos.length;
+    if (ocupado(n) + (conMenu ? hueco + anchoDesplegable : 0) <= ancho) return n;
+  }
+  return 0;
 };
 
 /** Huecos de la tarjeta sin los ids que ya no existen en el catálogo. */

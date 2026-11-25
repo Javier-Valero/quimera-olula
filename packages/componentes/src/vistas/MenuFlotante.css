@@ -48,3 +48,14 @@
     cursor: default;
   }
 }
+
+.menu-flotante-opcion[data-destructiva]:not(:disabled) {
+  color: var(--color-error-texto);
+}
+
+.menu-flotante-separador {
+  width: 100%;
+  margin: var(--espaciado-xs) 0;
+  border: 0;
+  border-top: var(--tamaño-borde-s) solid var(--color-borde-sutil);
+}

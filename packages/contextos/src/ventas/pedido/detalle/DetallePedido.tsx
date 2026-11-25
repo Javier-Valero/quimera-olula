@@ -104,19 +104,26 @@ export const DetallePedidoBase = ({
 
   const acciones = [
     {
+      id: "albaranar",
+      icono: "camion",
       texto: "Albaran parcial",
       onClick: handleAlbaranar,
       deshabilitado: !esEditable,
     },
     {
+      id: "imprimir",
+      icono: "imprimir",
       texto: "Imprimir",
       onClick: imprimir,
     },
     {
+      id: "documentos_relacionados",
+      icono: "relacion",
       texto: "Documentos relacionados",
       onClick: () => emitir("traza_solicitada"),
     },
     {
+      id: "borrar",
       icono: "eliminar",
       texto: "Borrar",
       advertencia: true,
@@ -143,7 +150,12 @@ export const DetallePedidoBase = ({
           error={pedido.errorGuardado}
           guardados={pedido.guardados}
         />
-        <QuimeraAcciones acciones={acciones} vertical />
+        <QuimeraAcciones
+          acciones={acciones}
+          vertical
+          pantalla="ventas.pedido"
+          grupo="detalle"
+        />
       </div>
 
       <AvisoPreparacionAlmacen pedido={ctx.pedido} />

@@ -104,17 +104,23 @@ export const DetalleFactura = ({
 
   const acciones = [
     {
+      id: "emitir",
+      icono: "enviar",
       texto: "Emitir",
       onClick: () => emitir("emitir_solicitado"),
       deshabilitado: !facturaEmitible(ctx.factura),
     },
     {
+      id: "imprimir",
+      icono: "imprimir",
       texto: "Imprimir",
       onClick: imprimir,
     },
     ...(pasarelaHabilitada
       ? [
           {
+            id: "enlace_tarjeta",
+            icono: "tarjeta",
             texto: "Enlace de pago con tarjeta",
             onClick: () => emitir("enlace_tarjeta_solicitado"),
             deshabilitado: !cobrableConTarjeta,
@@ -122,10 +128,13 @@ export const DetalleFactura = ({
         ]
       : []),
     {
+      id: "documentos_relacionados",
+      icono: "relacion",
       texto: "Documentos relacionados",
       onClick: () => emitir("traza_solicitada"),
     },
     {
+      id: "borrar",
       icono: "eliminar",
       texto: "Borrar",
       advertencia: true,
@@ -150,7 +159,12 @@ export const DetalleFactura = ({
           error={factura.errorGuardado}
           guardados={factura.guardados}
         />
-        <QuimeraAcciones acciones={acciones} vertical />
+        <QuimeraAcciones
+          acciones={acciones}
+          vertical
+          pantalla="ventas.factura"
+          grupo="detalle"
+        />
       </div>
 
       <Tabs>

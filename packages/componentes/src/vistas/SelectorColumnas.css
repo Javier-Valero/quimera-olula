@@ -158,3 +158,12 @@
     }
   }
 }
+
+.selector-columnas-ayuda {
+  margin: 0;
+  max-width: 16rem;
+  padding: var(--espaciado-xs) var(--espaciado-s);
+  color: var(--color-texto-secundario);
+  font-size: var(--tamaño-letra-xs);
+  line-height: 1.4;
+}

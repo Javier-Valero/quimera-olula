@@ -1,0 +1,27 @@
+quimera-acciones.acciones-personalizables {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--espaciado-s);
+
+  quimera-boton button {
+    white-space: nowrap;
+  }
+}
+
+/* Copia invisible de los botones para medir cuántos caben. */
+.acciones-personalizables .acciones-medida {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: var(--espaciado-s);
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}

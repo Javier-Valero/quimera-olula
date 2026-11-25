@@ -1,14 +1,16 @@
 import { ColumnaCatalogo } from "./diseño.ts";
 import {
-  aplicarAcciones,
   aplicarColumnas,
   aplicarTarjeta,
+  botonesQueCaben,
+  desbordarAcciones,
   configTablaDesdeVisibles,
   desplazarColumna,
   mismoOrden,
   modoDeVista,
   moverColumna,
   ocultarColumna,
+  repartirAcciones,
   ordenPorDefecto,
 } from "./dominio.ts";
 
@@ -101,7 +103,7 @@ describe("configTablaDesdeVisibles", () => {
   });
 });
 
-describe("aplicarAcciones", () => {
+describe("repartir acciones", () => {
   const acciones = [
     { id: "albaranar", texto: "Albarán parcial" },
     { id: "imprimir", texto: "Imprimir" },
@@ -109,29 +111,41 @@ describe("aplicarAcciones", () => {
     { id: "borrar", texto: "Borrar" },
   ];
   const textos = (lista: { texto: string }[]) => lista.map((a) => a.texto);
+  const primera = <A,>(lista: A[]) => lista[0];
 
-  test("sin prioridad, el orden del código", () => {
-    expect(aplicarAcciones(acciones)).toBe(acciones);
-    expect(aplicarAcciones(acciones, [])).toBe(acciones);
+  test("sin configuración, la principal que da el código", () => {
+    const reparto = repartirAcciones(acciones, undefined, (lista) => lista[1]);
+    expect(textos(reparto.botones)).toEqual(["Imprimir"]);
+    expect(textos(reparto.menu)).toEqual(["Albarán parcial", "Sin id", "Borrar"]);
   });
 
-  test("ordena por la prioridad guardada; las sin id siguen a su predecesora", () => {
-    expect(textos(aplicarAcciones(acciones, ["imprimir", "borrar", "albaranar"]))).toEqual([
-      "Imprimir",
-      "Sin id",
-      "Borrar",
-      "Albarán parcial",
-    ]);
+  test("con destacadas, esas en su orden y el resto en el del código", () => {
+    const reparto = repartirAcciones(acciones, ["borrar", "vieja", "albaranar"], primera);
+    expect(textos(reparto.botones)).toEqual(["Borrar", "Albarán parcial"]);
+    expect(textos(reparto.menu)).toEqual(["Imprimir", "Sin id"]);
   });
 
-  test("las nuevas y las desconocidas", () => {
-    // `borrar` es nueva (no está en la prioridad) y `vieja` ya no existe.
-    expect(textos(aplicarAcciones(acciones, ["vieja", "imprimir", "albaranar"]))).toEqual([
-      "Imprimir",
-      "Sin id",
-      "Borrar",
-      "Albarán parcial",
-    ]);
+  test("con la lista vacía, todo al desplegable", () => {
+    const reparto = repartirAcciones(acciones, [], primera);
+    expect(reparto.botones).toEqual([]);
+    expect(reparto.menu).toHaveLength(4);
+  });
+
+  test("lo que no cabe pasa al principio del desplegable", () => {
+    const reparto = desbordarAcciones({ botones: ["a", "b", "c"], menu: ["d"] }, 1);
+    expect(reparto).toEqual({ botones: ["a"], menu: ["b", "c", "d"] });
+    expect(desbordarAcciones({ botones: ["a"], menu: [] }, 5)).toEqual({ botones: ["a"], menu: [] });
+  });
+
+  test("botones que caben", () => {
+    // 3 botones de 100 con hueco 10 = 320; desplegable de 40.
+    expect(botonesQueCaben([100, 100, 100], 320, 10, 40, false)).toBe(3);
+    // Si queda menú hay que reservar su botón.
+    expect(botonesQueCaben([100, 100, 100], 320, 10, 40, true)).toBe(2);
+    // Al no caber todos aparece el desplegable y se reserva su sitio.
+    expect(botonesQueCaben([100, 100, 100], 300, 10, 40, false)).toBe(2);
+    expect(botonesQueCaben([100, 100, 100], 120, 10, 40, false)).toBe(0);
+    expect(botonesQueCaben([], 500, 10, 40, true)).toBe(0);
   });
 });
 

@@ -149,16 +149,20 @@ export const OpcionMenu = ({
   children,
   onClick,
   deshabilitado,
+  destructiva,
 }: {
   icono?: ReactNode;
   children: ReactNode;
   onClick: () => void;
   deshabilitado?: boolean;
+  /** Borrar y similares: en rojo. */
+  destructiva?: boolean;
 }) => (
   <button
     type="button"
     role="menuitem"
     className="menu-flotante-opcion"
+    data-destructiva={destructiva || undefined}
     onClick={onClick}
     disabled={deshabilitado}
   >
