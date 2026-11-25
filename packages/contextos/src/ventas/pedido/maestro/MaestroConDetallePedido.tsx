@@ -110,6 +110,7 @@ export const MaestroConDetallePedido = () => {
               metaTabla={metaTablaPedido}
               metaFiltro={metaFiltroPedido}
               widgets={widgetsPedido}
+              pantalla="ventas.pedido"
               tarjeta={(pedido) => (
                 <TarjetaDocumentoVenta
                   codigo={pedido.codigo}

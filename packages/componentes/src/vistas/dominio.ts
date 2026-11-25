@@ -122,3 +122,26 @@ export const modoDeVista = (
   porCodigo?: ModoVista
 ): ModoVista | undefined =>
   config?.modo && disponibles.includes(config.modo) ? config.modo : porCodigo;
+
+/** `ids` con `id` movido a la posición que ocupa `destino`. */
+export const moverColumna = (ids: string[], id: string, destino: string): string[] => {
+  if (id === destino || !ids.includes(id) || !ids.includes(destino)) return ids;
+  const sin = ids.filter((otro) => otro !== id);
+  const indice = ids.indexOf(destino);
+  return [...sin.slice(0, indice), id, ...sin.slice(indice)];
+};
+
+/** `ids` con `id` una posición antes (-1) o después (+1). */
+export const desplazarColumna = (ids: string[], id: string, paso: -1 | 1): string[] => {
+  const indice = ids.indexOf(id);
+  const destino = ids[indice + paso];
+  return indice < 0 || destino === undefined ? ids : moverColumna(ids, id, destino);
+};
+
+/** Quita `id` de las visibles; la última visible no se puede ocultar. */
+export const ocultarColumna = (ids: string[], id: string): string[] =>
+  ids.length <= 1 ? ids : ids.filter((otro) => otro !== id);
+
+/** Las ordenaciones son iguales (campo y sentido). */
+export const mismoOrden = (a?: string[], b?: string[]): boolean =>
+  !!a && !!b && a[0] === b[0] && (a[1] ?? "ASC") === (b[1] ?? "ASC");

@@ -65,4 +65,19 @@ describe("usePreferenciasVista", () => {
     expect(result.current.origen).toBe("usuario");
     expect(result.current.config).toEqual({ tabla: { columnas: ["codigo"] } });
   });
+
+  test("si guardar falla, vuelve a la configuración anterior", async () => {
+    getVista.mockResolvedValue({
+      pantalla: "ventas.pedido", vista: "", config: { modo: "tabla" }, origen: "empresa",
+    });
+    guardarVista.mockRejectedValue({ estado: 500 });
+
+    const { result } = renderHook(() => usePreferenciasVista("ventas.pedido"));
+    await waitFor(() => expect(result.current.cargada).toBe(true));
+
+    await act(() => result.current.guardar({ modo: "tarjetas" }));
+
+    expect(result.current.config).toEqual({ modo: "tabla" });
+    expect(result.current.origen).toBe("empresa");
+  });
 });

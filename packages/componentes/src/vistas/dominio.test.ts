@@ -4,7 +4,11 @@ import {
   aplicarColumnas,
   aplicarTarjeta,
   configTablaDesdeVisibles,
+  desplazarColumna,
+  mismoOrden,
   modoDeVista,
+  moverColumna,
+  ocultarColumna,
   ordenPorDefecto,
 } from "./dominio.ts";
 
@@ -159,5 +163,38 @@ describe("orden y modo", () => {
     expect(modoDeVista({ modo: "tarjetas" }, ["tabla", "tarjetas"], "tabla")).toBe("tarjetas");
     expect(modoDeVista({ modo: "kanban" }, ["tabla", "tarjetas"], "tabla")).toBe("tabla");
     expect(modoDeVista(undefined, ["tabla"])).toBeUndefined();
+  });
+});
+
+describe("mover y ocultar columnas", () => {
+  const visibles = ["codigo", "fecha", "cliente", "total"];
+
+  test("mover a la posición de otra, hacia delante y hacia atrás", () => {
+    expect(moverColumna(visibles, "total", "fecha")).toEqual(["codigo", "total", "fecha", "cliente"]);
+    expect(moverColumna(visibles, "codigo", "cliente")).toEqual(["fecha", "cliente", "codigo", "total"]);
+  });
+
+  test("mover sobre sí misma o con ids desconocidos no cambia nada", () => {
+    expect(moverColumna(visibles, "fecha", "fecha")).toBe(visibles);
+    expect(moverColumna(visibles, "otra", "fecha")).toBe(visibles);
+  });
+
+  test("desplazar una posición, sin salirse de los extremos", () => {
+    expect(desplazarColumna(visibles, "fecha", -1)).toEqual(["fecha", "codigo", "cliente", "total"]);
+    expect(desplazarColumna(visibles, "fecha", 1)).toEqual(["codigo", "cliente", "fecha", "total"]);
+    expect(desplazarColumna(visibles, "codigo", -1)).toBe(visibles);
+    expect(desplazarColumna(visibles, "total", 1)).toBe(visibles);
+  });
+
+  test("ocultar, salvo la última visible", () => {
+    expect(ocultarColumna(visibles, "fecha")).toEqual(["codigo", "cliente", "total"]);
+    expect(ocultarColumna(["codigo"], "codigo")).toEqual(["codigo"]);
+  });
+
+  test("mismo orden", () => {
+    expect(mismoOrden(["fecha", "DESC"], ["fecha", "DESC"])).toBe(true);
+    expect(mismoOrden(["fecha"], ["fecha", "ASC"])).toBe(true);
+    expect(mismoOrden(["fecha", "ASC"], ["fecha", "DESC"])).toBe(false);
+    expect(mismoOrden(undefined, ["fecha", "DESC"])).toBe(false);
   });
 });

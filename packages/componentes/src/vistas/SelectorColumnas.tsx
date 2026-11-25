@@ -1,0 +1,134 @@
+import { useCallback, useRef, useState } from "react";
+import { QIcono } from "../atomos/qicono.tsx";
+import { desplazarColumna, ocultarColumna } from "./dominio.ts";
+import { MenuFlotante } from "./MenuFlotante.tsx";
+import "./SelectorColumnas.css";
+
+export type ColumnaSelector = { id: string; cabecera: string };
+
+/**
+ * Botón del final de la cabecera de la tabla: qué columnas se ven y en qué
+ * orden, guardar la ordenación actual como predeterminada y restaurar.
+ */
+export const SelectorColumnas = ({
+  catalogo,
+  visibles,
+  personalizada,
+  puedeGuardarOrden,
+  onCambiar,
+  onGuardarOrden,
+  onRestaurar,
+}: {
+  /** Todas las columnas de la tabla, en el orden del código. */
+  catalogo: ColumnaSelector[];
+  /** Ids visibles, en el orden en que se ven. */
+  visibles: string[];
+  /** El usuario tiene la vista personalizada (se puede restaurar). */
+  personalizada: boolean;
+  /** La ordenación actual no es la guardada. */
+  puedeGuardarOrden: boolean;
+  onCambiar: (visibles: string[]) => void;
+  onGuardarOrden: () => void;
+  onRestaurar: () => void;
+}) => {
+  const boton = useRef<HTMLButtonElement>(null);
+  const [abierto, setAbierto] = useState(false);
+  const cerrar = useCallback(() => setAbierto(false), []);
+
+  const porId = new Map(catalogo.map((columna) => [columna.id, columna]));
+  const ocultas = catalogo.filter((columna) => !visibles.includes(columna.id));
+  const ordenadas = [
+    ...visibles.map((id) => porId.get(id)).filter((c): c is ColumnaSelector => !!c),
+    ...ocultas,
+  ];
+
+  const alternar = (id: string) =>
+    onCambiar(visibles.includes(id) ? ocultarColumna(visibles, id) : [...visibles, id]);
+
+  return (
+    <>
+      <button
+        ref={boton}
+        type="button"
+        className="selector-columnas-boton"
+        data-personalizada={personalizada}
+        aria-label={personalizada ? "Columnas (vista personalizada)" : "Columnas"}
+        title={personalizada ? "Columnas · vista personalizada" : "Columnas"}
+        aria-haspopup="dialog"
+        aria-expanded={abierto}
+        onClick={(e) => {
+          e.stopPropagation();
+          setAbierto(!abierto);
+        }}
+      >
+        <QIcono nombre="columnas" tamaño="sm" />
+      </button>
+      {abierto && boton.current && (
+        <MenuFlotante
+          ancla={boton.current}
+          onCerrar={cerrar}
+          alineacion="derecha"
+          etiqueta="Columnas"
+          rol="dialog"
+        >
+          <div className="selector-columnas">
+            <ul>
+              {ordenadas.map(({ id, cabecera }) => {
+                const visible = visibles.includes(id);
+                const posicion = visibles.indexOf(id);
+                return (
+                  <li key={id} data-visible={visible}>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={visible}
+                        disabled={visible && visibles.length === 1}
+                        onChange={() => alternar(id)}
+                      />
+                      <span>{cabecera}</span>
+                    </label>
+                    {visible && (
+                      <span className="selector-columnas-mover">
+                        <button
+                          type="button"
+                          aria-label={`Subir ${cabecera}`}
+                          disabled={posicion === 0}
+                          onClick={() => onCambiar(desplazarColumna(visibles, id, -1))}
+                        >
+                          <QIcono nombre="arriba" tamaño="xs" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Bajar ${cabecera}`}
+                          disabled={posicion === visibles.length - 1}
+                          onClick={() => onCambiar(desplazarColumna(visibles, id, 1))}
+                        >
+                          <QIcono nombre="abajo" tamaño="xs" />
+                        </button>
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="selector-columnas-pie">
+              <button type="button" disabled={!puedeGuardarOrden} onClick={onGuardarOrden}>
+                Guardar ordenación actual como predeterminada
+              </button>
+              <button
+                type="button"
+                disabled={!personalizada}
+                onClick={() => {
+                  onRestaurar();
+                  cerrar();
+                }}
+              >
+                Restaurar vista por defecto
+              </button>
+            </div>
+          </div>
+        </MenuFlotante>
+      )}
+    </>
+  );
+};

@@ -35,14 +35,21 @@ export const usePreferenciasVista = (pantalla: string | undefined, vista = "") =
     };
   }, [pantalla, vista]);
 
+  // Optimista: la vista cambia al momento y vuelve atrás si el servidor falla.
   const guardar = useCallback(
     async (nueva: ConfigVista) => {
       if (!pantalla) return;
-      await guardarVistaUsuario(pantalla, nueva, vista);
+      const anterior = { config, origen };
       setConfig(nueva);
       setOrigen("usuario");
+      try {
+        await guardarVistaUsuario(pantalla, nueva, vista);
+      } catch {
+        setConfig(anterior.config);
+        setOrigen(anterior.origen);
+      }
     },
-    [pantalla, vista]
+    [pantalla, vista, config, origen]
   );
 
   const restaurar = useCallback(async () => {

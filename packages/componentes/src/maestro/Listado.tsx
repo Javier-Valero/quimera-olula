@@ -4,7 +4,7 @@ import { ClausulaFiltro, Criteria, Entidad } from "@olula/lib/diseño.ts";
 import { criteriaDefecto } from "@olula/lib/dominio.js";
 import { criteriaQueryUrl } from "@olula/lib/infraestructura.ts";
 import { usePreferencia } from "@olula/lib/usePreferencia.ts";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { QBoton } from "../atomos/qboton.tsx";
 import { QIcono } from "../atomos/qicono.tsx";
 import { QKanban, type QKanbanColumna } from "../atomos/qkanban.tsx";
@@ -12,6 +12,8 @@ import { MetaTabla, QTablaControlada } from "../atomos/qtablacontrolada.tsx";
 import { QTarjetas } from "../atomos/qtarjetas.tsx";
 import { QTarjetaMetatabla } from "../moleculas/qtarjeta_metatabla.tsx";
 import { SinDatos } from "../SinDatos/SinDatos.tsx";
+import { SelectorColumnas } from "../vistas/SelectorColumnas.tsx";
+import { useVistaListado } from "../vistas/useVistaListado.ts";
 import "./Listado.css";
 import { useListadoMovilEnDetalle } from "./contexto_maestro.ts";
 import { SelectorModo } from "./SelectorModo.tsx";
@@ -81,6 +83,9 @@ type ListadoProps<T extends Entidad> = {
   formatosDescarga?: FormatoDescarga[];
   /** Totales encima del listado, calculados en el servidor con el filtro activo. */
   widgets?: ConfigWidgets;
+  /** Id de la pantalla (`ventas.pedido`) para que el usuario personalice la
+   *  vista: columnas, ordenación y modo. Sin él la vista es fija. */
+  pantalla?: string;
 };
 
 type Densidad = "comoda" | "compacta";
@@ -116,6 +121,7 @@ export const Listado = <T extends Entidad>({
   urlDescarga,
   formatosDescarga,
   widgets,
+  pantalla,
 }: ListadoProps<T>) => {
   // Sin widgets propios, el maestro principal los ofrece igualmente si su
   // pantalla tiene un recurso agregable en el servidor (los crea el usuario).
@@ -144,6 +150,31 @@ export const Listado = <T extends Entidad>({
       : (modo ?? modoInicial ?? (esMovil ? "tarjetas" : "tabla"))
   );
   const modoInterno = modo ?? modoEstado;
+
+  const cambiarOrden = useCallback(
+    (orden: string[]) =>
+      onCriteriaChanged({
+        ...criteria,
+        orden,
+        paginacion: { ...criteria.paginacion, pagina: 1 },
+      }),
+    [criteria, onCriteriaChanged]
+  );
+  const vista = useVistaListado({
+    pantalla,
+    metaTabla,
+    orden: criteria.orden,
+    ordenInicial: criteriaInicial.orden,
+    onOrdenChanged: cambiarOrden,
+  });
+  // El modo guardado solo cuando la pantalla no lo fija y la tabla cabe.
+  const modoGuardadoAplicado = useRef(false);
+  const modoLibre = modo === undefined && !esMovil && !tarjetasCompactas;
+  useEffect(() => {
+    if (!vista.modoGuardado || modoGuardadoAplicado.current || !modoLibre) return;
+    modoGuardadoAplicado.current = true;
+    setModoEstado(vista.modoGuardado);
+  }, [vista.modoGuardado, modoLibre]);
 
   const [multiseleccionEstado, setMultiseleccionEstado] = useState(false);
   const multiseleccionInterna = modoMultiseleccion ?? multiseleccionEstado;
@@ -220,6 +251,7 @@ export const Listado = <T extends Entidad>({
 
   const cambiarModo = (nuevoModo: Modo) => {
     if (modo === undefined) setModoEstado(nuevoModo);
+    if (modoLibre) vista.guardarModo(nuevoModo);
     onModoChanged?.(nuevoModo);
   };
 
@@ -271,23 +303,21 @@ export const Listado = <T extends Entidad>({
   }));
 
   const renderTabla = (datos: T[]) => {
-    if (!metaTabla) return null;
+    if (!vista.metaTabla) return null;
 
     return (
       <QTablaControlada
-        metaTabla={metaTabla}
+        metaTabla={vista.metaTabla}
+        personalizacion={vista.personalizacion}
+        extremoCabecera={
+          vista.selector && <SelectorColumnas {...vista.selector} />
+        }
         datos={datos}
         cargando={cargando}
         seleccionadaId={seleccionada}
         onSeleccion={(e: T) => onSeleccion(e.id)}
         orden={criteria.orden}
-        onOrdenChanged={(orden) => {
-          onCriteriaChanged({
-            ...criteria,
-            orden,
-            paginacion: { ...criteria.paginacion, pagina: 1 },
-          });
-        }}
+        onOrdenChanged={cambiarOrden}
         paginacion={criteria.paginacion}
         onPaginacionChanged={(paginacion) => {
           onCriteriaChanged({

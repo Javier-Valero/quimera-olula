@@ -122,6 +122,50 @@ quimera-tabla {
             width: 1em;
             margin-right: -1em;
         }
+
+        /* Pantallas personalizables: menú por columna y arrastrar. */
+        .cabecera-menu-boton {
+            display: inline-flex;
+            vertical-align: middle;
+            margin-left: var(--espaciado-xs);
+            padding: 2px;
+            border: 0;
+            border-radius: var(--redondeo-borde-xs);
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity var(--transicion-basica);
+
+            &:hover {
+                background: var(--color-superficie);
+            }
+        }
+
+        &:hover .cabecera-menu-boton,
+        .cabecera-menu-boton:focus-visible,
+        .cabecera-menu-boton[aria-expanded="true"] {
+            opacity: 1;
+        }
+
+        @media (hover: none) {
+            .cabecera-menu-boton {
+                opacity: 1;
+            }
+        }
+
+        &[draggable="true"] {
+            cursor: grab;
+        }
+
+        &[data-destino-arrastre] {
+            box-shadow: inset 3px 0 0 var(--color-primario);
+        }
+
+        &.col-extremo {
+            padding: 0;
+            text-align: center;
+        }
     }
 
     td {
