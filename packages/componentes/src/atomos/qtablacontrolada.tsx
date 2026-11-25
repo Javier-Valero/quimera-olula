@@ -113,6 +113,8 @@ const CeldaCabecera = <T extends Entidad>({
         id === colOrdenada ? (sentido === "DESC" ? "descending" : "ascending") : undefined
       }
       {...(personalizacion && {
+        // Sin esto el nombre de la columna incluiría el del botón de opciones.
+        "aria-label": cabecera,
         draggable: true,
         onDragStart: (e: React.DragEvent) => {
           e.dataTransfer.setData(TIPO_ARRASTRE, id);
@@ -132,9 +134,10 @@ const CeldaCabecera = <T extends Entidad>({
         },
       })}
     >
-      {cabecera}
+      {!personalizacion && cabecera}
       {personalizacion && (
-        <>
+        <span className="cabecera-contenido">
+          <span className="cabecera-texto">{cabecera}</span>
           <button
             ref={boton}
             type="button"
@@ -181,7 +184,7 @@ const CeldaCabecera = <T extends Entidad>({
               </OpcionMenu>
             </MenuFlotante>
           )}
-        </>
+        </span>
       )}
     </th>
   );

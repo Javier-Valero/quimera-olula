@@ -13,6 +13,9 @@
   box-shadow: var(--sombra-m);
   color: var(--color-texto-primario);
   font-size: var(--tamaño-letra-s);
+  font-weight: var(--grosor-letra-3);
+  line-height: normal;
+  max-width: calc(100vw - 1rem);
   text-transform: none;
 }
 
@@ -33,7 +36,11 @@
   &:hover:not(:disabled),
   &:focus-visible {
     background: var(--color-superficie-sunken);
-    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: -2px;
   }
 
   &:disabled {

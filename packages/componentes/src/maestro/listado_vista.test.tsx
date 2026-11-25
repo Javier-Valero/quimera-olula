@@ -115,10 +115,56 @@ describe("Listado con pantalla", () => {
     fireEvent.click(screen.getByRole("button", { name: "Opciones de la columna Total" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Orden descendente" }));
 
+    // Una sola vez: el clic del menú (en un portal) no llega al th.
+    expect(onCriteriaChanged).toHaveBeenCalledTimes(1);
     expect(onCriteriaChanged).toHaveBeenCalledWith(
       expect.objectContaining({ orden: ["total", "DESC"] })
     );
     expect(guardarVista).not.toHaveBeenCalled();
+  });
+
+  test("ocultar desde el menú no cambia la ordenación", async () => {
+    conVista(null, null);
+    const onCriteriaChanged = vi.fn();
+    montar({ pantalla: "ventas.pedido", onCriteriaChanged });
+    await screen.findByRole("button", { name: "Columnas" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Opciones de la columna Cliente" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Ocultar columna" }));
+
+    await waitFor(() => expect(guardarVista).toHaveBeenCalled());
+    expect(onCriteriaChanged).not.toHaveBeenCalled();
+  });
+
+  test("el menú se maneja con teclado y Escape devuelve el foco", async () => {
+    conVista(null, null);
+    montar({ pantalla: "ventas.pedido" });
+    await screen.findByRole("button", { name: "Columnas" });
+    const boton = screen.getByRole("button", { name: "Opciones de la columna Total" });
+
+    fireEvent.click(boton);
+    const menu = screen.getByRole("menu", { name: "Columna Total" });
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        within(menu).getByRole("menuitem", { name: "Orden ascendente" })
+      )
+    );
+    fireEvent.keyDown(menu, { key: "ArrowDown" });
+    expect(document.activeElement).toBe(
+      within(menu).getByRole("menuitem", { name: "Orden descendente" })
+    );
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(document.activeElement).toBe(boton);
+  });
+
+  test("la cabecera conserva su nombre accesible", async () => {
+    conVista(null, null);
+    montar({ pantalla: "ventas.pedido" });
+    await screen.findByRole("button", { name: "Columnas" });
+
+    expect(screen.getByRole("columnheader", { name: "Cliente" })).toBeTruthy();
   });
 
   test("el selector añade una columna oculta y la mueve", async () => {

@@ -17,6 +17,18 @@
     color: var(--color-texto-primario);
   }
 
+  /* Dentro: el th recorta (overflow hidden), el anillo no puede salir. */
+  &:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: -2px;
+  }
+
+  /* Táctil: objetivo mínimo ~40px (el th ya mide 40px de ancho). */
+  @media (hover: none) {
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
   /* Punto: la vista está personalizada. */
   &[data-personalizada="true"]::after {
     content: "";
@@ -54,9 +66,24 @@
       background: var(--color-superficie-sunken);
     }
 
-    &[data-visible="false"] span {
+    &[data-visible="false"] label span {
       color: var(--color-texto-secundario);
     }
+
+    &:focus-within {
+      background: var(--color-superficie-sunken);
+    }
+  }
+
+  input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: 2px;
+  }
+
+  input[type="checkbox"]:disabled,
+  input[type="checkbox"]:disabled + span {
+    cursor: default;
+    color: var(--color-texto-deshabilitado);
   }
 
   label {
@@ -82,6 +109,11 @@
       &:hover:not(:disabled) {
         background: var(--color-superficie);
         color: var(--color-texto-primario);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--color-primario);
+        outline-offset: -2px;
       }
 
       &:disabled {
@@ -111,6 +143,11 @@
 
     &:hover:not(:disabled) {
       background: var(--color-superficie-sunken);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primario);
+      outline-offset: -2px;
     }
 
     &:disabled {

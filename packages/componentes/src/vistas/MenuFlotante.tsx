@@ -27,21 +27,71 @@ export const MenuFlotante = ({
   const panel = useRef<HTMLDivElement>(null);
   const [posicion, setPosicion] = useState<Posicion | null>(null);
 
+  const focoDentro = useRef(false);
+
   useLayoutEffect(() => {
     const rect = ancla.getBoundingClientRect();
+    const margen = 8;
+    const ancho = panel.current?.offsetWidth ?? 0;
+    const alto = panel.current?.offsetHeight ?? 0;
+    // Si no cabe debajo pero sí encima, se abre hacia arriba.
+    const top =
+      rect.bottom + 4 + alto > window.innerHeight && rect.top - 4 - alto > 0
+        ? rect.top - 4 - alto
+        : rect.bottom + 4;
+    // Sin salirse horizontalmente de la ventana.
+    const maxLado = Math.max(margen, window.innerWidth - ancho - margen);
     setPosicion(
       alineacion === "derecha"
-        ? { top: rect.bottom + 4, right: window.innerWidth - rect.right }
-        : { top: rect.bottom + 4, left: rect.left }
+        ? {
+            top,
+            right: Math.min(Math.max(window.innerWidth - rect.right, margen), maxLado),
+          }
+        : { top, left: Math.min(Math.max(rect.left, margen), maxLado) }
     );
   }, [ancla, alineacion]);
 
   useEffect(() => {
     // El foco entra en el panel para poder usarlo con teclado.
     panel.current
-      ?.querySelector<HTMLElement>("button:not([disabled]), input")
+      ?.querySelector<HTMLElement>(
+        "button:not([disabled]), input:not([disabled])"
+      )
       ?.focus();
   }, [posicion]);
+
+  // Al cerrarse (elegir opción, Escape...) el foco vuelve al botón que lo abrió,
+  // salvo que el usuario haya pulsado fuera.
+  useEffect(
+    () => () => {
+      if (focoDentro.current) ancla.focus();
+    },
+    [ancla]
+  );
+
+  const alTeclearPanel = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (rol !== "menu") return;
+    const opciones = Array.from(
+      panel.current?.querySelectorAll<HTMLElement>(
+        '[role="menuitem"]:not([disabled])'
+      ) ?? []
+    );
+    if (!opciones.length) return;
+    const actual = opciones.indexOf(document.activeElement as HTMLElement);
+    const destino =
+      e.key === "ArrowDown"
+        ? (actual + 1) % opciones.length
+        : e.key === "ArrowUp"
+          ? (actual - 1 + opciones.length) % opciones.length
+          : e.key === "Home"
+            ? 0
+            : e.key === "End"
+              ? opciones.length - 1
+              : -1;
+    if (destino < 0) return;
+    e.preventDefault();
+    opciones[destino].focus();
+  };
 
   useEffect(() => {
     const alPulsar = (e: MouseEvent) => {
@@ -77,6 +127,15 @@ export const MenuFlotante = ({
       role={rol}
       aria-label={etiqueta}
       style={posicion ?? { visibility: "hidden" }}
+      onKeyDown={alTeclearPanel}
+      onFocus={() => (focoDentro.current = true)}
+      onBlur={(e) => {
+        if (!panel.current?.contains(e.relatedTarget as Node | null))
+          focoDentro.current = false;
+      }}
+      // El portal propaga eventos de React al th (ordenaría/arrastraría la columna).
+      onClick={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
     >
       {children}
     </div>,
