@@ -60,3 +60,12 @@ export const tareaParaAPI = (formulario: FormularioTarea, motivos: Motivo[]): Nu
 
 export const sugerenciasVisibles = (sugerencias: Sugerencia[], todas: boolean): Sugerencia[] =>
     todas ? sugerencias : sugerencias.filter((s) => s.score > AFINIDAD_SUGERENCIA);
+
+// Opciones del campo Motivo: los activos y, si la tarea ya tiene uno desactivado, también ese (con su nombre),
+// para no perderlo al guardar. Un motivo que ya no existe se muestra con su número.
+export const opcionesMotivoTarea = (motivos: Motivo[], idActual: string | null = null) => {
+    const opciones = motivos.filter((m) => m.activo).map((m) => ({ valor: m.id, descripcion: m.descripcion }));
+    if (!idActual || opciones.some((o) => o.valor === idActual)) return opciones;
+    const actual = motivos.find((m) => m.id === idActual);
+    return [...opciones, { valor: idActual, descripcion: `${actual?.descripcion ?? `Motivo ${idActual}`} (inactivo)` }];
+};

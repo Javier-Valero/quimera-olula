@@ -14,7 +14,15 @@ import { NotaDictada } from "../../comun/componentes/NotaDictada.tsx";
 import { SelectorProducto } from "../../comun/componentes/SelectorProducto.tsx";
 import { SelectorTipoTarea } from "../../comun/componentes/SelectorTipoTarea.tsx";
 import { FormularioTarea, Motivo, Sugerencia, TratoCliente } from "../diseño.ts";
-import { erroresFormulario, formularioVacio, MAX_NOTA, sugerenciasVisibles, tareaParaAPI, tituloTarea } from "../dominio.ts";
+import {
+    erroresFormulario,
+    formularioVacio,
+    MAX_NOTA,
+    opcionesMotivoTarea,
+    sugerenciasVisibles,
+    tareaParaAPI,
+    tituloTarea,
+} from "../dominio.ts";
 import {
     buscarClientes,
     crearTarea,
@@ -195,7 +203,7 @@ export const NuevaTarea = () => {
                         nombre="motivo"
                         valor={formulario.idMotivo ?? ""}
                         opcional
-                        opciones={motivos.map((m) => ({ valor: m.id, descripcion: m.descripcion }))}
+                        opciones={opcionesMotivoTarea(motivos)}
                         onChange={(opcion) => cambiar({ idMotivo: opcion?.valor || null })}
                     />
 

@@ -101,13 +101,13 @@ export const getSugerencias = async (codCliente: string): Promise<Sugerencia[]> 
     return respuesta.data.map((s) => ({ codSubfamilia: s.codsubfamilia, descripcion: s.descripcion, score: s.score }));
 };
 
+// Todos los motivos, también los desactivados: al crear una tarea solo se ofrecen los activos, pero al editar
+// una que tiene un motivo desactivado hay que mostrar su nombre.
 export const getMotivos = async (): Promise<Motivo[]> => {
     const respuesta = await RestAPI.get<{ datos: { id: string | number; descripcion: string; activo: boolean }[] }>(
         "/crm/motivo_tarea"
     );
-    return respuesta.datos
-        .filter((motivo) => motivo.activo)
-        .map((motivo) => ({ id: String(motivo.id), descripcion: motivo.descripcion }));
+    return respuesta.datos.map((motivo) => ({ id: String(motivo.id), descripcion: motivo.descripcion, activo: !!motivo.activo }));
 };
 
 export const crearTarea = async (tarea: NuevaTareaAPI & { idtrato: number; codagente: string }) =>

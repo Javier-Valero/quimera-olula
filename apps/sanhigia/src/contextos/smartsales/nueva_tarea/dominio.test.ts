@@ -1,5 +1,5 @@
 import { FormularioTarea } from "./diseño.ts";
-import { erroresFormulario, sugerenciasVisibles, tareaParaAPI, tituloTarea } from "./dominio.ts";
+import { erroresFormulario, opcionesMotivoTarea, sugerenciasVisibles, tareaParaAPI, tituloTarea } from "./dominio.ts";
 
 const formulario = (datos: Partial<FormularioTarea> = {}): FormularioTarea => ({
     cliente: { codigo: "000123", nombre: "Clínica Dental ABC" },
@@ -16,7 +16,7 @@ const formulario = (datos: Partial<FormularioTarea> = {}): FormularioTarea => ({
     ...datos,
 });
 
-const motivos = [{ id: "2", descripcion: "Presentación" }];
+const motivos = [{ id: "2", descripcion: "Presentación", activo: true }];
 
 describe("erroresFormulario", () => {
     test("exige cliente y limita la nota a 1000 caracteres", () => {
@@ -88,5 +88,24 @@ describe("sugerenciasVisibles", () => {
         ];
         expect(sugerenciasVisibles(sugerencias, false).map((s) => s.codSubfamilia)).toEqual(["A"]);
         expect(sugerenciasVisibles(sugerencias, true)).toHaveLength(2);
+    });
+});
+
+describe("opcionesMotivoTarea", () => {
+    const todos = [
+        { id: "1", descripcion: "Presentación", activo: true },
+        { id: "2", descripcion: "Seguimiento", activo: false },
+    ];
+
+    test("al crear solo se ofrecen los motivos activos", () => {
+        expect(opcionesMotivoTarea(todos)).toEqual([{ valor: "1", descripcion: "Presentación" }]);
+    });
+
+    test("al editar, el motivo desactivado de la tarea sigue con su nombre", () => {
+        expect(opcionesMotivoTarea(todos, "2")).toEqual([
+            { valor: "1", descripcion: "Presentación" },
+            { valor: "2", descripcion: "Seguimiento (inactivo)" },
+        ]);
+        expect(opcionesMotivoTarea(todos, "9")).toContainEqual({ valor: "9", descripcion: "Motivo 9 (inactivo)" });
     });
 });

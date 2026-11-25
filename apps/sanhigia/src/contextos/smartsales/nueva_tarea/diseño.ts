@@ -21,6 +21,7 @@ export type TratoCliente = {
 export type Motivo = {
     id: string;
     descripcion: string;
+    activo: boolean;
 };
 
 export type Sugerencia = {

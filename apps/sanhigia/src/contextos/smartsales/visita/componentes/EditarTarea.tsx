@@ -8,6 +8,7 @@ import { NotaDictada } from "../../comun/componentes/NotaDictada.tsx";
 import { SelectorProducto } from "../../comun/componentes/SelectorProducto.tsx";
 import { SelectorTipoTarea } from "../../comun/componentes/SelectorTipoTarea.tsx";
 import { Motivo } from "../../nueva_tarea/diseño.ts";
+import { opcionesMotivoTarea } from "../../nueva_tarea/dominio.ts";
 import { getMotivos, getProducto } from "../../nueva_tarea/infraestructura.ts";
 import { FormularioEdicionTarea, TareaVisita } from "../diseño.ts";
 import { edicionParaAPI, erroresEdicion, formularioEdicion, MAX_NOTA } from "../dominio.ts";
@@ -42,11 +43,8 @@ export const EditarTarea = ({ tarea, onCancelar, onGuardada }: EditarTareaProps)
 
     const cambiar = (cambios: Partial<FormularioEdicionTarea>) => setFormulario({ ...formulario, ...cambios });
 
-    // Un motivo dado de baja después de crear la tarea sigue apareciendo para no perderlo al guardar.
-    const opcionesMotivo = motivos.map((m) => ({ valor: m.id, descripcion: m.descripcion }));
-    if (formulario.idMotivo && !motivos.some((m) => m.id === formulario.idMotivo)) {
-        opcionesMotivo.push({ valor: formulario.idMotivo, descripcion: `Motivo ${formulario.idMotivo} (inactivo)` });
-    }
+    // Un motivo desactivado después de crear la tarea sigue apareciendo, con su nombre, para no perderlo al guardar.
+    const opcionesMotivo = opcionesMotivoTarea(motivos, formulario.idMotivo);
 
     const guardar = async () => {
         const encontrados = erroresEdicion(formulario);
