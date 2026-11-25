@@ -70,11 +70,26 @@ export const MenuFlotante = ({
   );
 
   const alTeclearPanel = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // El panel va en un portal al final de la página: el Tabulador saldría de
+    // él hacia el navegador. Se cierra y el foco vuelve al botón que lo abrió
+    // (en un menú, siempre; en un diálogo, al salir por un extremo).
+    if (e.key === "Tab") {
+      const enfocables = Array.from(
+        panel.current?.querySelectorAll<HTMLElement>(
+          "button:not([disabled]), input:not([disabled])"
+        ) ?? []
+      );
+      const extremo = e.shiftKey ? enfocables[0] : enfocables[enfocables.length - 1];
+      if (rol === "menu" || document.activeElement === extremo) {
+        e.preventDefault();
+        onCerrar();
+        ancla.focus();
+      }
+      return;
+    }
     if (rol !== "menu") return;
     const opciones = Array.from(
-      panel.current?.querySelectorAll<HTMLElement>(
-        '[role="menuitem"]:not([disabled])'
-      ) ?? []
+      panel.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []
     );
     if (!opciones.length) return;
     const actual = opciones.indexOf(document.activeElement as HTMLElement);
@@ -163,8 +178,10 @@ export const OpcionMenu = ({
     role="menuitem"
     className="menu-flotante-opcion"
     data-destructiva={destructiva || undefined}
-    onClick={onClick}
-    disabled={deshabilitado}
+    // aria-disabled y no disabled: sigue siendo enfocable y el lector de
+    // pantalla la anuncia como no disponible.
+    aria-disabled={deshabilitado || undefined}
+    onClick={deshabilitado ? undefined : onClick}
   >
     {icono}
     <span>{children}</span>

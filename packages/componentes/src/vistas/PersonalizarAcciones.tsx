@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { QIcono } from "../atomos/qicono.tsx";
 import { AccionDefinida } from "../moleculas/acciones.ts";
 import { desplazarColumna } from "./dominio.ts";
@@ -12,6 +13,7 @@ export const PersonalizarAcciones = ({
   ancla,
   acciones,
   destacadas,
+  enMenu = [],
   personalizada,
   onCambiar,
   onRestaurar,
@@ -21,6 +23,8 @@ export const PersonalizarAcciones = ({
   acciones: AccionDefinida[];
   /** Ids que salen ahora como botón, en su orden. */
   destacadas: string[];
+  /** Destacadas que no caben y están ahora en «Más acciones». */
+  enMenu?: string[];
   /** El usuario ya eligió (se puede restaurar). */
   personalizada: boolean;
   onCambiar: (destacadas: string[]) => void;
@@ -36,6 +40,27 @@ export const PersonalizarAcciones = ({
     ...conId.filter((accion) => !destacadas.includes(accion.id)),
   ];
 
+  // Al mover una acción la lista se reordena y el botón pulsado puede perder el
+  // foco: se le devuelve y se anuncia la nueva posición.
+  const lista = useRef<HTMLUListElement>(null);
+  const [movida, setMovida] = useState<{ boton: string; aviso: string } | null>(null);
+  useEffect(() => {
+    if (!movida) return;
+    lista.current
+      ?.querySelector<HTMLElement>(`button[aria-label="${CSS.escape(movida.boton)}"]`)
+      ?.focus();
+  }, [movida]);
+
+  const mover = (id: string, texto: string | undefined, sentido: -1 | 1) => {
+    const nuevas = desplazarColumna(destacadas, id, sentido);
+    if (nuevas === destacadas) return;
+    onCambiar(nuevas);
+    setMovida({
+      boton: `${sentido < 0 ? "Subir" : "Bajar"} ${texto}`,
+      aviso: `${texto}: posición ${nuevas.indexOf(id) + 1} de ${nuevas.length}`,
+    });
+  };
+
   return (
     <MenuFlotante
       ancla={ancla}
@@ -49,7 +74,10 @@ export const PersonalizarAcciones = ({
           Las acciones marcadas salen como botón, en este orden. El resto, en «Más
           acciones».
         </p>
-        <ul>
+        <p className="selector-columnas-aviso" aria-live="polite">
+          {movida?.aviso}
+        </p>
+        <ul ref={lista}>
           {ordenadas.map(({ id, texto }) => {
             const destacada = destacadas.includes(id);
             const posicion = destacadas.indexOf(id);
@@ -67,23 +95,29 @@ export const PersonalizarAcciones = ({
                       )
                     }
                   />
-                  <span>{texto}</span>
+                  <span>
+                    {texto}
+                    {enMenu.includes(id) && (
+                      <small className="selector-columnas-nota"> (en el menú, no cabe)</small>
+                    )}
+                  </span>
                 </label>
                 {destacada && (
                   <span className="selector-columnas-mover">
                     <button
                       type="button"
                       aria-label={`Subir ${texto}`}
-                      disabled={posicion === 0}
-                      onClick={() => onCambiar(desplazarColumna(destacadas, id, -1))}
+                      // aria-disabled: en el extremo sigue enfocable y no se pierde el foco.
+                      aria-disabled={posicion === 0}
+                      onClick={() => mover(id, texto, -1)}
                     >
                       <QIcono nombre="arriba" tamaño="xs" />
                     </button>
                     <button
                       type="button"
                       aria-label={`Bajar ${texto}`}
-                      disabled={posicion === destacadas.length - 1}
-                      onClick={() => onCambiar(desplazarColumna(destacadas, id, 1))}
+                      aria-disabled={posicion === destacadas.length - 1}
+                      onClick={() => mover(id, texto, 1)}
                     >
                       <QIcono nombre="abajo" tamaño="xs" />
                     </button>

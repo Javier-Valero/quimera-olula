@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { QBoton } from "../atomos/qboton.tsx";
 import { QIcono } from "../atomos/qicono.tsx";
 import { useEsMovil } from "../maestro/useEsMovil.ts";
@@ -16,24 +16,26 @@ import "./AccionesPersonalizables.css";
 
 const clave = (accion: AccionDefinida, i: number) => accion.id ?? `${accion.texto}-${i}`;
 
-/** Botón de una acción destacada; en móvil, solo el icono (si lo tiene). */
+/** Botón de una acción destacada; en móvil (o si no tiene texto), solo el icono. */
 const BotonAccion = ({ accion, soloIcono }: { accion: AccionDefinida; soloIcono: boolean }) => {
   const destructiva = esDestructiva(accion);
   const icono = iconoAccion(accion);
-  const conIcono = soloIcono && icono;
+  const nombre = accion.texto ?? accion.id;
+  const conIcono = !!icono && (soloIcono || !accion.texto);
   return (
     <QBoton
-      onClick={accion.onClick}
+      // QBoton deshabilitado solo bloquea el ratón: con teclado se ejecutaría.
+      onClick={accion.deshabilitado ? undefined : accion.onClick}
       deshabilitado={accion.deshabilitado}
       advertencia={accion.advertencia && !destructiva}
       destructivo={destructiva}
-      variante={destructiva ? "borde" : accion.deshabilitado ? accion.variante : "solido"}
+      variante={destructiva || accion.deshabilitado ? "borde" : "solido"}
       props={{
-        ...(conIcono && { "aria-label": accion.texto, title: accion.texto }),
+        ...(conIcono && { "aria-label": nombre, title: nombre, className: "acciones-icono" }),
         ...(accion.deshabilitado && { "aria-disabled": true }),
       }}
     >
-      {conIcono ? <QIcono nombre={icono} tamaño="sm" /> : accion.texto}
+      {conIcono ? <QIcono nombre={icono} tamaño="sm" /> : nombre}
     </QBoton>
   );
 };
@@ -47,10 +49,13 @@ export const AccionesPersonalizables = ({
   acciones,
   pantalla,
   grupo,
+  vertical,
 }: {
   acciones: AccionDefinida[];
   pantalla: string;
   grupo: string;
+  /** Como en QuimeraAcciones: acciones del documento, arriba a la derecha del detalle. */
+  vertical?: boolean;
 }) => {
   const preferencias = usePreferenciasVista(pantalla);
   const { config, personalizable } = preferencias;
@@ -70,9 +75,9 @@ export const AccionesPersonalizables = ({
   const reparto = repartirAcciones(acciones, destacadas, accionPrincipal);
 
   const contenedor = useRef<HTMLElement>(null);
-  const medida = useRef<HTMLDivElement>(null);
+  const medida = useRef<HTMLElement>(null);
   // QBoton no expone su botón: se toma del evento para anclar el menú.
-  const botonMas = useRef<HTMLElement | null>(null);
+  const [ancla, setAncla] = useState<HTMLElement | null>(null);
   const [ancho, setAncho] = useState<number | null>(null);
   const [caben, setCaben] = useState(Number.POSITIVE_INFINITY);
   const [panel, setPanel] = useState<"menu" | "personalizar" | null>(null);
@@ -89,7 +94,7 @@ export const AccionesPersonalizables = ({
   }, []);
 
   // Los anchos se miden en una copia invisible de los botones destacados.
-  const firma = `${reparto.botones.map(clave).join("|")}:${esMovil}`;
+  const firma = `${reparto.botones.map((accion, i) => `${clave(accion, i)}=${accion.texto}`).join("|")}:${esMovil}`;
   useLayoutEffect(() => {
     if (ancho === null || !medida.current || !contenedor.current) return;
     const hijos = Array.from(medida.current.children) as HTMLElement[];
@@ -109,8 +114,20 @@ export const AccionesPersonalizables = ({
   const visible = desbordarAcciones(reparto, caben);
   const conMenu = visible.menu.length > 0 || personalizable;
 
-  const guardarDestacadas = (ids: string[]) =>
-    void preferencias.guardar({ ...config, acciones: { ...config?.acciones, [grupo]: ids } });
+  // Si cambia lo que cabe, el menú abierto ya no corresponde (y su botón puede
+  // haber desaparecido).
+  useEffect(() => setPanel((actual) => (actual === "menu" ? null : actual)), [caben]);
+
+  // Las destacadas que hoy no están (acciones condicionales al estado del
+  // documento) se conservan: el diálogo solo cambia las que conoce.
+  const guardarDestacadas = (ids: string[]) => {
+    const presentes = new Set(acciones.map((accion) => accion.id));
+    const ausentes = (destacadas ?? []).filter((id) => !presentes.has(id));
+    void preferencias.guardar({
+      ...config,
+      acciones: { ...config?.acciones, [grupo]: [...ids, ...ausentes] },
+    });
+  };
 
   const restaurar = () => {
     const resto = { ...config?.acciones };
@@ -118,8 +135,10 @@ export const AccionesPersonalizables = ({
     void preferencias.guardar({ ...config, acciones: resto });
   };
 
+  const clases = `acciones-personalizables${vertical ? " vertical" : ""}`;
+
   return (
-    <quimera-acciones className="acciones-personalizables" ref={contenedor}>
+    <quimera-acciones className={clases} ref={contenedor}>
       {visible.botones.map((accion, i) => (
         <BotonAccion key={clave(accion, i)} accion={accion} soloIcono={esMovil} />
       ))}
@@ -127,10 +146,11 @@ export const AccionesPersonalizables = ({
         <QBoton
           variante="borde"
           onClick={(e) => {
-            botonMas.current = e.currentTarget as HTMLElement;
+            setAncla(e.currentTarget as HTMLElement);
             setPanel(panel ? null : "menu");
           }}
           props={{
+            className: "acciones-mas",
             "aria-label": "Más acciones",
             "aria-haspopup": "menu",
             "aria-expanded": panel !== null,
@@ -141,18 +161,24 @@ export const AccionesPersonalizables = ({
         </QBoton>
       )}
 
-      <div className="acciones-medida" ref={medida} aria-hidden="true" inert>
+      {/* Mismas clases que el grupo: le aplican las mismas reglas de estilo. */}
+      <quimera-acciones
+        className={`${clases} acciones-medida`}
+        ref={medida}
+        aria-hidden="true"
+        inert
+      >
         {reparto.botones.map((accion, i) => (
           <BotonAccion key={clave(accion, i)} accion={accion} soloIcono={esMovil} />
         ))}
-        <QBoton variante="borde">
+        <QBoton variante="borde" props={{ className: "acciones-mas" }}>
           <QIcono nombre="mas_opciones" tamaño="sm" />
         </QBoton>
-      </div>
+      </quimera-acciones>
 
-      {panel === "menu" && botonMas.current && (
+      {panel === "menu" && ancla?.isConnected && (
         <MenuFlotante
-          ancla={botonMas.current}
+          ancla={ancla}
           onCerrar={cerrar}
           alineacion="derecha"
           etiqueta="Más acciones"
@@ -170,7 +196,7 @@ export const AccionesPersonalizables = ({
                   accion.onClick();
                 }}
               >
-                {accion.texto}
+                {accion.texto ?? accion.id}
               </OpcionMenu>
             );
           })}
@@ -188,11 +214,14 @@ export const AccionesPersonalizables = ({
         </MenuFlotante>
       )}
 
-      {panel === "personalizar" && botonMas.current && (
+      {panel === "personalizar" && ancla?.isConnected && (
         <PersonalizarAcciones
-          ancla={botonMas.current}
+          ancla={ancla}
           acciones={acciones}
           destacadas={reparto.botones.flatMap((accion) => (accion.id ? [accion.id] : []))}
+          enMenu={reparto.botones
+            .slice(visible.botones.length)
+            .flatMap((accion) => (accion.id ? [accion.id] : []))}
           personalizada={destacadas !== undefined}
           onCambiar={guardarDestacadas}
           onRestaurar={restaurar}

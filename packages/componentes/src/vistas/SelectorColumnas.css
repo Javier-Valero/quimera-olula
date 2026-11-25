@@ -106,7 +106,7 @@
       color: var(--color-texto-secundario);
       cursor: pointer;
 
-      &:hover:not(:disabled) {
+      &:hover:not(:disabled, [aria-disabled="true"]) {
         background: var(--color-superficie);
         color: var(--color-texto-primario);
       }
@@ -116,11 +116,28 @@
         outline-offset: -2px;
       }
 
-      &:disabled {
+      &:disabled,
+      &[aria-disabled="true"] {
         opacity: 0.3;
         cursor: default;
       }
     }
+  }
+
+  .selector-columnas-nota {
+    color: var(--color-texto-secundario);
+    font-size: var(--tamaño-letra-xs);
+  }
+
+  /* Solo para lectores de pantalla (anuncia los cambios de posición). */
+  .selector-columnas-aviso {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 

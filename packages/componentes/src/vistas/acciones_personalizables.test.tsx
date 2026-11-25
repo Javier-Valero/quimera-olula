@@ -76,7 +76,11 @@ describe("acciones personalizables", () => {
       "Borrar",
       "Personalizar botones…",
     ]);
-    expect(within(menu).getByRole("menuitem", { name: "Albarán parcial" })).toBeDisabled();
+    // Deshabilitada pero enfocable, como pide el patrón de menú.
+    const deshabilitada = within(menu).getByRole("menuitem", { name: "Albarán parcial" });
+    expect(deshabilitada).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(deshabilitada);
+    expect(screen.getByRole("menu")).toBeInTheDocument();
   });
 
   test("con destacadas: esas en su orden, aunque estén deshabilitadas", async () => {
@@ -84,6 +88,55 @@ describe("acciones personalizables", () => {
     montar();
 
     await waitFor(() => expect(botones()).toEqual(["Borrar", "Albarán parcial", "Más acciones"]));
+  });
+
+  test("una destacada deshabilitada no se ejecuta (tampoco con teclado)", async () => {
+    const albaranar = vi.fn();
+    getVista.mockResolvedValue({
+      pantalla: "ventas.pedido", vista: "", config: { acciones: { detalle: ["albaranar"] } }, origen: "usuario",
+    });
+    render(
+      <QuimeraAcciones
+        acciones={[{ id: "albaranar", texto: "Albarán parcial", onClick: albaranar, deshabilitado: true }]}
+        pantalla="ventas.pedido"
+        grupo="detalle"
+      />
+    );
+    const boton = await screen.findByRole("button", { name: "Albarán parcial" });
+    expect(boton).toHaveAttribute("aria-disabled", "true");
+    // Enter/Espacio en un botón disparan click aunque pointer-events lo bloquee.
+    fireEvent.click(boton);
+    expect(albaranar).not.toHaveBeenCalled();
+  });
+
+  test("guardar conserva las destacadas que ahora no están", async () => {
+    conVista({ acciones: { detalle: ["imprimir", "facturar"] } });
+    montar();
+    await waitFor(() => expect(botones()).toEqual(["Imprimir", "Más acciones"]));
+
+    abrirMenu();
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Personalizar botones…" }));
+    const panel = await screen.findByRole("dialog", { name: "Botones destacados" });
+    fireEvent.click(within(panel).getByRole("checkbox", { name: "Borrar" }));
+
+    expect(guardarVista).toHaveBeenLastCalledWith(
+      "ventas.pedido",
+      { acciones: { detalle: ["imprimir", "borrar", "facturar"] } },
+      ""
+    );
+  });
+
+  test("el tabulador cierra el menú y devuelve el foco a «Más acciones»", async () => {
+    conVista(null);
+    montar();
+    await waitFor(() => expect(getVista).toHaveBeenCalled());
+
+    abrirMenu();
+    const menu = await screen.findByRole("menu");
+    fireEvent.keyDown(within(menu).getAllByRole("menuitem")[0], { key: "Tab" });
+
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(screen.getByRole("button", { name: "Más acciones" })).toHaveFocus();
   });
 
   test("una acción del menú se ejecuta y el menú se cierra", async () => {

@@ -131,6 +131,7 @@ export const QuimeraAcciones = ({
         acciones={acciones.filter((accion): accion is AccionDefinida => Boolean(accion))}
         pantalla={pantalla}
         grupo={grupo}
+        vertical={vertical === true}
       />
     );
   }

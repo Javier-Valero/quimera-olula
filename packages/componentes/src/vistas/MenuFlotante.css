@@ -33,7 +33,7 @@
   text-align: left;
   cursor: pointer;
 
-  &:hover:not(:disabled),
+  &:hover:not([aria-disabled="true"]),
   &:focus-visible {
     background: var(--color-superficie-sunken);
   }
@@ -43,13 +43,13 @@
     outline-offset: -2px;
   }
 
-  &:disabled {
+  &[aria-disabled="true"] {
     color: light-dark(var(--gris-6), var(--gris-5));
     cursor: default;
   }
 }
 
-.menu-flotante-opcion[data-destructiva]:not(:disabled) {
+.menu-flotante-opcion[data-destructiva]:not([aria-disabled="true"]) {
   color: var(--color-error-texto);
 }
 
