@@ -13,6 +13,7 @@ export type TratoTarjeta = {
     fecha: string | null;
     cliente?: string | null;
     contacto?: string | null;
+    agente?: string | null;
     origen?: OrigenTrato;
 };
 
@@ -20,6 +21,8 @@ type TarjetaTratoProps = {
     trato: TratoTarjeta;
     // En listas que solo tienen tratos abiertos (Hoy) la etiqueta "Abierto" sobra.
     conEstado?: boolean;
+    // En listas con tratos de varios agentes (Tratos > Todos), el agente del trato.
+    conAgente?: boolean;
 };
 
 const euros = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
@@ -44,7 +47,7 @@ const fechaCorta = (iso: string | null) =>
 
 // Tarjeta de trato común a Hoy, Tratos y las fichas de cliente y contacto: título (con su origen si viene
 // de marketing, farma o una campaña), cliente y contacto, valor, estado y fecha. Al pulsarla se abre el trato.
-export const TarjetaTrato = ({ trato, conEstado = true }: TarjetaTratoProps) => {
+export const TarjetaTrato = ({ trato, conEstado = true, conAgente = false }: TarjetaTratoProps) => {
     const interlocutores = [trato.cliente, trato.contacto].filter(Boolean).join(" · ");
     return (
         <Link to={rutasSmartsales.trato(trato.id)} className={`TarjetaTrato ${trato.estado === "-" ? "abierto" : ""}`}>
@@ -58,6 +61,7 @@ export const TarjetaTrato = ({ trato, conEstado = true }: TarjetaTratoProps) => 
                     )}
                 </span>
                 {interlocutores && <span className="secundario">{interlocutores}</span>}
+                {conAgente && <span className="secundario agente">Agente: {trato.agente || "sin agente"}</span>}
             </span>
             <span className="lado">
                 <strong className="valor">{euros.format(trato.valor)}</strong>

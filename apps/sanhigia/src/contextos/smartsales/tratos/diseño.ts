@@ -9,6 +9,7 @@ export type TratoLista = {
     titulo: string;
     cliente: string | null;
     contacto: string | null;
+    agente: string | null;
     valor: number;
     estado: string;
     fecha: string | null;
@@ -20,6 +21,7 @@ export type TratoListaAPI = {
     titulo: string;
     nombrecliente: string | null;
     nombrecontacto: string | null;
+    nombreagente?: string | null;
     valor: number | null;
     estado: string;
     fecha: string | null;

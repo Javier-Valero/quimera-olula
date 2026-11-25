@@ -119,7 +119,7 @@ export const Tratos = () => {
                     <ul className="tarjeta lista">
                         {tratos.map((trato) => (
                             <li key={trato.id}>
-                                <TarjetaTrato trato={trato} />
+                                <TarjetaTrato trato={trato} conAgente={pestaña === "todos"} />
                             </li>
                         ))}
                     </ul>
