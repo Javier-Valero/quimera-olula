@@ -27,7 +27,7 @@ export const Clientes = () => {
     const [texto, setTexto] = useState("");
     // Texto ya aplicado: se fija tras ESPERA_BUSQUEDA para no consultar en cada tecla.
     const [busqueda, setBusqueda] = useState("");
-    const [estado, setEstado] = useState<EstadoClienteFiltro>("activos");
+    const [estado, setEstado] = useState<EstadoClienteFiltro>("todos");
 
     useEffect(() => {
         const temporizador = setTimeout(() => setBusqueda(texto), ESPERA_BUSQUEDA);
@@ -77,9 +77,9 @@ export const Clientes = () => {
 
                 {pestaña === "clientes" && (
                     <div className="contadores">
+                        {filtroEstado("todos", "Todos")}
                         {filtroEstado("activos", "Activos")}
                         {filtroEstado("inactivos", "Inactivos")}
-                        {filtroEstado("todos", "Todos")}
                     </div>
                 )}
 
