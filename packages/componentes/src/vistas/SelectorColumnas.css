@@ -150,8 +150,10 @@
       outline-offset: -2px;
     }
 
+    /* --color-texto-deshabilitado coincide con --color-primario en el tema
+       claro: se usa el gris de los botones deshabilitados (QBoton). */
     &:disabled {
-      color: var(--color-texto-deshabilitado);
+      color: var(--color-deshabilitado);
       cursor: default;
     }
   }

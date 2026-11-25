@@ -44,7 +44,7 @@
   }
 
   &:disabled {
-    color: var(--color-texto-deshabilitado);
+    color: var(--color-deshabilitado);
     cursor: default;
   }
 }
