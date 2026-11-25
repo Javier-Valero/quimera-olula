@@ -203,10 +203,20 @@ export const cargarProceso: ProcesarVisita = async (_ctx, payload) => {
 // Crear el pedido gana el trato: no tiene sentido generar otra tarea tras él.
 export const puedeGenerarSiguiente = (ctx: ContextoVisita) => ctx.siguientePaso !== "pedido";
 
-export const cambiarProceso: ProcesarVisita = async (ctx, payload) => {
-    const cambiado = { ...ctx, ...(payload as CambioVisita), errores: [] };
+// Puros: los usan los eventos "cambiar" / "cambiar_documento" y la pantalla al escribir (modificar, sin
+// esperar a la máquina, para que el cursor no salte al final del campo).
+export const aplicarCambio = (ctx: ContextoVisita, cambio: CambioVisita): ContextoVisita => {
+    const cambiado = { ...ctx, ...cambio, errores: [] };
     return puedeGenerarSiguiente(cambiado) ? cambiado : { ...cambiado, generarSiguiente: false };
 };
+
+export const aplicarCambioDocumento = (ctx: ContextoVisita, cambios: Partial<DatosDocumento>): ContextoVisita => {
+    const documento = ctx.documento;
+    if (!documento) return ctx;
+    return { ...ctx, documento: { ...documento, datos: { ...documento.datos, ...cambios } }, errores: [] };
+};
+
+export const cambiarProceso: ProcesarVisita = async (ctx, payload) => aplicarCambio(ctx, payload as CambioVisita);
 
 export const iniciarProceso: ProcesarVisita = async (ctx) => {
     const tarea = ctx.tarea!;
@@ -246,10 +256,7 @@ export const guardarProceso: ProcesarVisita = async (ctx) => {
     return comprobarCierreTrato(ctx);
 };
 
-export const cambiarDocumentoProceso: ProcesarVisita = async (ctx, payload) => {
-    const documento = ctx.documento!;
-    return { ...ctx, documento: { ...documento, datos: { ...documento.datos, ...(payload as Partial<DatosDocumento>) } }, errores: [] };
-};
+export const cambiarDocumentoProceso: ProcesarVisita = async (ctx, payload) => aplicarCambioDocumento(ctx, payload as Partial<DatosDocumento>);
 
 export const cambiarDireccionDocumentoProceso: ProcesarVisita = async (ctx, payload) => {
     const codDireccion = (payload as string | null) || null;

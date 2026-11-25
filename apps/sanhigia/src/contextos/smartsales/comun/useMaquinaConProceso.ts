@@ -13,7 +13,7 @@ export const useMaquinaConProceso = <Estado extends string, C extends Contexto<E
     contextoInicial: C,
     eventosSinBloqueo: string[] = SOLO_CAMBIAR
 ) => {
-    const { ctx, emitir } = useMaquina(getMaquina, contextoInicial);
+    const { ctx, setCtx, emitir } = useMaquina(getMaquina, contextoInicial);
     const [eventoEnCurso, setEventoEnCurso] = useState<string | null>(null);
     const enCurso = useRef(false);
 
@@ -33,5 +33,11 @@ export const useMaquinaConProceso = <Estado extends string, C extends Contexto<E
         [emitir, eventosSinBloqueo]
     );
 
-    return { ctx, emitir: emitirConProceso, procesando: eventoEnCurso !== null, eventoEnCurso };
+    // Para editar campos de texto: aplica el cambio en el mismo render, sin pasar por emitir (que es
+    // asíncrono y calcula sobre el contexto de su último render). Con emitir, el valor del campo llegaba un
+    // instante tarde y el cursor saltaba al final, y escribiendo rápido se podían perder letras.
+    // Solo para cambios puros (sin backend); el resto de eventos siguen por emitir.
+    const modificar = useCallback((cambio: (actual: C) => C) => setCtx(cambio), [setCtx]);
+
+    return { ctx, emitir: emitirConProceso, modificar, procesando: eventoEnCurso !== null, eventoEnCurso };
 };

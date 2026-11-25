@@ -154,11 +154,14 @@ export const cambiarFormulario = (formulario: FormularioCampania, cambios: Parti
         ? { ...formularioInicial(hoy), tipo: cambios.tipo, nombre: formulario.nombre, descripcion: formulario.descripcion }
         : { ...formulario, ...cambios };
 
-export const cambiarProceso: ProcesarNuevaCampania = async (ctx, payload) => ({
+// Puro: lo usan el evento "cambiar" y la pantalla al escribir (modificar, sin esperar a la máquina).
+export const aplicarCambio = (ctx: ContextoNuevaCampania, cambios: Partial<FormularioCampania>): ContextoNuevaCampania => ({
     ...ctx,
-    formulario: cambiarFormulario(ctx.formulario, payload as Partial<FormularioCampania>),
+    formulario: cambiarFormulario(ctx.formulario, cambios),
     errores: [],
 });
+
+export const cambiarProceso: ProcesarNuevaCampania = async (ctx, payload) => aplicarCambio(ctx, payload as Partial<FormularioCampania>);
 
 export const fijarAgenteProceso: ProcesarNuevaCampania = async (ctx, payload) => ({ ...ctx, agente: (payload as string | null) ?? null });
 

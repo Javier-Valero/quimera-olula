@@ -17,6 +17,8 @@ import { DialogoDocumentoTrato } from "../../trato/componentes/DialogoDocumentoT
 import { textoBotonGanar } from "../../trato/dominio.ts";
 import { CambioVisita, SiguientePaso, TiposTratoUsuario } from "../diseño.ts";
 import {
+  aplicarCambio,
+  aplicarCambioDocumento,
   contextoInicial,
   destinoAlTerminar,
   esVisita,
@@ -48,7 +50,7 @@ const siguientesPasos: { valor: SiguientePaso; descripcion: string }[] = [
 export const Visita = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { ctx, emitir, procesando, eventoEnCurso } = useMaquinaConProceso(
+  const { ctx, emitir, modificar, procesando, eventoEnCurso } = useMaquinaConProceso(
     getMaquina,
     contextoInicial,
     EVENTOS_SIN_BLOQUEO
@@ -62,7 +64,8 @@ export const Visita = () => {
   };
   const { estado, tarea, errores } = ctx;
 
-  const cambiar = (cambio: CambioVisita) => emitir("cambiar", cambio);
+  // Al instante (no por emitir, que es asíncrono): si no, el cursor salta al final al escribir.
+  const cambiar = (cambio: CambioVisita) => modificar((actual) => aplicarCambio(actual, cambio));
 
   useEffect(() => {
     if (id) emitir("cargar", id, true);
@@ -384,7 +387,7 @@ export const Visita = () => {
             onCambiarDireccion={(codDireccion) =>
               emitir("cambiar_direccion", codDireccion)
             }
-            onCambiar={(cambios) => emitir("cambiar_documento", cambios)}
+            onCambiar={(cambios) => modificar((actual) => aplicarCambioDocumento(actual, cambios))}
             onCancelar={() => emitir("cancelar_documento")}
             onConfirmar={() => emitir("confirmar_documento", agentePropio)}
           />

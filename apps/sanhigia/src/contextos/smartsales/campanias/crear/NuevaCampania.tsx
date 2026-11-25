@@ -16,7 +16,7 @@ import { ListaArticulos } from "../../comun/componentes/ListaArticulos.tsx";
 import { SelectorAgente } from "../../comun/componentes/SelectorAgente.tsx";
 import { buscarProductos } from "../../nueva_tarea/infraestructura.ts";
 import { FormularioCampania, TipoCampania } from "../diseño.ts";
-import { contextoInicial, textoTipoCampania, tipoProductoDe } from "../dominio.ts";
+import { aplicarCambio, contextoInicial, textoTipoCampania, tipoProductoDe } from "../dominio.ts";
 import { getMaquina } from "../maquina.ts";
 import { buscarProductosAfinidad } from "../infraestructura.ts";
 import "../maestro/Campanias.css";
@@ -37,14 +37,15 @@ const Errores = ({ errores }: { errores: string[] }) =>
 export const NuevaCampania = () => {
     const navigate = useNavigate();
     const { agenteSeguido } = useAgenteSeguido();
-    const { ctx, emitir, procesando: enviando } = useMaquinaConProceso(getMaquina, contextoInicial, EVENTOS_SIN_BLOQUEO);
+    const { ctx, emitir, modificar, procesando: enviando } = useMaquinaConProceso(getMaquina, contextoInicial, EVENTOS_SIN_BLOQUEO);
     const { estado, formulario, clientes, errores } = ctx;
 
     const enviar = (evento: string) => {
         emitir(evento).catch(() => undefined);
     };
 
-    const cambiar = (cambios: Partial<FormularioCampania>) => emitir("cambiar", cambios);
+    // Al instante (no por emitir, que es asíncrono): si no, el cursor salta al final al escribir.
+    const cambiar = (cambios: Partial<FormularioCampania>) => modificar((actual) => aplicarCambio(actual, cambios));
 
     useEffect(() => {
         emitir("fijar_agente", agenteSeguido);
