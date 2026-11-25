@@ -17,10 +17,16 @@ const buscar = async <T>(modelo: string, filtroTexto: unknown, fields: string[],
         )
     ).data;
 
-// Como el selector de cliente legacy (base-ventas Cliente): sin los clientes dados de baja.
+// Como el selector de cliente legacy (base-ventas Cliente): sin los clientes dados de baja. Busca igual que la
+// lista de Clientes: el texto en el nombre (sin distinguir tildes), el código o el CIF/NIF.
 export const buscarClientes = async (texto: string): Promise<ClienteElegido[]> =>
     (
-        await buscar<{ codcliente: string; nombre: string }>("clientes", ["nombre", "like_ua", texto], ["codcliente", "nombre"], [["debaja", "eq", false]])
+        await buscar<{ codcliente: string; nombre: string }>(
+            "clientes",
+            { or: [["nombre", "like_ua", texto], ["codcliente", "like", texto], ["cifnif", "like", texto]] },
+            ["codcliente", "nombre"],
+            [["debaja", "eq", false]]
+        )
     ).map((cliente) => ({ codigo: cliente.codcliente, nombre: cliente.nombre }));
 
 const catalogos: Record<TipoProducto, { modelo: string; codigo: string }> = {

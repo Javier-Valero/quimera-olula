@@ -42,6 +42,8 @@ type QMapaProps = {
   seleccionado?: string | null;
   posicion?: Coordenadas | null;
   onSeleccionar?: (id: string) => void;
+  // Si se indica, la ventana del punto seleccionado tiene botón de cerrar, que llama aquí para deseleccionarlo.
+  onDeseleccionar?: () => void;
   onMover?: (centro: Coordenadas, radioKm: number) => void;
 };
 
@@ -77,6 +79,18 @@ const coleccion = (features: Punto[]) => ({
   features,
 });
 
+// Cambios de la ventana hechos por el propio componente: su evento "close" no es el botón de cerrar, así que
+// mientras duran se marca la bandera. Ojo: addTo() también lanza "close" si la ventana ya estaba en el mapa
+// (la quita y la vuelve a poner).
+const sinAvisar = (bandera: { current: boolean }, cambio: () => void) => {
+  bandera.current = true;
+  try {
+    cambio();
+  } finally {
+    bandera.current = false;
+  }
+};
+
 export const QMapa = ({
   centro,
   radioKm,
@@ -84,6 +98,7 @@ export const QMapa = ({
   seleccionado = null,
   posicion = null,
   onSeleccionar,
+  onDeseleccionar,
   onMover,
 }: QMapaProps) => {
   const contenedor = useRef<HTMLDivElement>(null);
@@ -93,10 +108,13 @@ export const QMapa = ({
   const vistaInicial = useRef<VistaMapa>({ centro, radioKm });
   const alSeleccionar = useRef(onSeleccionar);
   const alMover = useRef(onMover);
+  const alDeseleccionar = useRef(onDeseleccionar);
   alSeleccionar.current = onSeleccionar;
   alMover.current = onMover;
+  alDeseleccionar.current = onDeseleccionar;
   const [listo, setListo] = useState(false);
   const [error, setError] = useState(false);
+  const quitandoPopup = useRef(false);
 
   useEffect(() => {
     let cancelado = false;
@@ -123,11 +141,16 @@ export const QMapa = ({
           new maplibre.NavigationControl({ showCompass: false }),
           "top-right"
         );
-        popup.current = new maplibre.Popup({
-          closeButton: false,
+        const ventana = new maplibre.Popup({
+          closeButton: !!alDeseleccionar.current,
           closeOnClick: false,
           offset: 12,
         });
+        // Solo el botón de cerrar deselecciona; cuando la cambia el propio componente (sinAvisar) no se avisa.
+        ventana.on("close", () => {
+          if (!quitandoPopup.current) alDeseleccionar.current?.();
+        });
+        popup.current = ventana;
         vistaActual.current = vistaInicial.current;
 
         nuevo.on("load", () => {
@@ -200,7 +223,7 @@ export const QMapa = ({
     return () => {
       cancelado = true;
       observador?.disconnect();
-      popup.current?.remove();
+      sinAvisar(quitandoPopup, () => popup.current?.remove());
       mapa.current?.remove();
       mapa.current = null;
     };
@@ -246,12 +269,14 @@ export const QMapa = ({
 
     const elegido = puntos.find((p) => p.id === seleccionado);
     if (elegido) {
-      popup.current
-        ?.setLngLat([elegido.longitud, elegido.latitud])
-        .setDOMContent(contenidoPopup(elegido.titulo, elegido.detalle))
-        .addTo(actual);
+      sinAvisar(quitandoPopup, () =>
+        popup.current
+          ?.setLngLat([elegido.longitud, elegido.latitud])
+          .setDOMContent(contenidoPopup(elegido.titulo, elegido.detalle))
+          .addTo(actual)
+      );
     } else {
-      popup.current?.remove();
+      sinAvisar(quitandoPopup, () => popup.current?.remove());
     }
   }, [listo, puntos, seleccionado]);
 

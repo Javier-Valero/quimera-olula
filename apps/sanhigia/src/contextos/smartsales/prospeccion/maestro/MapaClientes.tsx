@@ -125,6 +125,7 @@ export const MapaClientes = () => {
                         seleccionado={seleccionado}
                         posicion={posicion}
                         onSeleccionar={setSeleccionado}
+                        onDeseleccionar={() => setSeleccionado(null)}
                         onMover={(nuevoCentro, radio) => {
                             setCentro(nuevoCentro);
                             setFiltros((actuales) => ({ ...actuales, radio }));
@@ -137,6 +138,9 @@ export const MapaClientes = () => {
                         <div className="fila">
                             <strong>{elegido.nombre}</strong>
                             {elegido.afinidad !== null && <EtiquetaAfinidad score={elegido.afinidad} conPorcentaje />}
+                            <button type="button" className="cerrar" aria-label="Cerrar" title="Cerrar" onClick={() => setSeleccionado(null)}>
+                                <QIcono nombre="cerrar" tamaño="sm" />
+                            </button>
                         </div>
                         <span className="secundario direccion">
                             <QIcono nombre="casa" tamaño="sm" />

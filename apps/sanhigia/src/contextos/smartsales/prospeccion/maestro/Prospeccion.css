@@ -50,6 +50,31 @@
     gap: 0.5rem;
 }
 
+/* Tarjeta del cliente seleccionado: nombre a la izquierda, afinidad y el botón de cerrar a la derecha. */
+.Prospeccion .cliente-elegido .fila>strong {
+    flex: 1;
+    min-width: 0;
+}
+
+.Prospeccion .cliente-elegido .cerrar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2rem;
+    aspect-ratio: 1;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-texto-secundario);
+    cursor: pointer;
+}
+
+.Prospeccion .cliente-elegido .cerrar:hover {
+    background: var(--color-primario-selected);
+    color: var(--color-primario);
+}
+
 .Prospeccion .lista-clientes,
 .Prospeccion .oportunidades {
     display: flex;
@@ -117,7 +142,7 @@
     gap: 0.5rem;
 }
 
-.Prospeccion .casillas > div {
+.Prospeccion .casillas>div {
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
