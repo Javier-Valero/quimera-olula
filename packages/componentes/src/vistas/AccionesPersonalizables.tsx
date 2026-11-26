@@ -8,7 +8,12 @@ import {
   esDestructiva,
   iconoAccion,
 } from "../moleculas/acciones.ts";
-import { botonesQueCaben, desbordarAcciones, repartirAcciones } from "./dominio.ts";
+import {
+  botonesQueCaben,
+  desbordarAcciones,
+  repartirAcciones,
+  sinGrupoAcciones,
+} from "./dominio.ts";
 import { MenuFlotante, OpcionMenu } from "./MenuFlotante.tsx";
 import { PersonalizarAcciones } from "./PersonalizarAcciones.tsx";
 import { usePreferenciasVista } from "./usePreferenciasVista.ts";
@@ -129,11 +134,8 @@ export const AccionesPersonalizables = ({
     });
   };
 
-  const restaurar = () => {
-    const resto = { ...config?.acciones };
-    delete resto[grupo];
-    void preferencias.guardar({ ...config, acciones: resto });
-  };
+  const restaurar = () =>
+    void preferencias.quitar(sinGrupoAcciones(config, grupo)).catch(() => undefined);
 
   const clases = `acciones-personalizables${vertical ? " vertical" : ""}`;
 

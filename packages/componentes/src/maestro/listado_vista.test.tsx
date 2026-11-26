@@ -258,6 +258,30 @@ describe("Listado con pantalla", () => {
     await waitFor(() => expect(cabeceras()).toEqual(["Código", "Cliente", "Total"]));
   });
 
+  test("restaurar el listado conserva los botones del detalle (misma fila)", async () => {
+    conVista({
+      tabla: { columnas: ["total"], ocultas: ["codigo", "cliente", "notas"] },
+      modo: "tabla",
+      acciones: { detalle: ["imprimir"] },
+    });
+    montar({ pantalla: "ventas.pedido" });
+    fireEvent.click(await screen.findByRole("button", { name: /vista personalizada/ }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Restaurar vista por defecto" }));
+    });
+
+    expect(restaurarVista).not.toHaveBeenCalled();
+    expect(guardarVista).toHaveBeenLastCalledWith(
+      "ventas.pedido",
+      { acciones: { detalle: ["imprimir"] } },
+      ""
+    );
+    await waitFor(() => expect(cabeceras()).toEqual(["Código", "Cliente", "Total"]));
+    // Solo con botones guardados el listado no se marca como personalizado.
+    expect(screen.getByRole("button", { name: "Columnas" })).toBeInTheDocument();
+  });
+
   test("si el servidor no responde, la vista del código sin personalizar", async () => {
     getVista.mockRejectedValue({ estado: 500 });
     montar({ pantalla: "ventas.pedido" });

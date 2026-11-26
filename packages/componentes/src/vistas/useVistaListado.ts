@@ -13,6 +13,7 @@ import {
   mismoOrden,
   moverColumna,
   ocultarColumna,
+  sinListado,
 } from "./dominio.ts";
 import { usePreferenciasVista } from "./usePreferenciasVista.ts";
 
@@ -88,7 +89,9 @@ export const useVistaListado = <T extends Entidad>({
       ? {
           catalogo: catalogo.map(({ id, cabecera }) => ({ id, cabecera })),
           visibles,
-          personalizada: preferencias.origen === "usuario",
+          // Solo lo del listado: los botones del detalle van en la misma fila.
+          personalizada:
+            preferencias.origen === "usuario" && !!(config?.tabla || config?.modo),
           puedeGuardarOrden: orden.length > 0 && !mismoOrden(orden, ordenGuardado),
           onCambiar: guardarVisibles,
           onGuardarOrden: () =>
@@ -98,7 +101,8 @@ export const useVistaListado = <T extends Entidad>({
                 orden: [orden[0], sentido(orden[1])],
               },
             }),
-          onRestaurar: () => void preferencias.restaurar().catch(() => undefined),
+          onRestaurar: () =>
+            void preferencias.quitar(sinListado(config)).catch(() => undefined),
         }
       : undefined,
     /** Modo guardado, cuando ya se sabe. */

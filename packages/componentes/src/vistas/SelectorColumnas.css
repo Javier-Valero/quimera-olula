@@ -61,6 +61,10 @@
     gap: var(--espaciado-s);
     padding: var(--espaciado-xs) var(--espaciado-s);
     border-radius: var(--redondeo-borde-xs);
+    /* Del alto de las filas con flechas: al marcar o desmarcar no se mueve la
+       lista (el siguiente clic caería en otra fila). */
+    min-height: var(--selector-columnas-alto-fila, 2.125rem);
+    box-sizing: border-box;
 
     &:hover {
       background: var(--color-superficie-sunken);

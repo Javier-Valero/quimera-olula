@@ -114,6 +114,12 @@ export const usePreferenciasVista = (pantalla: string | undefined, vista = "") =
     await cargar(pantalla, vista);
   }, [pantalla, vista, clave]);
 
+  /** Guarda lo que queda tras quitar una parte, o borra la fila si no queda nada. */
+  const quitar = useCallback(
+    (resto: ConfigVista | undefined) => (resto ? guardar(resto) : restaurar()),
+    [guardar, restaurar]
+  );
+
   return {
     config: estado.config,
     origen: estado.origen,
@@ -124,5 +130,6 @@ export const usePreferenciasVista = (pantalla: string | undefined, vista = "") =
     cargada: estado.cargada,
     guardar,
     restaurar,
+    quitar,
   };
 };

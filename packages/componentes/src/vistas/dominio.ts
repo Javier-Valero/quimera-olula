@@ -175,3 +175,31 @@ export const ocultarColumna = (ids: string[], id: string): string[] =>
 /** Las ordenaciones son iguales (campo y sentido). */
 export const mismoOrden = (a?: string[], b?: string[]): boolean =>
   !!a && !!b && a[0] === b[0] && (a[1] ?? "ASC") === (b[1] ?? "ASC");
+
+const vacia = (config: ConfigVista): boolean =>
+  !config.modo && !config.tabla && !config.tarjeta && !Object.keys(config.acciones ?? {}).length;
+
+/**
+ * La configuración sin lo que es del listado (columnas, orden, modo, tarjeta):
+ * restaurar el listado no debe borrar los botones elegidos en el detalle, que
+ * se guardan en la misma fila. `undefined` si no queda nada (se borra la fila).
+ */
+export const sinListado = (config?: ConfigVista): ConfigVista | undefined => {
+  const resto = { ...config };
+  delete resto.modo;
+  delete resto.tabla;
+  delete resto.tarjeta;
+  return vacia(resto) ? undefined : resto;
+};
+
+/** La configuración sin un grupo de acciones; `undefined` si no queda nada. */
+export const sinGrupoAcciones = (
+  config: ConfigVista | undefined,
+  grupo: string
+): ConfigVista | undefined => {
+  const acciones = { ...config?.acciones };
+  delete acciones[grupo];
+  const resto: ConfigVista = { ...config, acciones };
+  if (!Object.keys(acciones).length) delete resto.acciones;
+  return vacia(resto) ? undefined : resto;
+};

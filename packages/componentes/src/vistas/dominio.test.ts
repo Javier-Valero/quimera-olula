@@ -12,6 +12,8 @@ import {
   ocultarColumna,
   repartirAcciones,
   ordenPorDefecto,
+  sinGrupoAcciones,
+  sinListado,
 } from "./dominio.ts";
 
 const catalogo: ColumnaCatalogo[] = [
@@ -210,5 +212,31 @@ describe("mover y ocultar columnas", () => {
     expect(mismoOrden(["fecha"], ["fecha", "ASC"])).toBe(true);
     expect(mismoOrden(["fecha", "ASC"], ["fecha", "DESC"])).toBe(false);
     expect(mismoOrden(undefined, ["fecha", "DESC"])).toBe(false);
+  });
+});
+
+describe("restaurar una parte de la configuración", () => {
+  const config = {
+    modo: "tarjetas" as const,
+    tabla: { columnas: ["codigo"] },
+    acciones: { detalle: ["imprimir"], lineas: ["borrar"] },
+  };
+
+  test("sin listado quedan los botones", () => {
+    expect(sinListado(config)).toEqual({ acciones: config.acciones });
+  });
+
+  test("sin un grupo quedan el resto de grupos y el listado", () => {
+    expect(sinGrupoAcciones(config, "detalle")).toEqual({
+      modo: "tarjetas",
+      tabla: { columnas: ["codigo"] },
+      acciones: { lineas: ["borrar"] },
+    });
+  });
+
+  test("si no queda nada, undefined (se borra la fila)", () => {
+    expect(sinListado({ tabla: { columnas: ["codigo"] } })).toBeUndefined();
+    expect(sinGrupoAcciones({ acciones: { detalle: ["imprimir"] } }, "detalle")).toBeUndefined();
+    expect(sinListado({ acciones: {} })).toBeUndefined();
   });
 });
