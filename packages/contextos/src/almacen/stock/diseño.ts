@@ -1,4 +1,4 @@
-import { Entidad, Filtro, Orden, Paginacion, RespuestaLista } from "@olula/lib/diseño.ts";
+import { Entidad, Filtro, Modelo, Orden, Paginacion, RespuestaLista } from "@olula/lib/diseño.ts";
 
 
 export interface StockItem extends Entidad {
@@ -30,6 +30,32 @@ export interface Stock extends StockItem {
     ubicaciones: StockUbicacion[]
 }
 
+/** Línea de regularización de stock (lineasregstocks de Eneboo). */
+export interface RegularizacionStock extends Entidad {
+    id: string;
+    stockId: string;
+    almacenId: string;
+    articuloId: string;
+    descripcion: string | null;
+    fecha: string;
+    hora: string;
+    cantidadInicial: number;
+    cantidadFinal: number;
+    motivo: string | null;
+    inventarioId: string | null;
+    /** Lecturas de fichero de la línea de inventario (`lecturasinvetariocsv`). */
+    lecturas: number;
+    /** Ubicación común de esas lecturas (null si no hay o si tienen varias). */
+    ubicacion: string | null;
+}
+
+export interface NuevaRegularizacionStock extends Modelo {
+    cantidad: number;
+    fecha: Date;
+    hora: string;
+    motivo: string;
+}
+
 export interface StockAPI extends Entidad {
     id: string;
     articulo: string;
@@ -54,3 +80,10 @@ export type GetStocks = (
     orden: Orden,
     paginacion?: Paginacion
 ) => RespuestaLista<StockItem>;
+
+export type GetRegularizacionesStock = (stockId: string) => Promise<RegularizacionStock[]>;
+export type PostRegularizacionStock = (
+    stock: StockItem,
+    nueva: NuevaRegularizacionStock
+) => Promise<string>;
+export type DeleteRegularizacionStock = (id: string) => Promise<void>;
