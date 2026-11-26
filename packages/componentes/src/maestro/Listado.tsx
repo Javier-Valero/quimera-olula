@@ -4,7 +4,7 @@ import { ClausulaFiltro, Criteria, Entidad } from "@olula/lib/diseño.ts";
 import { criteriaDefecto } from "@olula/lib/dominio.js";
 import { criteriaQueryUrl } from "@olula/lib/infraestructura.ts";
 import { usePreferencia } from "@olula/lib/usePreferencia.ts";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { QBoton } from "../atomos/qboton.tsx";
 import { QIcono } from "../atomos/qicono.tsx";
 import { QKanban, type QKanbanColumna } from "../atomos/qkanban.tsx";
@@ -15,6 +15,7 @@ import { TarjetaPlantilla } from "../vistas/TarjetaPlantilla.tsx";
 import { SinDatos } from "../SinDatos/SinDatos.tsx";
 import { SelectorColumnas } from "../vistas/SelectorColumnas.tsx";
 import { useVistaListado } from "../vistas/useVistaListado.ts";
+import { conColumnasDePlugins } from "../vistas/registro_plugins.ts";
 import { useSeccionPersonalizable } from "../vistas/modo_personalizar.ts";
 import { SeccionListado } from "../vistas/SeccionListado.tsx";
 import { createPortal } from "react-dom";
@@ -95,7 +96,7 @@ type ListadoProps<T extends Entidad> = {
 type Densidad = "comoda" | "compacta";
 
 export const Listado = <T extends Entidad>({
-  metaTabla,
+  metaTabla: metaTablaCodigo,
   metaFiltro,
   mostrarFiltros = true,
   cargando = false,
@@ -127,6 +128,12 @@ export const Listado = <T extends Entidad>({
   widgets,
   pantalla,
 }: ListadoProps<T>) => {
+  // Las columnas que añaden los plugins activos forman parte del catálogo
+  // (ocultas por defecto: el usuario las muestra si quiere).
+  const metaTabla = useMemo(
+    () => conColumnasDePlugins(metaTablaCodigo, pantalla),
+    [metaTablaCodigo, pantalla]
+  );
   // Sin widgets propios, el maestro principal los ofrece igualmente si su
   // pantalla tiene un recurso agregable en el servidor (los crea el usuario).
   const enMaestroPrincipal = useEnMaestroPrincipal();

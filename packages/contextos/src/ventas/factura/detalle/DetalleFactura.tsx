@@ -164,6 +164,7 @@ export const DetalleFactura = ({
           vertical
           pantalla="ventas.factura"
           grupo="detalle"
+          contexto={ctx.factura}
         />
       </div>
 

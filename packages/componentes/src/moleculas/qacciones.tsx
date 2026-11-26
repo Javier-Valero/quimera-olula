@@ -3,6 +3,7 @@ import { iconoAccionBoton } from "../atomos/icono_accion.ts";
 import { QBoton } from "../atomos/qboton.tsx";
 import { QIcono } from "../atomos/qicono.tsx";
 import { AccionesPersonalizables } from "../vistas/AccionesPersonalizables.tsx";
+import { accionesDePlugins } from "../vistas/registro_plugins.ts";
 import { Accion, AccionDefinida, accionPrincipal } from "./acciones.ts";
 import "./qacciones.css";
 
@@ -13,6 +14,7 @@ export const QuimeraAcciones = ({
   vertical,
   pantalla,
   grupo,
+  contexto,
 }: {
   acciones: (Accion | false)[];
   vertical?: boolean;
@@ -20,6 +22,8 @@ export const QuimeraAcciones = ({
    *  como botón; el resto va al desplegable, y lo que no cabe también. */
   pantalla?: string;
   grupo?: string;
+  /** Lo que reciben las acciones que añaden los plugins a este grupo (p. ej. el documento). */
+  contexto?: unknown;
 }) => {
   const [activo, setActivo] = useState(false);
 
@@ -128,7 +132,10 @@ export const QuimeraAcciones = ({
   if (pantalla && grupo) {
     return (
       <AccionesPersonalizables
-        acciones={acciones.filter((accion): accion is AccionDefinida => Boolean(accion))}
+        acciones={[
+          ...acciones.filter((accion): accion is AccionDefinida => Boolean(accion)),
+          ...accionesDePlugins(pantalla, grupo, contexto),
+        ]}
         pantalla={pantalla}
         grupo={grupo}
         vertical={vertical === true}

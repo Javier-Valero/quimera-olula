@@ -155,6 +155,7 @@ export const DetallePedidoBase = ({
           vertical
           pantalla="ventas.pedido"
           grupo="detalle"
+          contexto={ctx.pedido}
         />
       </div>
 
