@@ -18,6 +18,11 @@ import { useVistaListado } from "../vistas/useVistaListado.ts";
 import { conColumnasDePlugins } from "../vistas/registro_plugins.ts";
 import { useSeccionPersonalizable } from "../vistas/modo_personalizar.ts";
 import { SeccionListado } from "../vistas/SeccionListado.tsx";
+import { SelectorVista } from "../vistas/SelectorVista.tsx";
+import { REGLA_VISTA_COMPARTIDA, SeccionCompartir } from "../vistas/SeccionCompartir.tsx";
+import { puede } from "@olula/lib/dominio.ts";
+import { useVistasGuardadas } from "../vistas/useVistasGuardadas.ts";
+import { idDeVista } from "../vistas/dominio.ts";
 import { createPortal } from "react-dom";
 import "./Listado.css";
 import { useListadoMovilEnDetalle } from "./contexto_maestro.ts";
@@ -171,21 +176,40 @@ export const Listado = <T extends Entidad>({
       }),
     [criteria, onCriteriaChanged]
   );
+  // Vista con nombre activa ('' = la de por defecto) y las que hay.
+  const [vistaActiva, setVistaActiva] = useState("");
+  const vistasGuardadas = useVistasGuardadas(pantalla);
+  const aplicarVista = useCallback(
+    (filtro: Criteria["filtro"], orden: string[]) =>
+      onCriteriaChanged({
+        ...criteria,
+        filtro,
+        orden,
+        paginacion: { ...criteria.paginacion, pagina: 1 },
+      }),
+    [criteria, onCriteriaChanged]
+  );
   const vista = useVistaListado({
     pantalla,
+    vista: vistaActiva,
     metaTabla,
     orden: criteria.orden,
     ordenInicial: criteriaInicial.orden,
+    filtro: criteria.filtro,
+    filtroInicial: criteriaInicial.filtro,
     onOrdenChanged: cambiarOrden,
+    onVistaAplicada: aplicarVista,
   });
-  // El modo guardado solo cuando la pantalla no lo fija y la tabla cabe.
-  const modoGuardadoAplicado = useRef(false);
+  // El modo guardado solo cuando la pantalla no lo fija y la tabla cabe; otra
+  // vez al cambiar de vista.
+  const modoGuardadoAplicado = useRef<string | null>(null);
   const modoLibre = modo === undefined && !esMovil && !tarjetasCompactas;
   useEffect(() => {
-    if (!vista.modoGuardado || modoGuardadoAplicado.current || !modoLibre) return;
-    modoGuardadoAplicado.current = true;
+    if (!vista.modoGuardado || modoGuardadoAplicado.current === vistaActiva || !modoLibre)
+      return;
+    modoGuardadoAplicado.current = vistaActiva;
     setModoEstado(vista.modoGuardado);
-  }, [vista.modoGuardado, modoLibre]);
+  }, [vista.modoGuardado, modoLibre, vistaActiva]);
 
   const [multiseleccionEstado, setMultiseleccionEstado] = useState(false);
   const multiseleccionInterna = modoMultiseleccion ?? multiseleccionEstado;
@@ -268,29 +292,58 @@ export const Listado = <T extends Entidad>({
 
   // Sección del listado en el panel «Personalizar pantalla».
   const raiz = useRef<HTMLDivElement>(null);
+  // Quien administra las vistas tiene la sección aunque la pantalla esté bloqueada.
+  // (Y con el servidor respondiendo: personalizable o bloqueada.)
+  const puedeCompartir =
+    !!pantalla &&
+    (vista.vistas.personalizable || vista.bloqueada) &&
+    puede(REGLA_VISTA_COMPARTIDA);
+  const vistaGuardadaActiva = vistasGuardadas.find((v) => v.vista === vistaActiva);
+  const nombreVistaActiva = vistaActiva
+    ? (vistaGuardadaActiva?.nombre ?? vistaActiva)
+    : "Vista por defecto";
   const destinoPersonalizar = useSeccionPersonalizable(
-    vista.selector && pantalla ? { id: `listado:${pantalla}`, titulo: "Listado" } : undefined,
+    pantalla && (vista.selector || puedeCompartir)
+      ? {
+          id: `listado:${pantalla}`,
+          titulo: vistaActiva ? `Listado · ${nombreVistaActiva}` : "Listado",
+        }
+      : undefined,
     raiz
   );
-  const seccionPersonalizar = destinoPersonalizar && vista.selector && (
+  const seccionPersonalizar = destinoPersonalizar && pantalla && (
     <SeccionListado
-      modos={modoLibre ? modosDisponiblesCalculados : []}
+      modos={modoLibre && vista.selector ? modosDisponiblesCalculados : []}
       modo={modoEfectivo}
       onCambiarModo={cambiarModo}
-      columnas={{
-        catalogo: vista.selector.catalogo,
-        visibles: vista.selector.visibles,
-        onCambiar: vista.selector.onCambiar,
-      }}
+      columnas={
+        vista.selector && {
+          catalogo: vista.selector.catalogo,
+          visibles: vista.selector.visibles,
+          onCambiar: vista.selector.onCambiar,
+        }
+      }
       tarjeta={vista.tarjeta}
       onCambiarTarjeta={vista.guardarTarjeta}
+      compartir={
+        puedeCompartir && (
+          <SeccionCompartir
+            pantalla={pantalla}
+            vista={vistaActiva}
+            nombreVista={nombreVistaActiva}
+            paraCompartir={() => vista.vistas.paraCompartir(vistaGuardadaActiva?.nombre ?? undefined)}
+            onCambio={() => void vista.vistas.recargar()}
+          />
+        )
+      }
       onPersonalizarWidgets={
         configBase && widgetsUsuario.personalizable
           ? () => setPersonalizandoWidgets(true)
           : undefined
       }
-      personalizada={vista.selector.personalizada}
-      onRestaurar={vista.selector.onRestaurar}
+      personalizada={!!vista.selector?.personalizada}
+      onRestaurar={() => vista.selector?.onRestaurar()}
+      bloqueada={vista.bloqueada}
     />
   );
 
@@ -504,6 +557,29 @@ export const Listado = <T extends Entidad>({
       )}
       <div className="listado-cabecera">
         <div className="listado-cabecera-izquierda">
+          {pantalla && (vista.vistas.personalizable || vistasGuardadas.length > 0) && (
+            <SelectorVista
+              vistas={vistasGuardadas}
+              activa={vistaActiva}
+              puedeGuardar={vista.vistas.personalizable}
+              filtroCambiado={vista.vistas.filtroCambiado}
+              onElegir={setVistaActiva}
+              onGuardarComo={(nombre) => {
+                const id = idDeVista(nombre, vistasGuardadas.map((v) => v.vista));
+                void vista.vistas
+                  .guardarComo(nombre, id, modoLibre && modoEfectivo ? modoEfectivo : undefined)
+                  .then(() => setVistaActiva(id))
+                  .catch(() => undefined);
+              }}
+              onGuardarFiltro={vista.vistas.guardarFiltro}
+              onBorrar={() => {
+                void vista.vistas
+                  .borrar()
+                  .then(() => setVistaActiva(""))
+                  .catch(() => undefined);
+              }}
+            />
+          )}
           {mostrarFiltros && (
             <MaestroFiltrosActivoControlado
               metaFiltro={metaFiltroEfectivo}

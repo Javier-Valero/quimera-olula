@@ -12,6 +12,7 @@ import {
   ocultarColumna,
   repartirAcciones,
   ordenPorDefecto,
+  idDeVista,
   sinGrupoAcciones,
   sinListado,
 } from "./dominio.ts";
@@ -248,5 +249,17 @@ describe("restaurar una parte de la configuración", () => {
     expect(sinListado({ tabla: { columnas: ["codigo"] } })).toBeUndefined();
     expect(sinGrupoAcciones({ acciones: { detalle: ["imprimir"] } }, "detalle")).toBeUndefined();
     expect(sinListado({ acciones: {} })).toBeUndefined();
+  });
+});
+
+describe("idDeVista", () => {
+  test("del nombre visible a un id que admite el servidor", () => {
+    expect(idDeVista("Mis pendientes de envío", [])).toBe("mis_pendientes_de_envio");
+    expect(idDeVista("  ¡Año 2026!  ", [])).toBe("ano_2026");
+    expect(idDeVista("???", [])).toBe("vista");
+  });
+
+  test("sin repetir uno existente", () => {
+    expect(idDeVista("Urgentes", ["urgentes", "urgentes_2"])).toBe("urgentes_3");
   });
 });

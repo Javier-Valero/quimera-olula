@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { ReactNode, useId } from "react";
 import { ConfigTarjeta } from "./diseño.ts";
 import { MAXIMO_CAMPOS_TARJETA } from "./dominio.ts";
 import { ColumnaSelector, ListaColumnas } from "./SelectorColumnas.tsx";
@@ -99,6 +99,8 @@ export const SeccionListado = ({
   onPersonalizarWidgets,
   personalizada,
   onRestaurar,
+  bloqueada = false,
+  compartir,
 }: {
   /** Modos entre los que puede elegir (vacío si la pantalla lo fija). */
   modos: Modo[];
@@ -114,6 +116,10 @@ export const SeccionListado = ({
   onPersonalizarWidgets?: () => void;
   personalizada: boolean;
   onRestaurar: () => void;
+  /** La empresa o el grupo han fijado la pantalla. */
+  bloqueada?: boolean;
+  /** Sección «Compartir», para quien administra las vistas. */
+  compartir?: ReactNode;
 }) => {
   const nombreGrupo = useId();
   return (
@@ -185,14 +191,24 @@ export const SeccionListado = ({
       </>
     )}
 
-    <button
-      type="button"
-      className="panel-personalizar-enlace"
-      disabled={!personalizada}
-      onClick={onRestaurar}
-    >
-      Restaurar listado por defecto
-    </button>
+    {columnas ? (
+      <button
+        type="button"
+        className="panel-personalizar-enlace"
+        disabled={!personalizada}
+        onClick={onRestaurar}
+      >
+        Restaurar listado por defecto
+      </button>
+    ) : (
+      bloqueada && (
+        <p className="panel-personalizar-ayuda">
+          La empresa ha fijado esta pantalla: no se puede personalizar.
+        </p>
+      )
+    )}
+
+    {compartir}
   </>
   );
 };

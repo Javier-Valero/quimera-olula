@@ -240,3 +240,42 @@ body[data-modo-personalizar] section[role="main"] {
   outline: 2px solid var(--color-primario);
   outline-offset: -2px;
 }
+
+.panel-personalizar-casilla {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaciado-s);
+  font-size: var(--tamaño-letra-s);
+  cursor: pointer;
+
+  input {
+    margin-top: 0.15em;
+  }
+}
+
+.panel-personalizar-compartidas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--tamaño-letra-s);
+
+  li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--espaciado-s);
+  }
+
+  small {
+    color: var(--color-texto-secundario);
+  }
+}
+
+.panel-personalizar-error {
+  margin: 0;
+  font-size: var(--tamaño-letra-s);
+  color: var(--color-error-texto);
+}

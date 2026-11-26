@@ -1,4 +1,4 @@
-import { Entidad, Orden } from "@olula/lib/diseño.ts";
+import { Entidad, Filtro, Orden } from "@olula/lib/diseño.ts";
 import { useEffect, useRef } from "react";
 import {
   MetaColumna,
@@ -17,7 +17,12 @@ import {
   sinListado,
   sinTarjeta,
 } from "./dominio.ts";
+import { guardarVistaUsuario } from "./infraestructura.ts";
 import { usePreferenciasVista } from "./usePreferenciasVista.ts";
+import { recargarVistasGuardadas } from "./useVistasGuardadas.ts";
+
+const mismoFiltro = (a: Filtro | undefined, b: Filtro | undefined) =>
+  JSON.stringify(a ?? []) === JSON.stringify(b ?? []);
 
 const conColumnas = <T extends Entidad>(
   metaTabla: MetaTabla<T>,
@@ -35,20 +40,31 @@ const sentido = (valor: string | undefined): SentidoOrden =>
  */
 export const useVistaListado = <T extends Entidad>({
   pantalla,
+  vista = "",
   metaTabla,
   orden,
   ordenInicial,
+  filtro,
+  filtroInicial,
   onOrdenChanged,
+  onVistaAplicada,
 }: {
   pantalla?: string;
+  /** Vista con nombre activa ('' = la de por defecto). */
+  vista?: string;
   metaTabla?: MetaTabla<T>;
   /** Ordenación actual del listado. */
   orden: Orden;
   /** La que trae la pantalla (o la URL): si no se ha cambiado, manda la guardada. */
   ordenInicial: Orden;
+  /** Filtro actual del listado y el de la pantalla. */
+  filtro?: Filtro;
+  filtroInicial?: Filtro;
   onOrdenChanged: (orden: Orden) => void;
+  /** Al cambiar de vista: el filtro y el orden que trae. */
+  onVistaAplicada?: (filtro: Filtro, orden: Orden) => void;
 }) => {
-  const preferencias = usePreferenciasVista(pantalla);
+  const preferencias = usePreferenciasVista(pantalla, vista);
   const { config, cargada, personalizable } = preferencias;
 
   const catalogo = metaTabla ? obtenerCols(metaTabla) : [];
@@ -72,6 +88,27 @@ export const useVistaListado = <T extends Entidad>({
       onOrdenChanged(ordenGuardado);
     }
   }, [cargada, ordenGuardado, orden, ordenInicial, onOrdenChanged]);
+
+  // Al cambiar de vista (ya cargada), su filtro y su orden pasan al listado;
+  // al volver a la de por defecto, los de la pantalla.
+  const vistaAplicada = useRef(vista);
+  useEffect(() => {
+    if (!cargada || vistaAplicada.current === vista) return;
+    vistaAplicada.current = vista;
+    ordenAplicado.current = true;
+    onVistaAplicada?.(
+      vista ? (config?.filtro ?? filtroInicial ?? []) : (filtroInicial ?? []),
+      config?.tabla?.orden ?? ordenInicial
+    );
+  }, [cargada, vista, config, filtroInicial, ordenInicial, onVistaAplicada]);
+
+  const configActual = (): ConfigVista => ({
+    ...config,
+    tabla: {
+      ...(config?.tabla ?? configTablaDesdeVisibles(catalogo, visibles)),
+      ...(orden.length > 0 ? { orden: [orden[0], sentido(orden[1])] } : {}),
+    },
+  });
 
   const personalizacion: PersonalizacionColumnas | undefined =
     personalizable && metaTabla
@@ -108,6 +145,45 @@ export const useVistaListado = <T extends Entidad>({
             void preferencias.quitar(sinListado(config)).catch(() => undefined),
         }
       : undefined,
+    /** La empresa o el grupo han bloqueado la personalización de la pantalla. */
+    bloqueada: preferencias.bloqueada,
+    /** Vistas con nombre: guardar la actual como nueva, guardar el filtro en la activa y borrarla. */
+    vistas: {
+      personalizable,
+      filtroCambiado: vista !== "" && !mismoFiltro(filtro, config?.filtro ?? filtroInicial),
+      guardarComo: async (nombre: string, id: string, modo?: ModoVista) => {
+        if (!pantalla) return;
+        const actual = configActual();
+        await guardarVistaUsuario(
+          pantalla,
+          {
+            nombre,
+            filtro: filtro ?? [],
+            tabla: actual.tabla,
+            ...(modo ? { modo } : {}),
+            ...(actual.tarjeta ? { tarjeta: actual.tarjeta } : {}),
+          },
+          id
+        );
+        await recargarVistasGuardadas(pantalla);
+      },
+      guardarFiltro: () => guardar({ filtro: filtro ?? [] }),
+      /** Lo que se comparte: la vista tal como se ve ahora (con su filtro si tiene nombre). */
+      paraCompartir: (nombre?: string): ConfigVista => ({
+        ...configActual(),
+        ...(vista ? { nombre: nombre ?? config?.nombre ?? vista, filtro: filtro ?? [] } : {}),
+      }),
+      /** Tras compartir o quitar: lo que ve el usuario puede haber cambiado. */
+      recargar: async () => {
+        await preferencias.recargar();
+        if (pantalla) await recargarVistasGuardadas(pantalla);
+      },
+      borrar: async () => {
+        if (!pantalla) return;
+        await preferencias.restaurar();
+        await recargarVistasGuardadas(pantalla);
+      },
+    },
     /** Plantilla de tarjeta del usuario (ya filtrada por el catálogo), si la hay. */
     tarjeta: cargada ? aplicarTarjeta(catalogo, config?.tarjeta) : undefined,
     /** Guarda la plantilla de tarjeta; `undefined` vuelve a la del código. */

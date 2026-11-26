@@ -1,3 +1,5 @@
+import { Filtro } from "@olula/lib/diseño.ts";
+
 /** Modos de un listado (mismo vocabulario que `Listado`). */
 export type ModoVista = "tabla" | "tarjetas" | "kanban";
 
@@ -27,6 +29,10 @@ export type ConfigTarjeta = {
  * columnas y acciones existen lo declara el código (el catálogo).
  */
 export type ConfigVista = {
+  /** Nombre visible de una vista con nombre («Mis pendientes»). */
+  nombre?: string;
+  /** Filtro de una vista con nombre (el del listado al guardarla). */
+  filtro?: Filtro;
   modo?: ModoVista;
   tabla?: ConfigTabla;
   tarjeta?: ConfigTarjeta;
@@ -35,7 +41,23 @@ export type ConfigVista = {
 };
 
 /** De dónde sale la configuración que ve el usuario. */
-export type OrigenVista = "usuario" | "empresa" | null;
+export type OrigenVista = "usuario" | "grupo" | "empresa" | null;
+
+/** Una vista con nombre de una pantalla, del usuario, de su grupo o de la empresa. */
+export type VistaGuardada = {
+  vista: string;
+  nombre: string | null;
+  origen: Exclude<OrigenVista, null>;
+};
+
+/** Configuración que un administrador comparte con la empresa (grupo null) o con un grupo. */
+export type VistaCompartida = {
+  vista: string;
+  grupo_id: string | null;
+  nombre: string | null;
+  bloqueada: boolean;
+  config: ConfigVista;
+};
 
 /** Entrada del catálogo de columnas: lo mínimo que necesita la personalización. */
 export type ColumnaCatalogo = {

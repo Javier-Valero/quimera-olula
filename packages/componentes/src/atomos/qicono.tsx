@@ -115,6 +115,7 @@ import {
   IconStarFilled,
   IconTruck,
   IconWallet,
+  IconBookmarks,
 } from "@tabler/icons-react";
 import "./qicono.css";
 
@@ -255,6 +256,7 @@ const iconos: Record<string, Icon> = {
   usuario_circle: IconUserCircle,
   usuario_search: IconUserSearch,
   lista_detalle: IconListDetails,
+  vista: IconBookmarks,
   clock_3: IconClockHour3,
   tienda: IconBuildingStore,
   usuarios: IconUsers,

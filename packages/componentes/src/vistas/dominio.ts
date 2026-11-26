@@ -217,3 +217,24 @@ export const sinGrupoAcciones = (
   if (!Object.keys(acciones).length) delete resto.acciones;
   return vacia(resto) ? undefined : resto;
 };
+
+/**
+ * Id de una vista con nombre a partir del nombre visible: minúsculas sin
+ * acentos, dígitos y «_» (lo que admite el servidor, ≤60), sin repetir uno de
+ * `existentes` (añade _2, _3...).
+ */
+export const idDeVista = (nombre: string, existentes: string[]): string => {
+  const base =
+    nombre
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 50) || "vista";
+  const usados = new Set(existentes);
+  if (!usados.has(base)) return base;
+  let n = 2;
+  while (usados.has(`${base}_${n}`)) n++;
+  return `${base}_${n}`;
+};

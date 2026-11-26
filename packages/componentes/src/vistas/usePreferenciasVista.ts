@@ -2,6 +2,7 @@ import { AUTH_STORAGE_CHANGED_EVENT } from "@olula/lib/api/auth_storage_events.t
 import { tokenAcceso } from "@olula/lib/api/token_acceso.ts";
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { ConfigVista, OrigenVista } from "./diseño.ts";
+import { olvidarVistasGuardadas } from "./useVistasGuardadas.ts";
 import {
   getVistaUsuario,
   guardarVistaUsuario,
@@ -13,6 +14,8 @@ type Estado = {
   origen: OrigenVista;
   /** El servidor respondió: se puede personalizar. */
   disponible: boolean;
+  /** La empresa o el grupo han bloqueado la personalización de la pantalla. */
+  bloqueada?: boolean;
   cargada: boolean;
 };
 
@@ -43,6 +46,7 @@ const cargar = (pantalla: string, vista: string): Promise<void> => {
         config: respuesta.config ?? undefined,
         origen: respuesta.origen,
         disponible: true,
+        bloqueada: respuesta.bloqueada ?? false,
         cargada: true,
       })
     )
@@ -56,6 +60,7 @@ const cargar = (pantalla: string, vista: string): Promise<void> => {
 export const olvidarPreferenciasVista = () => {
   estados.clear();
   cargas.clear();
+  olvidarVistasGuardadas();
 };
 
 // Al cerrar sesión (no al refrescar el token) se olvida la del usuario anterior.
@@ -114,6 +119,13 @@ export const usePreferenciasVista = (pantalla: string | undefined, vista = "") =
     await cargar(pantalla, vista);
   }, [pantalla, vista, clave]);
 
+  /** Vuelve a pedir la configuración (cambió la de la empresa o la del grupo). */
+  const recargar = useCallback(async () => {
+    if (!pantalla || !clave) return;
+    cargas.delete(clave);
+    await cargar(pantalla, vista);
+  }, [pantalla, vista, clave]);
+
   /** Guarda lo que queda tras quitar una parte, o borra la fila si no queda nada. */
   const quitar = useCallback(
     (resto: ConfigVista | undefined) => (resto ? guardar(resto) : restaurar()),
@@ -125,11 +137,14 @@ export const usePreferenciasVista = (pantalla: string | undefined, vista = "") =
     origen: estado.origen,
     /** Hay configuración propia o de empresa (para el aviso «vista personalizada»). */
     personalizada: estado.origen !== null,
-    personalizable: !!pantalla && estado.disponible,
+    personalizable: !!pantalla && estado.disponible && !estado.bloqueada,
+    /** La empresa o el grupo han fijado la vista: se ve, pero no se cambia. */
+    bloqueada: !!estado.bloqueada,
     /** Ya se sabe qué config aplicar: evita pintar la del código y cambiarla. */
     cargada: estado.cargada,
     guardar,
     restaurar,
     quitar,
+    recargar,
   };
 };

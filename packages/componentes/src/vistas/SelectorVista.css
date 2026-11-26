@@ -1,0 +1,123 @@
+.selector-vista {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaciado-xs);
+  max-width: 16rem;
+  padding: var(--espaciado-xs) var(--espaciado-s);
+  border: var(--tamaño-borde-s) solid var(--color-borde-tabla);
+  border-radius: var(--redondeo-borde-xs);
+  background: var(--color-superficie);
+  color: var(--color-texto-primario);
+  font: inherit;
+  font-size: var(--tamaño-letra-s);
+  cursor: pointer;
+
+  quimera-icono {
+    flex-shrink: 0;
+    fill: currentColor;
+  }
+
+  &:hover {
+    background: var(--color-superficie-sunken);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: 2px;
+  }
+
+  /* Una vista con nombre activa se distingue de la de por defecto. */
+  &[data-activa] {
+    border-color: var(--color-primario);
+    color: var(--color-primario-texto);
+    font-weight: var(--grosor-letra-5);
+  }
+}
+
+.selector-vista-nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hueco del icono de «marcada» para que los nombres queden alineados. */
+.selector-vista-hueco {
+  display: inline-block;
+  width: 1rem;
+}
+
+.selector-vista-origen {
+  color: var(--color-texto-secundario);
+}
+
+.selector-vista-nueva {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-s);
+  min-width: 16rem;
+  padding: var(--espaciado-s);
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-xs);
+    font-size: var(--tamaño-letra-s);
+  }
+
+  input {
+    padding: var(--espaciado-xs) var(--espaciado-s);
+    border: var(--tamaño-borde-s) solid var(--color-borde-tabla);
+    border-radius: var(--redondeo-borde-xs);
+    background: var(--color-superficie);
+    color: var(--color-texto-primario);
+    font: inherit;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primario);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.selector-vista-ayuda {
+  margin: 0;
+  font-size: var(--tamaño-letra-xs);
+  color: var(--color-texto-secundario);
+}
+
+.selector-vista-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espaciado-s);
+
+  button {
+    padding: var(--espaciado-xs) var(--espaciado-m);
+    border: var(--tamaño-borde-s) solid var(--color-borde-tabla);
+    border-radius: var(--redondeo-borde-xs);
+    background: var(--color-superficie);
+    color: var(--color-texto-primario);
+    font: inherit;
+    font-size: var(--tamaño-letra-s);
+    cursor: pointer;
+
+    &[type="submit"] {
+      /* Como QBoton: el primario de texto, con blanco encima cumple AA. */
+      border-color: var(--color-primario-texto);
+      background: var(--color-primario-texto);
+      color: var(--blanco);
+      font-weight: var(--grosor-letra-5);
+    }
+
+    &:disabled {
+      border-color: var(--color-borde-tabla);
+      background: var(--color-superficie);
+      color: light-dark(var(--gris-6), var(--gris-5));
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primario);
+      outline-offset: 2px;
+    }
+  }
+}
