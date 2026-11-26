@@ -2,7 +2,7 @@ import { Entidad } from "@olula/lib/diseño.ts";
 import { plugin as estadoPlugin } from "@olula/lib/dominio.ts";
 import { MetaColumna, MetaTabla, obtenerCols } from "../atomos/qtablacontrolada.tsx";
 import { AccionDefinida } from "../moleculas/acciones.ts";
-import { valorColumna } from "../moleculas/qtarjeta_metatabla.tsx";
+import { valorColumna } from "../moleculas/valor_columna.tsx";
 
 /**
  * Columnas y acciones que un plugin añade a pantallas que no son suyas. Se

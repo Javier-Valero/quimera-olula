@@ -2,7 +2,7 @@ import { Entidad } from "@olula/lib/diseño.ts";
 import { MetaColumna, MetaTabla, obtenerCols } from "../atomos/qtablacontrolada.tsx";
 import { ContenidoConEnlace } from "../atomos/qenlace_ficha.tsx";
 import { etiquetaEnlace } from "../atomos/url_enlace.ts";
-import { valorColumna } from "../moleculas/qtarjeta_metatabla.tsx";
+import { valorColumna } from "../moleculas/valor_columna.tsx";
 import { ConfigTarjeta } from "./diseño.ts";
 import "./TarjetaPlantilla.css";
 
