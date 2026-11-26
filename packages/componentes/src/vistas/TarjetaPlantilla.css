@@ -20,13 +20,16 @@
   min-width: 0;
 }
 
+/* Tamaños como la tarjeta genérica (qtarjeta_generica.css). */
 .tarjeta-plantilla-titulo {
+  font-size: var(--tamaño-letra-m);
+  line-height: var(--altura-linea-compacta, 1.25);
   font-weight: var(--grosor-letra-6);
   overflow-wrap: anywhere;
 }
 
 .tarjeta-plantilla-subtitulo {
-  font-size: var(--tamaño-letra-xs);
+  font-size: var(--tamaño-letra-s);
   color: var(--color-texto-secundario);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -35,6 +38,7 @@
 
 .tarjeta-plantilla-etiqueta {
   flex-shrink: 0;
+  text-align: right;
   max-width: 50%;
   overflow: hidden;
   text-overflow: ellipsis;

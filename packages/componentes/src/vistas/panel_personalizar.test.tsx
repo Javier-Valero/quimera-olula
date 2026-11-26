@@ -127,21 +127,72 @@ describe("modo personalizar", () => {
     );
   });
 
-  test("la plantilla de tarjeta se elige desde el panel", async () => {
+  test("la plantilla de tarjeta se elige desde el panel, en modo tarjetas", async () => {
     conVista(null);
     render(<Pantalla />);
     const listado = seccion(await abrirPanel(), "Listado");
+
+    // En modo tabla la tarjeta no se ve: se avisa y se ofrece cambiar.
+    expect(within(listado).queryByRole("combobox", { name: "Título" })).toBeNull();
+    fireEvent.click(within(listado).getByRole("button", { name: "Ver como tarjetas" }));
 
     fireEvent.change(within(listado).getByRole("combobox", { name: "Título" }), {
       target: { value: "cliente" },
     });
     expect(guardarVista).toHaveBeenLastCalledWith(
       "ventas.pedido",
-      { tarjeta: { titulo: "cliente", campos: [] } },
+      expect.objectContaining({ tarjeta: { titulo: "cliente", campos: [] } }),
       ""
     );
-    // Los campos van seguidos: sin el primero no se puede elegir el segundo.
-    expect(within(listado).getByRole("combobox", { name: "Campo 2" })).toBeDisabled();
+    // Los campos aparecen de uno en uno: el segundo cuando hay primero.
+    expect(within(listado).getByRole("combobox", { name: "Campo 1" })).toBeInTheDocument();
+    expect(within(listado).queryByRole("combobox", { name: "Campo 2" })).toBeNull();
+  });
+
+  test("pasar por otra sección no le quita el foco al control", async () => {
+    conVista(null);
+    render(<Pantalla />);
+    const panel = await abrirPanel();
+
+    const casilla = within(seccion(panel, "Botones del documento")).getByRole("checkbox", {
+      name: "Imprimir",
+    });
+    act(() => casilla.focus());
+    fireEvent.mouseEnter(seccion(panel, "Listado"));
+    fireEvent.mouseLeave(seccion(panel, "Listado"));
+
+    expect(casilla).toHaveFocus();
+  });
+
+  test("Escape con un diálogo abierto no cierra el panel", async () => {
+    conVista(null);
+    render(<Pantalla />);
+    await abrirPanel();
+
+    const dialogo = document.createElement("dialog");
+    dialogo.setAttribute("open", "");
+    document.body.appendChild(dialogo);
+    try {
+      act(() => {
+        fireEvent.keyDown(document, { key: "Escape" });
+      });
+      expect(screen.getByRole("complementary")).toBeInTheDocument();
+    } finally {
+      dialogo.remove();
+    }
+  });
+
+  test("al abrir el menú de usuario u otro panel lateral, el panel se cierra", async () => {
+    conVista(null);
+    render(<Pantalla />);
+    await abrirPanel();
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("quimera:panel-lateral-abierto", { detail: "usuario" })
+      );
+    });
+    expect(screen.queryByRole("complementary")).toBeNull();
   });
 
   test("Escape cierra el panel y devuelve el foco al botón", async () => {

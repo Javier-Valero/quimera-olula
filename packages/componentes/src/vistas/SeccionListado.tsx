@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { ConfigTarjeta } from "./diseño.ts";
 import { MAXIMO_CAMPOS_TARJETA } from "./dominio.ts";
 import { ColumnaSelector, ListaColumnas } from "./SelectorColumnas.tsx";
@@ -57,26 +58,28 @@ const EditorTarjeta = ({
           </select>
         </label>
       ))}
-      {Array.from({ length: MAXIMO_CAMPOS_TARJETA }, (_, posicion) => (
-        <label key={posicion} className="panel-personalizar-campo">
-          <span>Campo {posicion + 1}</span>
-          <select
-            value={actual.campos[posicion] ?? ""}
-            // Sin hueco anterior no hay siguiente: los campos van seguidos.
-            disabled={posicion > actual.campos.length}
-            onChange={(e) => cambiarCampo(posicion, e.target.value)}
-          >
-            {opciones}
-          </select>
-        </label>
-      ))}
+      {/* Un campo más que los elegidos (hasta el máximo): van seguidos. */}
+      {Array.from(
+        { length: Math.min(actual.campos.length + 1, MAXIMO_CAMPOS_TARJETA) },
+        (_, posicion) => (
+          <label key={posicion} className="panel-personalizar-campo">
+            <span>Campo {posicion + 1}</span>
+            <select
+              value={actual.campos[posicion] ?? ""}
+              onChange={(e) => cambiarCampo(posicion, e.target.value)}
+            >
+              {opciones}
+            </select>
+          </label>
+        )
+      )}
       <button
         type="button"
         className="panel-personalizar-enlace"
         disabled={!tarjeta}
         onClick={() => onCambiar(undefined)}
       >
-        Volver a la tarjeta por defecto
+        Quitar plantilla de tarjeta
       </button>
     </>
   );
@@ -111,25 +114,25 @@ export const SeccionListado = ({
   onPersonalizarWidgets?: () => void;
   personalizada: boolean;
   onRestaurar: () => void;
-}) => (
+}) => {
+  const nombreGrupo = useId();
+  return (
   <>
     {modos.length > 1 && (
-      <>
-        <h4>Ver como</h4>
-        <div className="panel-personalizar-opciones" role="radiogroup" aria-label="Ver como">
-          {modos.map((m) => (
-            <label key={m}>
-              <input
-                type="radio"
-                name="personalizar-modo"
-                checked={modo === m}
-                onChange={() => onCambiarModo(m)}
-              />
-              {NOMBRE_MODO[m]}
-            </label>
-          ))}
-        </div>
-      </>
+      <fieldset className="panel-personalizar-opciones">
+        <legend>Ver como</legend>
+        {modos.map((m) => (
+          <label key={m}>
+            <input
+              type="radio"
+              name={nombreGrupo}
+              checked={modo === m}
+              onChange={() => onCambiarModo(m)}
+            />
+            {NOMBRE_MODO[m]}
+          </label>
+        ))}
+      </fieldset>
     )}
 
     {columnas && (
@@ -144,17 +147,38 @@ export const SeccionListado = ({
     {columnas && onCambiarTarjeta && (
       <>
         <h4>Tarjeta</h4>
-        <EditorTarjeta
-          catalogo={columnas.catalogo}
-          tarjeta={tarjeta}
-          onCambiar={onCambiarTarjeta}
-        />
+        {modo === "tarjetas" ? (
+          <>
+            <p className="panel-personalizar-ayuda">
+              Título y subtítulo arriba, la etiqueta a la derecha y hasta{" "}
+              {MAXIMO_CAMPOS_TARJETA} campos debajo.
+            </p>
+            <EditorTarjeta
+              catalogo={columnas.catalogo}
+              tarjeta={tarjeta}
+              onCambiar={onCambiarTarjeta}
+            />
+          </>
+        ) : (
+          <p className="panel-personalizar-ayuda">
+            La tarjeta se ve en el modo Tarjetas.{" "}
+            {modos.includes("tarjetas") && (
+              <button
+                type="button"
+                className="panel-personalizar-enlace"
+                onClick={() => onCambiarModo("tarjetas")}
+              >
+                Ver como tarjetas
+              </button>
+            )}
+          </p>
+        )}
       </>
     )}
 
     {onPersonalizarWidgets && (
       <>
-        <h4>Resumen</h4>
+        <h4>Widgets del resumen</h4>
         <button type="button" className="panel-personalizar-enlace" onClick={onPersonalizarWidgets}>
           Personalizar widgets…
         </button>
@@ -167,7 +191,8 @@ export const SeccionListado = ({
       disabled={!personalizada}
       onClick={onRestaurar}
     >
-      Restaurar vista por defecto
+      Restaurar listado por defecto
     </button>
   </>
-);
+  );
+};

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { QIcono } from "../atomos/qicono.tsx";
 import { desplazarColumna, ocultarColumna } from "./dominio.ts";
 import { MenuFlotante } from "./MenuFlotante.tsx";
@@ -26,8 +26,33 @@ export const ListaColumnas = ({
   const alternar = (id: string) =>
     onCambiar(visibles.includes(id) ? ocultarColumna(visibles, id) : [...visibles, id]);
 
+  // Al mover una columna la lista se reordena y el botón pulsado puede perder el
+  // foco: se le devuelve y se anuncia la nueva posición (como en los botones).
+  const lista = useRef<HTMLUListElement>(null);
+  const [movida, setMovida] = useState<{ boton: string; aviso: string } | null>(null);
+  useEffect(() => {
+    if (!movida) return;
+    lista.current
+      ?.querySelector<HTMLElement>(`button[aria-label="${CSS.escape(movida.boton)}"]`)
+      ?.focus();
+  }, [movida]);
+
+  const mover = (id: string, cabecera: string, sentido: -1 | 1) => {
+    const nuevas = desplazarColumna(visibles, id, sentido);
+    if (nuevas === visibles) return;
+    onCambiar(nuevas);
+    setMovida({
+      boton: `${sentido < 0 ? "Subir" : "Bajar"} ${cabecera}`,
+      aviso: `${cabecera}: posición ${nuevas.indexOf(id) + 1} de ${nuevas.length}`,
+    });
+  };
+
   return (
-    <ul>
+    <>
+    <p className="selector-columnas-aviso" aria-live="polite">
+      {movida?.aviso}
+    </p>
+    <ul ref={lista}>
       {ordenadas.map(({ id, cabecera }) => {
         const visible = visibles.includes(id);
         const posicion = visibles.indexOf(id);
@@ -47,16 +72,16 @@ export const ListaColumnas = ({
                 <button
                   type="button"
                   aria-label={`Subir ${cabecera}`}
-                  disabled={posicion === 0}
-                  onClick={() => onCambiar(desplazarColumna(visibles, id, -1))}
+                  aria-disabled={posicion === 0}
+                  onClick={() => mover(id, cabecera, -1)}
                 >
                   <QIcono nombre="arriba" tamaño="xs" />
                 </button>
                 <button
                   type="button"
                   aria-label={`Bajar ${cabecera}`}
-                  disabled={posicion === visibles.length - 1}
-                  onClick={() => onCambiar(desplazarColumna(visibles, id, 1))}
+                  aria-disabled={posicion === visibles.length - 1}
+                  onClick={() => mover(id, cabecera, 1)}
                 >
                   <QIcono nombre="abajo" tamaño="xs" />
                 </button>
@@ -66,6 +91,7 @@ export const ListaColumnas = ({
         );
       })}
     </ul>
+    </>
   );
 };
 

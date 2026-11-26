@@ -75,7 +75,7 @@ export const ListaDestacadas = ({
                 <span>
                   {texto}
                   {enMenu.includes(id) && (
-                    <small className="selector-columnas-nota"> (en el menú, no cabe)</small>
+                    <small className="selector-columnas-nota"> (no cabe: va en «Más acciones»)</small>
                   )}
                 </span>
               </label>
