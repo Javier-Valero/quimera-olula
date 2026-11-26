@@ -291,6 +291,10 @@ export const Listado = <T extends Entidad>({
     onModoChanged?.(nuevoModo);
   };
 
+  // Con la sección del listado en el panel, los widgets se personalizan desde
+  // allí («Personalizar widgets…»): el botón propio del resumen sobra.
+  const widgetsEnPanel = !!pantalla && !!vista.selector && widgetsUsuario.personalizable;
+
   // Sección del listado en el panel «Personalizar pantalla».
   const raiz = useRef<HTMLDivElement>(null);
   // Quien administra las vistas tiene la sección aunque la pantalla esté bloqueada.
@@ -532,7 +536,8 @@ export const Listado = <T extends Entidad>({
     >
       {seccionPersonalizar && createPortal(seccionPersonalizar, destinoPersonalizar)}
       {configWidgets &&
-        (configWidgets.widgets.length > 0 || widgetsUsuario.personalizable) && (
+        (configWidgets.widgets.length > 0 ||
+          (widgetsUsuario.personalizable && !widgetsEnPanel)) && (
           <QPanelWidgets
             widgets={configWidgets.widgets}
             campos={configWidgets.campos}
@@ -540,7 +545,7 @@ export const Listado = <T extends Entidad>({
             series={seriesWidgets}
             cargando={cargandoWidgets}
             onPersonalizar={
-              widgetsUsuario.personalizable
+              widgetsUsuario.personalizable && !widgetsEnPanel
                 ? () => setPersonalizandoWidgets(true)
                 : undefined
             }
