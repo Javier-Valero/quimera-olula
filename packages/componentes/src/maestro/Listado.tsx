@@ -179,6 +179,12 @@ export const Listado = <T extends Entidad>({
   // Vista con nombre activa ('' = la de por defecto) y las que hay.
   const [vistaActiva, setVistaActiva] = useState("");
   const [errorVista, setErrorVista] = useState<string | null>(null);
+  // El aviso de error se va solo al rato (y al abrir el selector).
+  useEffect(() => {
+    if (!errorVista) return;
+    const temporizador = setTimeout(() => setErrorVista(null), 8000);
+    return () => clearTimeout(temporizador);
+  }, [errorVista]);
   const vistasGuardadas = useVistasGuardadas(pantalla);
   const aplicarVista = useCallback(
     (filtro: Criteria["filtro"], orden: string[]) =>
@@ -570,6 +576,7 @@ export const Listado = <T extends Entidad>({
               puedeGuardar={vista.vistas.personalizable}
               filtroCambiado={vista.vistas.filtroCambiado}
               error={errorVista}
+              onAbrir={() => setErrorVista(null)}
               onElegir={(id) => {
                 setErrorVista(null);
                 setVistaActiva(id);

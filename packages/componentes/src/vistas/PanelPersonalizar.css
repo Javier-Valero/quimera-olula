@@ -279,3 +279,50 @@ body[data-modo-personalizar] section[role="main"] {
   font-size: var(--tamaño-letra-s);
   color: var(--color-error-texto);
 }
+
+/* Acción principal de una sección (p. ej. «Compartir con…»), como QBoton. */
+.panel-personalizar-boton {
+  align-self: flex-start;
+  padding: var(--espaciado-xs) var(--espaciado-m);
+  border: var(--tamaño-borde-s) solid var(--color-primario-texto);
+  border-radius: var(--redondeo-borde-xs);
+  background: var(--color-primario-texto);
+  color: var(--blanco);
+  font: inherit;
+  font-size: var(--tamaño-letra-s);
+  font-weight: var(--grosor-letra-5);
+  cursor: pointer;
+
+  &:disabled {
+    border-color: var(--color-borde-tabla);
+    background: var(--color-superficie);
+    color: light-dark(var(--gris-6), var(--gris-5));
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: 2px;
+  }
+}
+
+.panel-personalizar-subtitulo {
+  margin: var(--espaciado-xs) 0 0;
+  font-size: var(--tamaño-letra-xs);
+  font-weight: var(--grosor-letra-6);
+}
+
+.panel-personalizar-aviso {
+  margin: 0;
+  font-size: var(--tamaño-letra-s);
+  color: var(--color-texto-secundario);
+
+  &:empty {
+    display: none;
+  }
+}
+
+/* Títulos que reciben el foco por programa (tras quitar algo): sin contorno. */
+.panel-personalizar-seccion h4[tabindex="-1"]:focus {
+  outline: none;
+}

@@ -82,11 +82,15 @@ describe("compartir vistas", () => {
     const panel = await montar();
 
     await within(panel).findByRole("heading", { name: "Compartir" });
-    fireEvent.change(within(panel).getByRole("combobox", { name: "Con" }), {
+    // Sin elegir con quién no se puede compartir.
+    expect(within(panel).getByRole("button", { name: "Compartir" })).toBeDisabled();
+    fireEvent.change(within(panel).getByRole("combobox", { name: "Compartir con" }), {
       target: { value: "comercial" },
     });
     await act(async () => {
-      fireEvent.click(within(panel).getByRole("button", { name: "Compartir esta vista" }));
+      fireEvent.click(
+        within(panel).getByRole("button", { name: "Compartir con el grupo Comercial" })
+      );
     });
 
     expect(m.guardarVistaCompartida).toHaveBeenCalledWith("ventas.pedido", {
@@ -99,6 +103,9 @@ describe("compartir vistas", () => {
     // Tras compartir se vuelve a leer lo compartido y lo que ve el usuario.
     expect(m.getVistasCompartidas).toHaveBeenCalledTimes(2);
     await waitFor(() => expect(m.getVistaUsuario).toHaveBeenCalledTimes(2));
+    expect(within(panel).getByRole("status")).toHaveTextContent(
+      "«Vista por defecto» compartida con el grupo Comercial."
+    );
   });
 
   test("bloquear guarda la fila de empresa de la vista por defecto con bloqueada", async () => {
@@ -122,6 +129,24 @@ describe("compartir vistas", () => {
     });
   });
 
+  test("mientras se guarda, la casilla de bloqueo no admite otro clic", async () => {
+    conCompartidas([]);
+    let terminar: () => void = () => undefined;
+    m.guardarVistaCompartida.mockReturnValue(new Promise<void>((r) => (terminar = r)));
+    const panel = await montar();
+
+    const casilla = await within(panel).findByRole("checkbox", {
+      name: /Bloquear la personalización/,
+    });
+    fireEvent.click(casilla);
+    fireEvent.click(casilla);
+    expect(m.guardarVistaCompartida).toHaveBeenCalledTimes(1);
+    expect(casilla).toBeDisabled();
+
+    await act(async () => terminar());
+    await waitFor(() => expect(casilla).not.toBeDisabled());
+  });
+
   test("quitar lo compartido con un grupo", async () => {
     conCompartidas([
       { vista: "grandes", grupo_id: "comercial", nombre: "Grandes", bloqueada: false, config: {} },
@@ -129,7 +154,7 @@ describe("compartir vistas", () => {
     const panel = await montar();
 
     const quitar = await within(panel).findByRole("button", {
-      name: "Dejar de compartir Grandes con Comercial",
+      name: "Quitar «Grandes», compartida con el grupo Comercial",
     });
     await act(async () => {
       fireEvent.click(quitar);

@@ -66,7 +66,7 @@ const montar = (criteria = criteriaInicial) => {
 };
 
 const abrirVistas = async () => {
-  fireEvent.click(await screen.findByRole("button", { name: /Vista por defecto|Pendientes/ }));
+  fireEvent.click(await screen.findByRole("button", { name: /^Vista: / }));
   return screen.findByRole("menu", { name: "Vistas" });
 };
 
@@ -96,8 +96,13 @@ describe("vistas con nombre", () => {
     const onCriteriaChanged = montar();
 
     const menu = await abrirVistas();
-    expect(within(menu).getByRole("menuitem", { name: /Grandes · de la empresa/ })).toBeInTheDocument();
-    fireEvent.click(within(menu).getByRole("menuitem", { name: "Pendientes" }));
+    expect(within(menu).getByRole("menuitemradio", { name: /Grandes · de la empresa/ })).toBeInTheDocument();
+    // La vista activa se anuncia como marcada.
+    expect(within(menu).getByRole("menuitemradio", { name: "Vista por defecto" })).toHaveAttribute(
+      "aria-checked",
+      "true"
+    );
+    fireEvent.click(within(menu).getByRole("menuitemradio", { name: "Pendientes" }));
 
     await waitFor(() =>
       expect(onCriteriaChanged).toHaveBeenLastCalledWith(
@@ -109,7 +114,10 @@ describe("vistas con nombre", () => {
       )
     );
     expect(getVista).toHaveBeenCalledWith("ventas.pedido", "pendientes");
-    expect(screen.getByRole("button", { name: /Pendientes/ })).toHaveAttribute("data-activa");
+    // (El listado del test no se vuelve a pintar con el filtro: sale «con cambios».)
+    expect(screen.getByRole("button", { name: /^Vista: Pendientes/ })).toHaveAttribute(
+      "data-activa"
+    );
   });
 
   test("guardar como vista nueva guarda filtro, columnas y orden de ahora", async () => {
@@ -119,7 +127,7 @@ describe("vistas con nombre", () => {
     const menu = await abrirVistas();
     fireEvent.click(within(menu).getByRole("menuitem", { name: "Guardar como vista nueva…" }));
     const dialogo = await screen.findByRole("dialog", { name: "Guardar como vista nueva" });
-    fireEvent.change(within(dialogo).getByRole("textbox", { name: "Nombre de la vista" }), {
+    fireEvent.change(within(dialogo).getByRole("textbox", { name: /Nombre de la vista/ }), {
       target: { value: "Clientes Acme" },
     });
     await act(async () => {
@@ -148,7 +156,7 @@ describe("vistas con nombre", () => {
       within(await abrirVistas()).getByRole("menuitem", { name: "Guardar como vista nueva…" })
     );
     const dialogo = await screen.findByRole("dialog", { name: "Guardar como vista nueva" });
-    fireEvent.change(within(dialogo).getByRole("textbox", { name: "Nombre de la vista" }), {
+    fireEvent.change(within(dialogo).getByRole("textbox", { name: /Nombre de la vista/ }), {
       target: { value: "Pendientes" },
     });
     await act(async () => {
@@ -156,26 +164,31 @@ describe("vistas con nombre", () => {
     });
 
     expect(await screen.findByRole("alert")).toHaveTextContent("No se ha podido guardar la vista.");
-    expect(screen.getByRole("button", { name: /Vista por defecto/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Vista: Vista por defecto" })).toBeInTheDocument();
   });
 
-  test("borrar una vista propia vuelve a la de por defecto", async () => {
+  test("borrar una vista propia pide confirmación y vuelve a la de por defecto", async () => {
     conVistas(
       { "": null, mia: { nombre: "Mía", filtro: [] } },
       [{ vista: "mia", nombre: "Mía", origen: "usuario" }]
     );
     montar();
 
-    fireEvent.click(within(await abrirVistas()).getByRole("menuitem", { name: "Mía" }));
-    await screen.findByRole("button", { name: /Mía/ });
-    fireEvent.click(screen.getByRole("button", { name: /Mía/ }));
+    fireEvent.click(within(await abrirVistas()).getByRole("menuitemradio", { name: "Mía" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Vista: Mía" }));
     const menu = await screen.findByRole("menu", { name: "Vistas" });
+    fireEvent.click(within(menu).getByRole("menuitem", { name: "Borrar la vista «Mía»…" }));
+
+    const confirmar = await screen.findByRole("dialog", { name: "Borrar la vista «Mía»" });
+    // El foco empieza en Cancelar: borrar es irreversible.
+    expect(within(confirmar).getByRole("button", { name: "Cancelar" })).toHaveFocus();
+    expect(restaurarVista).not.toHaveBeenCalled();
     await act(async () => {
-      fireEvent.click(within(menu).getByRole("menuitem", { name: "Borrar la vista «Mía»" }));
+      fireEvent.click(within(confirmar).getByRole("button", { name: "Borrar" }));
     });
 
     expect(restaurarVista).toHaveBeenCalledWith("ventas.pedido", "mia");
-    await screen.findByRole("button", { name: /Vista por defecto/ });
+    await screen.findByRole("button", { name: "Vista: Vista por defecto" });
   });
 
   test("una vista de la empresa no se puede borrar ni cambiar su filtro", async () => {
@@ -185,8 +198,8 @@ describe("vistas con nombre", () => {
     );
     montar();
 
-    fireEvent.click(within(await abrirVistas()).getByRole("menuitem", { name: /Grandes/ }));
-    fireEvent.click(await screen.findByRole("button", { name: /Grandes/ }));
+    fireEvent.click(within(await abrirVistas()).getByRole("menuitemradio", { name: /Grandes/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Vista: Grandes" }));
     const menu = await screen.findByRole("menu", { name: "Vistas" });
     expect(within(menu).queryByRole("menuitem", { name: /Borrar/ })).toBeNull();
     expect(within(menu).queryByRole("menuitem", { name: /Guardar el filtro/ })).toBeNull();
@@ -201,7 +214,7 @@ describe("vistas con nombre", () => {
     montar();
 
     const menu = await abrirVistas();
-    expect(within(menu).getByRole("menuitem", { name: /Grandes/ })).toBeInTheDocument();
+    expect(within(menu).getByRole("menuitemradio", { name: /Grandes/ })).toBeInTheDocument();
     expect(within(menu).queryByRole("menuitem", { name: /Guardar como/ })).toBeNull();
     // Se aplican las columnas fijadas, pero sin selector de columnas.
     expect(screen.queryByRole("button", { name: /^Columnas/ })).toBeNull();

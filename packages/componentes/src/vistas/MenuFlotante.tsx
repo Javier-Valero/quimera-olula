@@ -52,12 +52,14 @@ export const MenuFlotante = ({
   }, [ancla, alineacion]);
 
   useEffect(() => {
-    // El foco entra en el panel para poder usarlo con teclado.
-    panel.current
-      ?.querySelector<HTMLElement>(
-        "button:not([disabled]), input:not([disabled])"
-      )
-      ?.focus();
+    // El foco entra en el panel para poder usarlo con teclado: en el elemento
+    // marcado para ello, si no en la opción elegida, si no en el primero.
+    const nodo = panel.current;
+    (
+      nodo?.querySelector<HTMLElement>("[data-foco-inicial]") ??
+      nodo?.querySelector<HTMLElement>('[aria-checked="true"]') ??
+      nodo?.querySelector<HTMLElement>("button:not([disabled]), input:not([disabled])")
+    )?.focus();
   }, [posicion]);
 
   // Al cerrarse (elegir opción, Escape...) el foco vuelve al botón que lo abrió,
@@ -89,7 +91,7 @@ export const MenuFlotante = ({
     }
     if (rol !== "menu") return;
     const opciones = Array.from(
-      panel.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []
+      panel.current?.querySelectorAll<HTMLElement>('[role^="menuitem"]') ?? []
     );
     if (!opciones.length) return;
     const actual = opciones.indexOf(document.activeElement as HTMLElement);
@@ -165,6 +167,7 @@ export const OpcionMenu = ({
   onClick,
   deshabilitado,
   destructiva,
+  marcada,
 }: {
   icono?: ReactNode;
   children: ReactNode;
@@ -172,10 +175,14 @@ export const OpcionMenu = ({
   deshabilitado?: boolean;
   /** Borrar y similares: en rojo. */
   destructiva?: boolean;
+  /** Opción de un grupo de una sola elección (p. ej. la vista activa): se
+   *  anuncia como marcada o no. Sin ella, opción normal. */
+  marcada?: boolean;
 }) => (
   <button
     type="button"
-    role="menuitem"
+    role={marcada === undefined ? "menuitem" : "menuitemradio"}
+    aria-checked={marcada}
     className="menu-flotante-opcion"
     data-destructiva={destructiva || undefined}
     // aria-disabled y no disabled: sigue siendo enfocable y el lector de
