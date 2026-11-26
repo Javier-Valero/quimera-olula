@@ -166,6 +166,16 @@ describe("aplicarTarjeta", () => {
   test("sin configuración, undefined", () => {
     expect(aplicarTarjeta(catalogo)).toBeUndefined();
   });
+
+  test("si no queda ningún hueco válido, undefined (manda la tarjeta del código)", () => {
+    expect(aplicarTarjeta(catalogo, { titulo: "borrada", campos: ["otra"] })).toBeUndefined();
+  });
+
+  test("como mucho tres campos", () => {
+    expect(
+      aplicarTarjeta(catalogo, { campos: ["codigo", "fecha", "cliente", "total"] })?.campos
+    ).toEqual(["codigo", "fecha", "cliente"]);
+  });
 });
 
 describe("orden y modo", () => {

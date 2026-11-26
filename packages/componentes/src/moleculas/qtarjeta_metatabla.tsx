@@ -97,7 +97,8 @@ const formatearValor = (
 const esValorVacio = (valor: unknown) =>
   valor === undefined || valor === null || valor === "";
 
-const valorColumna = <T extends Entidad>(
+/** Valor de una columna tal como se pinta en una tarjeta (render, formato, vacío). */
+export const valorColumna = <T extends Entidad>(
   entidad: T,
   columna: MetaColumna<T>,
   placeholderVacio: string

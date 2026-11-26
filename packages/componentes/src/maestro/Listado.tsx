@@ -11,6 +11,7 @@ import { QKanban, type QKanbanColumna } from "../atomos/qkanban.tsx";
 import { MetaTabla, QTablaControlada } from "../atomos/qtablacontrolada.tsx";
 import { QTarjetas } from "../atomos/qtarjetas.tsx";
 import { QTarjetaMetatabla } from "../moleculas/qtarjeta_metatabla.tsx";
+import { TarjetaPlantilla } from "../vistas/TarjetaPlantilla.tsx";
 import { SinDatos } from "../SinDatos/SinDatos.tsx";
 import { SelectorColumnas } from "../vistas/SelectorColumnas.tsx";
 import { useVistaListado } from "../vistas/useVistaListado.ts";
@@ -402,8 +403,18 @@ export const Listado = <T extends Entidad>({
           <QTarjetaMetatabla entidad={entidad} metaTabla={metaTabla} />
         )
       : undefined;
+    // La plantilla del usuario manda sobre la tarjeta del código. Usa el
+    // catálogo completo (también columnas ocultas en la tabla).
+    const plantilla = vista.tarjeta;
+    const tarjetaUsuario =
+      plantilla && metaTabla
+        ? (entidad: T) => (
+            <TarjetaPlantilla entidad={entidad} metaTabla={metaTabla} plantilla={plantilla} />
+          )
+        : undefined;
 
     if (modoEfectivo === "tarjetas") {
+      if (tarjetaUsuario) return renderTarjetas(datos, tarjetaUsuario);
       if (tarjeta) return renderTarjetas(datos, tarjeta);
       if (tarjetaGenerica) return renderTarjetas(datos, tarjetaGenerica);
     }

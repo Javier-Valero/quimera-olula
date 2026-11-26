@@ -6,14 +6,16 @@ import {
   obtenerCols,
   PersonalizacionColumnas,
 } from "../atomos/qtablacontrolada.tsx";
-import { ConfigVista, ModoVista, SentidoOrden } from "./diseño.ts";
+import { ConfigTarjeta, ConfigVista, ModoVista, SentidoOrden } from "./diseño.ts";
 import {
   aplicarColumnas,
+  aplicarTarjeta,
   configTablaDesdeVisibles,
   mismoOrden,
   moverColumna,
   ocultarColumna,
   sinListado,
+  sinTarjeta,
 } from "./dominio.ts";
 import { usePreferenciasVista } from "./usePreferenciasVista.ts";
 
@@ -105,6 +107,15 @@ export const useVistaListado = <T extends Entidad>({
             void preferencias.quitar(sinListado(config)).catch(() => undefined),
         }
       : undefined,
+    /** Plantilla de tarjeta del usuario (ya filtrada por el catálogo), si la hay. */
+    tarjeta: cargada ? aplicarTarjeta(catalogo, config?.tarjeta) : undefined,
+    /** Guarda la plantilla de tarjeta; `undefined` vuelve a la del código. */
+    guardarTarjeta: (tarjeta: ConfigTarjeta | undefined) =>
+      personalizable &&
+      void (tarjeta
+        ? preferencias.guardar({ ...config, tarjeta })
+        : preferencias.quitar(sinTarjeta(config))
+      ).catch(() => undefined),
     /** Modo guardado, cuando ya se sabe. */
     modoGuardado: cargada ? config?.modo : undefined,
     guardarModo: (modo: ModoVista) => personalizable && guardar({ modo }),

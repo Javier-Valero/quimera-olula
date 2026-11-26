@@ -123,7 +123,11 @@ export const botonesQueCaben = (
   return 0;
 };
 
-/** Huecos de la tarjeta sin los ids que ya no existen en el catálogo. */
+/** Campos de la tarjeta además de título, subtítulo y etiqueta (lo valida también el servidor). */
+export const MAXIMO_CAMPOS_TARJETA = 3;
+
+/** Huecos de la tarjeta sin los ids que ya no existen en el catálogo;
+ *  `undefined` si no queda ninguno (se usa la tarjeta del código). */
 export const aplicarTarjeta = (
   catalogo: ColumnaCatalogo[],
   config?: ConfigTarjeta
@@ -131,12 +135,22 @@ export const aplicarTarjeta = (
   if (!config) return undefined;
   const ids = new Set(catalogo.map((columna) => columna.id));
   const valido = (id?: string) => (id && ids.has(id) ? id : undefined);
-  return {
+  const tarjeta = {
     titulo: valido(config.titulo),
     subtitulo: valido(config.subtitulo),
     etiqueta: valido(config.etiqueta),
-    campos: config.campos.filter((id) => ids.has(id)),
+    campos: config.campos.filter((id) => ids.has(id)).slice(0, MAXIMO_CAMPOS_TARJETA),
   };
+  const vacia =
+    !tarjeta.titulo && !tarjeta.subtitulo && !tarjeta.etiqueta && !tarjeta.campos.length;
+  return vacia ? undefined : tarjeta;
+};
+
+/** La configuración sin la tarjeta; `undefined` si no queda nada. */
+export const sinTarjeta = (config?: ConfigVista): ConfigVista | undefined => {
+  const resto = { ...config };
+  delete resto.tarjeta;
+  return vacia(resto) ? undefined : resto;
 };
 
 /** Ordenación por defecto guardada, o la que da el código. */

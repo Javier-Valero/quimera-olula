@@ -282,6 +282,31 @@ describe("Listado con pantalla", () => {
     expect(screen.getByRole("button", { name: "Columnas" })).toBeInTheDocument();
   });
 
+  test("la plantilla de tarjeta del usuario manda sobre la tarjeta del código", async () => {
+    conVista({ tarjeta: { titulo: "cliente", subtitulo: "codigo", campos: ["total", "notas"] } });
+    render(
+      <Listado<Pedido>
+        metaTabla={metaTabla}
+        criteria={criteriaBase}
+        criteriaInicial={criteriaBase}
+        entidades={pedidos}
+        totalEntidades={1}
+        modoInicial="tarjetas"
+        tarjeta={(p) => <span>Tarjeta del código {p.codigo}</span>}
+        onSeleccion={() => {}}
+        onCriteriaChanged={() => {}}
+        pantalla="ventas.pedido"
+      />
+    );
+
+    const titulo = await screen.findByText("Acme", { selector: ".tarjeta-plantilla-titulo" });
+    const tarjeta = titulo.closest("article")!;
+    expect(within(tarjeta).getByText("PED-1")).toBeInTheDocument();
+    // Una columna oculta en la tabla también puede ir en la tarjeta.
+    expect(within(tarjeta).getByText("Notas")).toBeInTheDocument();
+    expect(screen.queryByText(/Tarjeta del código/)).toBeNull();
+  });
+
   test("si el servidor no responde, la vista del código sin personalizar", async () => {
     getVista.mockRejectedValue({ estado: 500 });
     montar({ pantalla: "ventas.pedido" });
