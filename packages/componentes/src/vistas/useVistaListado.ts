@@ -93,7 +93,8 @@ export const useVistaListado = <T extends Entidad>({
           visibles,
           // Solo lo del listado: los botones del detalle van en la misma fila.
           personalizada:
-            preferencias.origen === "usuario" && !!(config?.tabla || config?.modo),
+            preferencias.origen === "usuario" &&
+            !!(config?.tabla || config?.modo || config?.tarjeta),
           puedeGuardarOrden: orden.length > 0 && !mismoOrden(orden, ordenGuardado),
           onCambiar: guardarVisibles,
           onGuardarOrden: () =>

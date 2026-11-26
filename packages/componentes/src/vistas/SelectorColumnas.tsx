@@ -6,6 +6,69 @@ import "./SelectorColumnas.css";
 
 export type ColumnaSelector = { id: string; cabecera: string };
 
+/** Columnas visibles (marcadas, en su orden, con subir/bajar) y ocultas. */
+export const ListaColumnas = ({
+  catalogo,
+  visibles,
+  onCambiar,
+}: {
+  catalogo: ColumnaSelector[];
+  visibles: string[];
+  onCambiar: (visibles: string[]) => void;
+}) => {
+  const porId = new Map(catalogo.map((columna) => [columna.id, columna]));
+  const ocultas = catalogo.filter((columna) => !visibles.includes(columna.id));
+  const ordenadas = [
+    ...visibles.map((id) => porId.get(id)).filter((c): c is ColumnaSelector => !!c),
+    ...ocultas,
+  ];
+
+  const alternar = (id: string) =>
+    onCambiar(visibles.includes(id) ? ocultarColumna(visibles, id) : [...visibles, id]);
+
+  return (
+    <ul>
+      {ordenadas.map(({ id, cabecera }) => {
+        const visible = visibles.includes(id);
+        const posicion = visibles.indexOf(id);
+        return (
+          <li key={id} data-visible={visible}>
+            <label>
+              <input
+                type="checkbox"
+                checked={visible}
+                disabled={visible && visibles.length === 1}
+                onChange={() => alternar(id)}
+              />
+              <span>{cabecera}</span>
+            </label>
+            {visible && (
+              <span className="selector-columnas-mover">
+                <button
+                  type="button"
+                  aria-label={`Subir ${cabecera}`}
+                  disabled={posicion === 0}
+                  onClick={() => onCambiar(desplazarColumna(visibles, id, -1))}
+                >
+                  <QIcono nombre="arriba" tamaño="xs" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Bajar ${cabecera}`}
+                  disabled={posicion === visibles.length - 1}
+                  onClick={() => onCambiar(desplazarColumna(visibles, id, 1))}
+                >
+                  <QIcono nombre="abajo" tamaño="xs" />
+                </button>
+              </span>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
 /**
  * Botón del final de la cabecera de la tabla: qué columnas se ven y en qué
  * orden, guardar la ordenación actual como predeterminada y restaurar.
@@ -35,16 +98,6 @@ export const SelectorColumnas = ({
   const [abierto, setAbierto] = useState(false);
   const cerrar = useCallback(() => setAbierto(false), []);
 
-  const porId = new Map(catalogo.map((columna) => [columna.id, columna]));
-  const ocultas = catalogo.filter((columna) => !visibles.includes(columna.id));
-  const ordenadas = [
-    ...visibles.map((id) => porId.get(id)).filter((c): c is ColumnaSelector => !!c),
-    ...ocultas,
-  ];
-
-  const alternar = (id: string) =>
-    onCambiar(visibles.includes(id) ? ocultarColumna(visibles, id) : [...visibles, id]);
-
   return (
     <>
       <button
@@ -72,45 +125,7 @@ export const SelectorColumnas = ({
           rol="dialog"
         >
           <div className="selector-columnas">
-            <ul>
-              {ordenadas.map(({ id, cabecera }) => {
-                const visible = visibles.includes(id);
-                const posicion = visibles.indexOf(id);
-                return (
-                  <li key={id} data-visible={visible}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={visible}
-                        disabled={visible && visibles.length === 1}
-                        onChange={() => alternar(id)}
-                      />
-                      <span>{cabecera}</span>
-                    </label>
-                    {visible && (
-                      <span className="selector-columnas-mover">
-                        <button
-                          type="button"
-                          aria-label={`Subir ${cabecera}`}
-                          disabled={posicion === 0}
-                          onClick={() => onCambiar(desplazarColumna(visibles, id, -1))}
-                        >
-                          <QIcono nombre="arriba" tamaño="xs" />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`Bajar ${cabecera}`}
-                          disabled={posicion === visibles.length - 1}
-                          onClick={() => onCambiar(desplazarColumna(visibles, id, 1))}
-                        >
-                          <QIcono nombre="abajo" tamaño="xs" />
-                        </button>
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+            <ListaColumnas catalogo={catalogo} visibles={visibles} onCambiar={onCambiar} />
             <div className="selector-columnas-pie">
               <button type="button" disabled={!puedeGuardarOrden} onClick={onGuardarOrden}>
                 Guardar ordenación actual como predeterminada

@@ -15,6 +15,9 @@ import { TarjetaPlantilla } from "../vistas/TarjetaPlantilla.tsx";
 import { SinDatos } from "../SinDatos/SinDatos.tsx";
 import { SelectorColumnas } from "../vistas/SelectorColumnas.tsx";
 import { useVistaListado } from "../vistas/useVistaListado.ts";
+import { useSeccionPersonalizable } from "../vistas/modo_personalizar.ts";
+import { SeccionListado } from "../vistas/SeccionListado.tsx";
+import { createPortal } from "react-dom";
 import "./Listado.css";
 import { useListadoMovilEnDetalle } from "./contexto_maestro.ts";
 import { SelectorModo } from "./SelectorModo.tsx";
@@ -256,6 +259,34 @@ export const Listado = <T extends Entidad>({
     onModoChanged?.(nuevoModo);
   };
 
+  // Sección del listado en el panel «Personalizar pantalla».
+  const raiz = useRef<HTMLDivElement>(null);
+  const destinoPersonalizar = useSeccionPersonalizable(
+    vista.selector && pantalla ? { id: `listado:${pantalla}`, titulo: "Listado" } : undefined,
+    raiz
+  );
+  const seccionPersonalizar = destinoPersonalizar && vista.selector && (
+    <SeccionListado
+      modos={modoLibre ? modosDisponiblesCalculados : []}
+      modo={modoEfectivo}
+      onCambiarModo={cambiarModo}
+      columnas={{
+        catalogo: vista.selector.catalogo,
+        visibles: vista.selector.visibles,
+        onCambiar: vista.selector.onCambiar,
+      }}
+      tarjeta={vista.tarjeta}
+      onCambiarTarjeta={vista.guardarTarjeta}
+      onPersonalizarWidgets={
+        configBase && widgetsUsuario.personalizable
+          ? () => setPersonalizandoWidgets(true)
+          : undefined
+      }
+      personalizada={vista.selector.personalizada}
+      onRestaurar={vista.selector.onRestaurar}
+    />
+  );
+
 
   const mostrarCambioModoPorDefecto =
     modosDisponiblesCalculados.length > 1 && Boolean(modoEfectivo) && !modo;
@@ -433,8 +464,12 @@ export const Listado = <T extends Entidad>({
   };
 
   return (
-    <div className="Listado" data-densidad={tarjetasCompactas ? "compacta" : densidad}
+    <div
+      ref={raiz}
+      className="Listado"
+      data-densidad={tarjetasCompactas ? "compacta" : densidad}
     >
+      {seccionPersonalizar && createPortal(seccionPersonalizar, destinoPersonalizar)}
       {configWidgets &&
         (configWidgets.widgets.length > 0 || widgetsUsuario.personalizable) && (
           <QPanelWidgets

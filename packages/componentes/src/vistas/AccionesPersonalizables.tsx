@@ -15,7 +15,9 @@ import {
   sinGrupoAcciones,
 } from "./dominio.ts";
 import { MenuFlotante, OpcionMenu } from "./MenuFlotante.tsx";
-import { PersonalizarAcciones } from "./PersonalizarAcciones.tsx";
+import { ListaDestacadas, PersonalizarAcciones } from "./PersonalizarAcciones.tsx";
+import { useSeccionPersonalizable } from "./modo_personalizar.ts";
+import { createPortal } from "react-dom";
 import { usePreferenciasVista } from "./usePreferenciasVista.ts";
 import "./AccionesPersonalizables.css";
 
@@ -139,6 +141,22 @@ export const AccionesPersonalizables = ({
 
   const clases = `acciones-personalizables${vertical ? " vertical" : ""}`;
 
+  const idsDestacadas = reparto.botones.flatMap((accion) => (accion.id ? [accion.id] : []));
+  const idsEnMenu = reparto.botones
+    .slice(visible.botones.length)
+    .flatMap((accion) => (accion.id ? [accion.id] : []));
+
+  // Sección en el panel «Personalizar pantalla».
+  const destinoPersonalizar = useSeccionPersonalizable(
+    personalizable
+      ? {
+          id: `acciones:${pantalla}:${grupo}`,
+          titulo: grupo === "detalle" ? "Botones del documento" : `Botones (${grupo})`,
+        }
+      : undefined,
+    contenedor
+  );
+
   return (
     <quimera-acciones className={clases} ref={contenedor}>
       {visible.botones.map((accion, i) => (
@@ -220,16 +238,39 @@ export const AccionesPersonalizables = ({
         <PersonalizarAcciones
           ancla={ancla}
           acciones={acciones}
-          destacadas={reparto.botones.flatMap((accion) => (accion.id ? [accion.id] : []))}
-          enMenu={reparto.botones
-            .slice(visible.botones.length)
-            .flatMap((accion) => (accion.id ? [accion.id] : []))}
+          destacadas={idsDestacadas}
+          enMenu={idsEnMenu}
           personalizada={destacadas !== undefined}
           onCambiar={guardarDestacadas}
           onRestaurar={restaurar}
           onCerrar={cerrar}
         />
       )}
+      {destinoPersonalizar &&
+        createPortal(
+          <>
+            <p className="panel-personalizar-ayuda">
+              Las marcadas salen como botón, en este orden. El resto, en «Más acciones».
+            </p>
+            <div className="selector-columnas">
+              <ListaDestacadas
+                acciones={acciones}
+                destacadas={idsDestacadas}
+                enMenu={idsEnMenu}
+                onCambiar={guardarDestacadas}
+              />
+            </div>
+            <button
+              type="button"
+              className="panel-personalizar-enlace"
+              disabled={destacadas === undefined}
+              onClick={restaurar}
+            >
+              Restaurar botones por defecto
+            </button>
+          </>,
+          destinoPersonalizar
+        )}
     </quimera-acciones>
   );
 };

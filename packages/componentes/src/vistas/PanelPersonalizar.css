@@ -1,0 +1,194 @@
+/* Botón de la cabecera: como el del modo voz (ver Cabecera.css). */
+#boton-personalizar {
+  order: 96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.5rem;
+  width: 1.5rem;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--blanco);
+  opacity: 0.7;
+  cursor: pointer;
+
+  quimera-icono {
+    fill: var(--blanco);
+  }
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--blanco);
+    outline-offset: 2px;
+  }
+
+  &.activo {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+  }
+}
+
+/* Panel lateral: no tapa la pantalla (los cambios se ven al momento). Por
+   debajo de los menús flotantes (1200) y por encima del menú de usuario. */
+.panel-personalizar {
+  position: fixed;
+  top: var(--alto-header);
+  right: 0;
+  bottom: 0;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-m);
+  width: min(22rem, 100vw);
+  padding: var(--espaciado-m);
+  overflow-y: auto;
+  box-sizing: border-box;
+  background: var(--color-superficie-elevada);
+  border-left: var(--tamaño-borde-s) solid var(--color-borde-sutil);
+  box-shadow: var(--sombra-l);
+
+  &:focus {
+    outline: none;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--tamaño-letra-m);
+    font-weight: var(--grosor-letra-6);
+  }
+}
+
+.panel-personalizar-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaciado-s);
+}
+
+.panel-personalizar-cerrar {
+  display: inline-flex;
+  padding: var(--espaciado-xs);
+  border: 0;
+  border-radius: var(--redondeo-borde-xs);
+  background: transparent;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-superficie-sunken);
+    color: var(--color-texto-primario);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: 1px;
+  }
+}
+
+.panel-personalizar-ayuda {
+  margin: 0;
+  font-size: var(--tamaño-letra-xs);
+  color: var(--color-texto-secundario);
+}
+
+.panel-personalizar-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaciado-s);
+  padding-top: var(--espaciado-m);
+  border-top: var(--tamaño-borde-s) solid var(--color-borde-sutil);
+
+  h3 {
+    margin: 0;
+    font-size: var(--tamaño-letra-s);
+    font-weight: var(--grosor-letra-6);
+  }
+
+  h4 {
+    margin: var(--espaciado-xs) 0 0;
+    font-size: var(--tamaño-letra-xs);
+    font-weight: var(--grosor-letra-6);
+    color: var(--color-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Las listas del selector de columnas y de botones, a todo el ancho. */
+  .selector-columnas {
+    min-width: 0;
+  }
+}
+
+.panel-personalizar-campo {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  align-items: center;
+  gap: var(--espaciado-s);
+  font-size: var(--tamaño-letra-s);
+
+  select {
+    min-width: 0;
+    padding: var(--espaciado-xs);
+    border: var(--tamaño-borde-s) solid var(--color-borde-tabla);
+    border-radius: var(--redondeo-borde-xs);
+    background: var(--color-superficie);
+    color: var(--color-texto-primario);
+    font: inherit;
+  }
+}
+
+.panel-personalizar-opciones {
+  display: flex;
+  gap: var(--espaciado-m);
+  font-size: var(--tamaño-letra-s);
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: var(--espaciado-xs);
+    cursor: pointer;
+  }
+}
+
+.panel-personalizar-enlace {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primario-texto);
+  font: inherit;
+  font-size: var(--tamaño-letra-s);
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:disabled {
+    color: light-dark(var(--gris-6), var(--gris-5));
+    text-decoration: none;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primario);
+    outline-offset: 2px;
+  }
+}
+
+/* En pantalla, mientras se personaliza: qué se puede personalizar y qué
+   corresponde a la sección por la que pasa el usuario en el panel. */
+[data-personalizable] {
+  outline: 1px dashed var(--color-borde-tabla);
+  outline-offset: 2px;
+}
+
+[data-personalizable-resaltado] {
+  outline: 2px solid var(--color-primario);
+  outline-offset: 2px;
+}

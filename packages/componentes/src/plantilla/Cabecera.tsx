@@ -16,6 +16,7 @@ import { NotificacionesCabecera } from "./NotificacionesCabecera.tsx";
 import { estaAutentificado } from "./autenticacion";
 import { useEsMovil } from "../maestro/useEsMovil.ts";
 import { useMenuControl } from "./useMenuControl";
+import { BotonPersonalizar } from "../vistas/PanelPersonalizar.tsx";
 
 export type CabeceraProps = {
   logoSrc?: string;
@@ -115,6 +116,7 @@ export const CabeceraBase = ({
             {AccionesCabecera ? <AccionesCabecera /> : null}
           </div>
         </div>
+        {autenticado && <BotonPersonalizar />}
         {autenticado && mostrarAsistente && modoCapturaVoz() !== null && (
           <button
             type="button"
