@@ -139,6 +139,26 @@ describe("vistas con nombre", () => {
     expect(getVistas).toHaveBeenCalledTimes(2);
   });
 
+  test("si el servidor rechaza la vista nueva, se avisa", async () => {
+    conVistas({ "": null }, []);
+    guardarVista.mockRejectedValue({ estado: 400 });
+    montar({ ...criteriaInicial, filtro: [["servido", "in", ["No", "Parcial"] as unknown as string]] });
+
+    fireEvent.click(
+      within(await abrirVistas()).getByRole("menuitem", { name: "Guardar como vista nueva…" })
+    );
+    const dialogo = await screen.findByRole("dialog", { name: "Guardar como vista nueva" });
+    fireEvent.change(within(dialogo).getByRole("textbox", { name: "Nombre de la vista" }), {
+      target: { value: "Pendientes" },
+    });
+    await act(async () => {
+      fireEvent.click(within(dialogo).getByRole("button", { name: "Guardar" }));
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("No se ha podido guardar la vista.");
+    expect(screen.getByRole("button", { name: /Vista por defecto/ })).toBeInTheDocument();
+  });
+
   test("borrar una vista propia vuelve a la de por defecto", async () => {
     conVistas(
       { "": null, mia: { nombre: "Mía", filtro: [] } },

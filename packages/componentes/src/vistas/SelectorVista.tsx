@@ -27,6 +27,7 @@ export const SelectorVista = ({
   onGuardarComo,
   onGuardarFiltro,
   onBorrar,
+  error,
 }: {
   vistas: VistaGuardada[];
   /** Id de la vista activa ('' = por defecto). */
@@ -39,6 +40,8 @@ export const SelectorVista = ({
   onGuardarComo: (nombre: string) => void;
   onGuardarFiltro: () => void;
   onBorrar: (vista: string) => void;
+  /** Lo último que se intentó (guardar, borrar) falló. */
+  error?: string | null;
 }) => {
   const boton = useRef<HTMLButtonElement>(null);
   const [panel, setPanel] = useState<"menu" | "nueva" | null>(null);
@@ -72,6 +75,11 @@ export const SelectorVista = ({
         <span className="selector-vista-nombre">{titulo}</span>
         <QIcono nombre="abajo" tamaño="xs" />
       </button>
+      {error && (
+        <span className="selector-vista-error" role="alert">
+          {error}
+        </span>
+      )}
 
       {panel === "menu" && boton.current && (
         <MenuFlotante ancla={boton.current} onCerrar={cerrar} etiqueta="Vistas">

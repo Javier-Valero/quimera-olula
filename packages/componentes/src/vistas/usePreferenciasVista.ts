@@ -97,16 +97,19 @@ export const usePreferenciasVista = (pantalla: string | undefined, vista = "") =
 
   // Optimista: la vista cambia al momento y vuelve atrás si el servidor falla
   // (salvo que entretanto haya cambiado otra vez).
+  // Devuelve si se guardó (quien guarda puede avisar del fallo).
   const guardar = useCallback(
-    async (nueva: ConfigVista) => {
-      if (!pantalla || !clave) return;
+    async (nueva: ConfigVista): Promise<boolean> => {
+      if (!pantalla || !clave) return false;
       const anterior = estados.get(clave) ?? PENDIENTE;
       const optimista: Estado = { ...anterior, config: nueva, origen: "usuario" };
       fijar(clave, optimista);
       try {
         await guardarVistaUsuario(pantalla, nueva, vista);
+        return true;
       } catch {
         if (estados.get(clave) === optimista) fijar(clave, anterior);
+        return false;
       }
     },
     [pantalla, vista, clave]
@@ -128,7 +131,10 @@ export const usePreferenciasVista = (pantalla: string | undefined, vista = "") =
 
   /** Guarda lo que queda tras quitar una parte, o borra la fila si no queda nada. */
   const quitar = useCallback(
-    (resto: ConfigVista | undefined) => (resto ? guardar(resto) : restaurar()),
+    async (resto: ConfigVista | undefined) => {
+      if (resto) await guardar(resto);
+      else await restaurar();
+    },
     [guardar, restaurar]
   );
 

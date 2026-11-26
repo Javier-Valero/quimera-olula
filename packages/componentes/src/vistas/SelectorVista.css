@@ -121,3 +121,9 @@
     }
   }
 }
+
+.selector-vista-error {
+  margin-inline-start: var(--espaciado-s);
+  font-size: var(--tamaño-letra-s);
+  color: var(--color-error-texto);
+}

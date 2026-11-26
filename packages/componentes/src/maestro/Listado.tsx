@@ -178,6 +178,7 @@ export const Listado = <T extends Entidad>({
   );
   // Vista con nombre activa ('' = la de por defecto) y las que hay.
   const [vistaActiva, setVistaActiva] = useState("");
+  const [errorVista, setErrorVista] = useState<string | null>(null);
   const vistasGuardadas = useVistasGuardadas(pantalla);
   const aplicarVista = useCallback(
     (filtro: Criteria["filtro"], orden: string[]) =>
@@ -563,20 +564,31 @@ export const Listado = <T extends Entidad>({
               activa={vistaActiva}
               puedeGuardar={vista.vistas.personalizable}
               filtroCambiado={vista.vistas.filtroCambiado}
-              onElegir={setVistaActiva}
+              error={errorVista}
+              onElegir={(id) => {
+                setErrorVista(null);
+                setVistaActiva(id);
+              }}
               onGuardarComo={(nombre) => {
+                setErrorVista(null);
                 const id = idDeVista(nombre, vistasGuardadas.map((v) => v.vista));
                 void vista.vistas
                   .guardarComo(nombre, id, modoLibre && modoEfectivo ? modoEfectivo : undefined)
                   .then(() => setVistaActiva(id))
-                  .catch(() => undefined);
+                  .catch(() => setErrorVista("No se ha podido guardar la vista."));
               }}
-              onGuardarFiltro={vista.vistas.guardarFiltro}
+              onGuardarFiltro={() => {
+                setErrorVista(null);
+                void vista.vistas.guardarFiltro().then((ok) => {
+                  if (!ok) setErrorVista("No se ha podido guardar el filtro.");
+                });
+              }}
               onBorrar={() => {
+                setErrorVista(null);
                 void vista.vistas
                   .borrar()
                   .then(() => setVistaActiva(""))
-                  .catch(() => undefined);
+                  .catch(() => setErrorVista("No se ha podido borrar la vista."));
               }}
             />
           )}

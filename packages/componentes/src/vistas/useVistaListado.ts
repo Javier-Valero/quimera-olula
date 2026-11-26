@@ -167,7 +167,7 @@ export const useVistaListado = <T extends Entidad>({
         );
         await recargarVistasGuardadas(pantalla);
       },
-      guardarFiltro: () => guardar({ filtro: filtro ?? [] }),
+      guardarFiltro: () => preferencias.guardar({ ...config, filtro: filtro ?? [] }),
       /** Lo que se comparte: la vista tal como se ve ahora (con su filtro si tiene nombre). */
       paraCompartir: (nombre?: string): ConfigVista => ({
         ...configActual(),
