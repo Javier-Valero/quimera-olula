@@ -122,6 +122,13 @@
     letter-spacing: 0.04em;
   }
 
+  /* El hueco donde pinta cada componente: su contenido, apilado. */
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-s);
+  }
+
   /* Las listas del selector de columnas y de botones, a todo el ancho. */
   .selector-columnas {
     min-width: 0;
