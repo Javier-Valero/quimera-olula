@@ -72,6 +72,7 @@ export const MaestroConDetalleFactura = () => {
               metaTabla={metaTablaFactura}
               metaFiltro={metaFiltroFactura}
               widgets={widgetsFactura}
+              pantalla="ventas.factura"
               tarjeta={(factura) => (
                 <TarjetaDocumentoVenta
                   codigo={factura.codigo}
