@@ -18,10 +18,10 @@ import {
 } from "../../hooks/useManager";
 import util from "../../util";
 
-const emotionCache = createCache({
-  key: "css",
-  insertionPoint: document.querySelector("meta[name='emotion-insertion-point']") ?? undefined,
-});
+const insertionPoint = document.querySelector("meta[name='emotion-insertion-point']") ?? undefined;
+// Sin punto de inserción, los estilos de MUI van al principio del <head> para que los de
+// makeStyles (thirdparty/estilos.ts, añadidos al final) les sigan ganando como con JSS
+const emotionCache = createCache({ key: "css", insertionPoint, prepend: !insertionPoint });
 
 export default function App({ project, environment }) {
   const [loading, setLoading] = useState(true);

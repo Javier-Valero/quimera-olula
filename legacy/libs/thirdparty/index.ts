@@ -98,7 +98,9 @@ export {
   Typography
 } from "./mui";
 export { createTheme } from "@mui/material/styles";
-export { makeStyles, ThemeProvider, useTheme } from "@mui/styles";
+export { ThemeProvider, useTheme } from "@mui/material/styles";
+// makeStyles compatible con @mui/styles sobre tss-react
+export { makeStyles } from "./estilos";
 export { LocalizationProvider as MuiPickersUtilsProvider } from "@mui/x-date-pickers";
 // Pickers adaptados: traducen las props de MUI v4 que siguen usando DateField/TimeField
 export { DatePicker, DateTimePicker, TimePicker } from "./pickers";
