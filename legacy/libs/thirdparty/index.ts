@@ -107,8 +107,8 @@ export { DatePicker, DateTimePicker, TimePicker } from "./pickers";
 export { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 export { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 export { TreeItem, SimpleTreeView as TreeView } from "@mui/x-tree-view";
-export { Chart } from "chart.js";
-export { default as ChartAnnotation } from "chartjs-plugin-annotation";
+// chart.js 4 con adaptador de la configuración v2 que usan los dashboards
+export { Chart, ChartAnnotation } from "./grafico";
 export { default as clsx } from "clsx";
 export * as d3 from "d3";
 export {
