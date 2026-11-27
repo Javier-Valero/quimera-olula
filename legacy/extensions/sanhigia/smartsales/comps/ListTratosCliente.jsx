@@ -1,7 +1,6 @@
 import { Box, Chip, QListItem, QTitleBox, Typography, Icon } from "@quimera/comps";
 import { makeStyles } from "@quimera/styles";
-import { Divider } from "@quimera/thirdparty";
-import InfiniteScroll from "react-infinite-scroll-component";
+import { Divider, InfiniteScroll } from "@quimera/thirdparty";
 import { useStateValue, util } from "quimera";
 import { navigate } from "hookrouter";
 

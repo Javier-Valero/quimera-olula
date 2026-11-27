@@ -1,6 +1,5 @@
-import $ from "jquery";
-
 import util from "../util";
+import { serializarParams } from "./serializarParams";
 
 const getBaseUrl = api => {
   const env = util.getEnvironment();
@@ -13,7 +12,7 @@ const APIFileCall = async (_method, apiUrl, data, filename, success, error, api)
   const [requestParams] = data;
   const baseUrl = getBaseUrl(api);
   const url = requestParams
-    ? `${baseUrl}${apiUrl}?${$.param(requestParams)}`
+    ? `${baseUrl}${apiUrl}?${serializarParams(requestParams)}`
     : `${baseUrl}${apiUrl}`;
   fetch(url, {
     method: "GET",
@@ -112,7 +111,7 @@ const APICall = async (method, apiUrl, data, success, error, api) => {
   }
 
   const url = requestParams
-    ? `${baseUrl}${apiUrl}?${$.param(requestParams)}`
+    ? `${baseUrl}${apiUrl}?${serializarParams(requestParams)}`
     : `${baseUrl}${apiUrl}`;
 
   if (method !== "GET") {

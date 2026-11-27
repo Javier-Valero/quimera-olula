@@ -1,7 +1,6 @@
 import { Box, QBox, QListItem } from "@quimera/comps";
-import { List } from "@quimera/thirdparty";
+import { InfiniteScroll, List } from "@quimera/thirdparty";
 import Quimera, { useStateValue, useWidth } from "quimera";
-import InfiniteScroll from "react-infinite-scroll-component";
 
 const avatares = {
   "Cerrado": {

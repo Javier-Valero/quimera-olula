@@ -11,7 +11,6 @@
     "@quimera/styles": "workspace:*",
     "@quimera/thirdparty": "workspace:*",
     "@mui/material": "9.5.0",
-    "jquery": "^3.6.0",
     "prop-types": "^15.7.2",
     "i18next-browser-languagedetector": "8.3.0",
     "hookrouter": "^1.2.3",
