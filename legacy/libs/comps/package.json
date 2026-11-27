@@ -10,6 +10,6 @@
     "quimera": "workspace:@quimera/core@*",
     "@quimera/styles": "workspace:*",
     "@quimera/thirdparty": "workspace:*",
-    "i18next": "27.1.1"
+    "i18next": "27.2.9"
   }
 }

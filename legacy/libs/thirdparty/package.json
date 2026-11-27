@@ -29,7 +29,7 @@
     "react-plotly.js": "^4.1.0",
     "react-signature-canvas": "^1.0.7",
     "react-swipeable-list": "^1.10.0",
-    "i18next": "27.1.1",
+    "i18next": "27.2.9",
     "@mui/system": "^9.5.0",
     "tss-react": "4.9.21",
     "@hello-pangea/dnd": "18.0.1"

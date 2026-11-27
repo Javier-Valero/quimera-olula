@@ -2329,8 +2329,8 @@ importers:
         specifier: workspace:*
         version: link:../thirdparty
       i18next:
-        specifier: 27.1.1
-        version: 27.1.1(typescript@5.9.3)
+        specifier: 27.2.9
+        version: 27.2.9(typescript@5.9.3)
       quimera:
         specifier: workspace:@quimera/core@*
         version: link:../core
@@ -2350,8 +2350,8 @@ importers:
         specifier: ^1.2.3
         version: 1.2.5(react@19.2.8)
       i18next:
-        specifier: 27.1.1
-        version: 27.1.1(typescript@5.9.3)
+        specifier: 27.2.9
+        version: 27.2.9(typescript@5.9.3)
       i18next-browser-languagedetector:
         specifier: 8.3.0
         version: 8.3.0
@@ -2410,14 +2410,14 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0
       i18next:
-        specifier: 27.1.1
-        version: 27.1.1(typescript@5.9.3)
+        specifier: 27.2.9
+        version: 27.2.9(typescript@5.9.3)
       plotly.js:
         specifier: ^4.3.0
         version: 4.3.0
       react-i18next:
         specifier: 18.0.1
-        version: 18.0.1(@types/react@19.2.17)(i18next@27.1.1(typescript@5.9.3))(react@19.2.8)(typescript@5.9.3)
+        version: 18.0.1(@types/react@19.2.17)(i18next@27.2.9(typescript@5.9.3))(react@19.2.8)(typescript@5.9.3)
       react-infinite-scroll-component:
         specifier: 7.2.1
         version: 7.2.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -6157,8 +6157,8 @@ packages:
   i18next-browser-languagedetector@8.3.0:
     resolution: {integrity: sha512-t7FtF+VyQ+XSy+GI1O9TXWsMzP4U2u0m27yxJcCbG4LaAbTQa3CXFXgG3LvRivS+ZoYah8yPv5NhMl+Wg6I8Fg==}
 
-  i18next@27.1.1:
-    resolution: {integrity: sha512-Qq3aJizS3RXQ30crhx9BKQLrHoa6GKpgrOJjVZ9vgj3EBxAddrmVfDNUrAMxSUimw5Jc+ld4SSZUAzf1q4nGyQ==}
+  i18next@27.2.9:
+    resolution: {integrity: sha512-GOWWofCGYPSPEzUKJnRLJSoHrSUDa/NzYWqAOJJDZUaM7faLPd9VABlbHDZ+jv8uadu/fq1wsHFfZP6+0tFPkg==}
     engines: {node: '>=22'}
     peerDependencies:
       typescript: ^5 || ^6 || ^7
@@ -12046,7 +12046,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.29.7
 
-  i18next@27.1.1(typescript@5.9.3):
+  i18next@27.2.9(typescript@5.9.3):
     optionalDependencies:
       typescript: 5.9.3
 
@@ -12802,10 +12802,10 @@ snapshots:
       react: 19.2.8
       scheduler: 0.27.0
 
-  react-i18next@18.0.1(@types/react@19.2.17)(i18next@27.1.1(typescript@5.9.3))(react@19.2.8)(typescript@5.9.3):
+  react-i18next@18.0.1(@types/react@19.2.17)(i18next@27.2.9(typescript@5.9.3))(react@19.2.8)(typescript@5.9.3):
     dependencies:
       html-parse-stringify: 4.0.1
-      i18next: 27.1.1(typescript@5.9.3)
+      i18next: 27.2.9(typescript@5.9.3)
       react: 19.2.8
     optionalDependencies:
       '@types/react': 19.2.17
