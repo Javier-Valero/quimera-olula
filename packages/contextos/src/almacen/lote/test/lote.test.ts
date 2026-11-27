@@ -7,10 +7,16 @@ describe("lote: conversores", () => {
         expect(loteDesdeApi({
             id: "L1", sku: "HILO", articulo: "Hilo", caducidad: "2027-01-31", en_almacen: "12.5",
             estado: null, cantidad_programada: null, orden_id: null,
-        })).toEqual({ id: "L1", sku: "HILO", articulo: "Hilo", caducidad: "2027-01-31", enAlmacen: 12.5, produccion: null });
+        })).toEqual({
+            id: "L1", sku: "HILO", articulo: "Hilo", caducidad: "2027-01-31", enAlmacen: 12.5, produccion: null,
+            almacenId: "", fechaDisponible: "",
+        });
         // Una API anterior a F8 (sin artículo ni en_almacen) también se lee.
         expect(loteDesdeApi({ id: "L2", sku: "HILO", caducidad: null }))
-            .toEqual({ id: "L2", sku: "HILO", articulo: "", caducidad: "", enAlmacen: 0, produccion: null });
+            .toEqual({
+                id: "L2", sku: "HILO", articulo: "", caducidad: "", enAlmacen: 0, produccion: null,
+                almacenId: "", fechaDisponible: "",
+            });
     });
 
     it("con el plugin lee la ficha de producción (vacíos en texto, números)", () => {
@@ -47,7 +53,10 @@ describe("lote: dominio", () => {
     });
 
     it("titula y nombra el artículo", () => {
-        const lote = { id: "L1", sku: "HILO", articulo: "Hilo", caducidad: "", enAlmacen: 0, produccion: null };
+        const lote = {
+            id: "L1", sku: "HILO", articulo: "Hilo", caducidad: "", enAlmacen: 0, produccion: null,
+            almacenId: "", fechaDisponible: "",
+        };
         expect(tituloLote(lote)).toBe("L1 · Hilo");
         expect(textoArticulo(lote)).toBe("HILO - Hilo");
         expect(textoArticulo({ sku: "HILO", articulo: "" })).toBe("HILO");

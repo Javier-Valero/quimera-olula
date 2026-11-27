@@ -1,4 +1,4 @@
-import { Criteria, Entidad, RespuestaLista } from "@olula/lib/diseño.ts";
+import { Criteria, Entidad, Modelo, RespuestaLista } from "@olula/lib/diseño.ts";
 
 /** Estado del lote de producción (`lotes.estado`): `PTE` si le queda algo por recibir. */
 export type EstadoLote = "PTE" | "TERMINADO";
@@ -35,10 +35,35 @@ export interface Lote extends Entidad {
     enAlmacen: number;
     /** `null` sin el plugin `produccion`. */
     produccion: ProduccionLote | null;
+    /**
+     * Almacén (finca) y fecha en que el lote estará disponible. Solo los tiene el backend con el
+     * plugin de trazabilidad de lascunas (`conAlmacenYFechaDisponible`); en el resto, vacíos.
+     */
+    almacenId: string;
+    fechaDisponible: string;
 }
+
+/** Alta de un lote: el código lo pone el usuario. Fechas "AAAA-MM-DD" o vacías. */
+export interface NuevoLote extends Modelo {
+    id: string;
+    /** Referencia del artículo. */
+    sku: string;
+    /** Del artículo elegido: solo se dan de alta lotes de artículos por lotes (`null`: sin elegir). */
+    porLotes: boolean | null;
+    caducidad: string;
+    almacenId: string;
+    fechaDisponible: string;
+}
+
+/** Lo que se cambia de un lote. El código y el artículo no: si están mal, se borra y se crea otro. */
+export type CambiosLote = Partial<Pick<Lote, "caducidad" | "almacenId" | "fechaDisponible">>;
 
 export type GetLote = (id: string) => Promise<Lote>;
 export type GetLotes = (criteria: Criteria) => RespuestaLista<Lote>;
+export type PostLote = (nuevo: NuevoLote) => Promise<string>;
+export type PatchLote = (id: string, cambios: CambiosLote) => Promise<void>;
+/** Solo se borra un lote sin movimientos de stock: si los tiene, el servidor responde 409. */
+export type DeleteLote = (id: string) => Promise<void>;
 /** «Revisar lote»: recalcula sus cantidades con sus movimientos; devuelve cuántos lotes ha revisado. */
 export type RevisarLote = (id: string) => Promise<number>;
 export type RevisarLotes = () => Promise<number>;

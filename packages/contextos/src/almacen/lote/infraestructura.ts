@@ -1,6 +1,18 @@
 import { RestAPI } from "@olula/lib/api/rest_api.ts";
 import { Criteria } from "@olula/lib/diseño.ts";
-import { GetLote, GetLotes, Lote, OpcionesEtiquetaLote, RevisarLote, RevisarLotes } from "./diseño.ts";
+import {
+    CambiosLote,
+    DeleteLote,
+    GetLote,
+    GetLotes,
+    Lote,
+    NuevoLote,
+    OpcionesEtiquetaLote,
+    PatchLote,
+    PostLote,
+    RevisarLote,
+    RevisarLotes,
+} from "./diseño.ts";
 import { queryEtiquetaLote } from "./dominio.ts";
 
 const baseUrl = `/almacen/lote`;
@@ -24,7 +36,25 @@ export interface LoteApi {
     fecha_fabricacion?: string | null;
     cliente_id?: string | null;
     cliente?: string | null;
+    /** Solo con el plugin de trazabilidad de lascunas. */
+    almacen_id?: string | null;
+    fecha_disponible?: string | null;
 }
+
+interface NuevoLoteApi {
+    id: string;
+    articulo_id: string;
+    caducidad: string | null;
+    almacen_id?: string;
+    fecha_disponible?: string;
+}
+
+/** Solo las claves presentes se cambian; `null` quita el valor. */
+type CambiosLoteApi = {
+    caducidad?: string | null;
+    almacen_id?: string | null;
+    fecha_disponible?: string | null;
+};
 
 const numero = (valor: number | string | null | undefined): number => Number(valor ?? 0) || 0;
 const texto = (valor: string | number | null | undefined): string =>
@@ -54,7 +84,28 @@ export const loteDesdeApi = (api: LoteApi): Lote => ({
             clienteId: texto(api.cliente_id),
             cliente: texto(api.cliente),
         },
+    almacenId: texto(api.almacen_id),
+    fechaDisponible: fecha(api.fecha_disponible),
 });
+
+/** Texto vacío a `null`: así la API quita el valor. */
+const textoONulo = (valor: string): string | null => (valor.trim() === "" ? null : valor.trim());
+
+export const nuevoLoteAApi = (nuevo: NuevoLote): NuevoLoteApi => ({
+    id: nuevo.id.trim(),
+    articulo_id: nuevo.sku,
+    caducidad: textoONulo(nuevo.caducidad),
+    ...(nuevo.almacenId ? { almacen_id: nuevo.almacenId } : {}),
+    ...(nuevo.fechaDisponible ? { fecha_disponible: nuevo.fechaDisponible } : {}),
+});
+
+export const cambiosLoteAApi = (cambios: CambiosLote): CambiosLoteApi => {
+    const api: CambiosLoteApi = {};
+    if (cambios.caducidad !== undefined) api.caducidad = textoONulo(cambios.caducidad);
+    if (cambios.almacenId !== undefined) api.almacen_id = textoONulo(cambios.almacenId);
+    if (cambios.fechaDisponible !== undefined) api.fecha_disponible = textoONulo(cambios.fechaDisponible);
+    return api;
+};
 
 const url = (id: string) => `${baseUrl}/${encodeURIComponent(id)}`;
 
@@ -62,6 +113,19 @@ export const getLote: GetLote = async (id) => RestAPI.getItem<Lote, LoteApi>(url
 
 export const getLotes: GetLotes = async (criteria: Criteria) =>
     RestAPI.getQuery<Lote, LoteApi>(baseUrl, criteria, loteDesdeApi);
+
+export const postLote: PostLote = async (nuevo) => {
+    const respuesta = await RestAPI.post<NuevoLoteApi>(baseUrl, nuevoLoteAApi(nuevo), "Error al crear el lote");
+    return respuesta.id;
+};
+
+export const patchLote: PatchLote = async (id, cambios) => {
+    await RestAPI.patch<CambiosLoteApi>(url(id), cambiosLoteAApi(cambios), "Error al guardar el lote");
+};
+
+export const deleteLote: DeleteLote = async (id) => {
+    await RestAPI.delete(url(id), "Error al borrar el lote");
+};
 
 export const revisadosDesdeApi = (respuesta: { revisados?: number | string | null } | null | undefined): number =>
     numero(respuesta?.revisados);

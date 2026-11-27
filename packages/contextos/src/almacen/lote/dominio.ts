@@ -1,5 +1,13 @@
 import { EstadoEtiqueta } from "#/comun/diseño.ts";
-import { FormEtiquetaLote, FormatoEtiquetaLote, Lote, OpcionesEtiquetaLote } from "./diseño.ts";
+import { MetaModelo, plugin } from "@olula/lib/dominio.ts";
+import {
+    CambiosLote,
+    FormEtiquetaLote,
+    FormatoEtiquetaLote,
+    Lote,
+    NuevoLote,
+    OpcionesEtiquetaLote,
+} from "./diseño.ts";
 
 export const ESTADOS_LOTE = [
     { valor: "PTE", descripcion: "Pendiente" },
@@ -31,7 +39,71 @@ export const fechaDdMmAaaa = (fecha: string | null | undefined): string => {
 
 export const loteVacio = (): Lote => ({
     id: "", sku: "", articulo: "", caducidad: "", enAlmacen: 0, produccion: null,
+    almacenId: "", fechaDisponible: "",
 });
+
+/**
+ * Si los lotes llevan almacén y fecha disponible: solo con el plugin de trazabilidad de lascunas,
+ * que tiene esas columnas (allí el almacén, la finca, es obligatorio). Cuando haya app lascunas en
+ * quimera podrá sustituir estos formularios en vez de depender de esta comprobación.
+ */
+export const conAlmacenYFechaDisponible = (): boolean => plugin("trazabilidad") === "lascunas";
+
+const LONGITUD_CODIGO_LOTE = 30;
+
+/** Alta: código, artículo por lotes y, con almacén, el almacén. `true` o el motivo. */
+export const validarNuevoLote = (nuevo: NuevoLote, conAlmacen: boolean): string | true => {
+    if (!nuevo.id.trim()) return "El código es obligatorio";
+    if (nuevo.id.trim().length > LONGITUD_CODIGO_LOTE) {
+        return `El código admite como máximo ${LONGITUD_CODIGO_LOTE} caracteres`;
+    }
+    if (!nuevo.sku) return "El artículo es obligatorio";
+    if (nuevo.porLotes === false) return "El artículo no se gestiona por lotes";
+    if (conAlmacen && !nuevo.almacenId) return "El almacén es obligatorio";
+    return true;
+};
+
+/** Ficha: con almacén, no se puede dejar sin él. */
+export const validarLote = (lote: Lote, conAlmacen: boolean): string | true =>
+    conAlmacen && !lote.almacenId ? "El almacén es obligatorio" : true;
+
+/** Constante estable (no función) para el formulario de alta. */
+export const nuevoLoteVacio: NuevoLote = {
+    id: "", sku: "", porLotes: null, caducidad: "", almacenId: "", fechaDisponible: "",
+};
+
+export const metaNuevoLote = (conAlmacen: boolean): MetaModelo<NuevoLote> => ({
+    campos: {
+        id: { requerido: true },
+        sku: { requerido: true },
+        caducidad: { requerido: false },
+        almacenId: { requerido: conAlmacen },
+        fechaDisponible: { requerido: false },
+    },
+    validacion: (nuevo) => validarNuevoLote(nuevo, conAlmacen),
+});
+
+/** Ficha del lote: solo caducidad y, con almacén, almacén y fecha disponible se editan. */
+export const metaLote = (conAlmacen: boolean, editable: boolean): MetaModelo<Lote> => ({
+    campos: {
+        caducidad: { requerido: false },
+        almacenId: { requerido: conAlmacen },
+        fechaDisponible: { requerido: false },
+    },
+    editable: () => editable,
+    validacion: (lote) => validarLote(lote, conAlmacen),
+});
+
+/** Lo que ha cambiado entre la ficha leída y la editada (vacío si nada). */
+export const cambiosLote = (anterior: Lote, actual: Lote, conAlmacen: boolean): CambiosLote => {
+    const cambios: CambiosLote = {};
+    if (actual.caducidad !== anterior.caducidad) cambios.caducidad = actual.caducidad;
+    if (conAlmacen) {
+        if (actual.almacenId !== anterior.almacenId) cambios.almacenId = actual.almacenId;
+        if (actual.fechaDisponible !== anterior.fechaDisponible) cambios.fechaDisponible = actual.fechaDisponible;
+    }
+    return cambios;
+};
 
 /** "Código · artículo". */
 export const tituloLote = (lote: Lote): string =>

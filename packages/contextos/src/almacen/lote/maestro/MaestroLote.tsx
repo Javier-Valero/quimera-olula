@@ -5,6 +5,7 @@ import { MetaTabla } from "@olula/componentes/index.js";
 import { filtroFechas, MetaFiltro } from "@olula/componentes/maestro/maestroFiltros/MaestroFiltrosActivoControlado.js";
 import { Criteria } from "@olula/lib/diseño.ts";
 import { criteriaDefecto, plugin, puede } from "@olula/lib/dominio.ts";
+import { CrearLote } from "../crear/CrearLote.tsx";
 import { DetalleLote } from "../detalle/DetalleLote.tsx";
 import { Lote } from "../diseño.ts";
 import { ESTADOS_LOTE, etiquetaEstadoLote, fechaDdMmAaaa, formatearCantidad, textoArticulo } from "../dominio.ts";
@@ -87,14 +88,16 @@ const criteriaBase: Criteria = { ...criteriaDefecto, orden: ["id", "DESC"] };
 const consultas = { getUno: getLote, getLista: getLotes };
 
 /**
- * Almacén > Lotes (`lotes`): listado en modo tabla y ficha de solo lectura. Con el plugin
- * `produccion`, también su ficha de producción y su trazabilidad. «Revisar todos» recalcula las
- * cantidades de todos los lotes.
+ * Almacén > Lotes (`lotes`): listado en modo tabla, alta («Nuevo lote») y ficha (con caducidad
+ * editable y «Borrar»). Con el plugin `produccion`, también su ficha de producción y su
+ * trazabilidad. «Revisar todos» recalcula las cantidades de todos los lotes.
  */
 export const MaestroLote = () => (
     <MaestroSimple<Lote>
         clase="MaestroLote"
         titulo="Lotes"
+        textoNuevo="Nuevo lote"
+        crear={puede("almacen.lote.crear") ? (publicar) => <CrearLote publicar={publicar} /> : undefined}
         metaTabla={metaTabla()}
         metaFiltro={metaFiltro()}
         consultas={consultas}

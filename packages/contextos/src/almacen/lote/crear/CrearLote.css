@@ -1,0 +1,21 @@
+.CrearLote {
+    quimera-input[nombre="id"] {
+        grid-column: span 4;
+    }
+
+    quimera-autocompletar[nombre="sku"] {
+        grid-column: span 8;
+    }
+
+    quimera-date[nombre="caducidad"],
+    quimera-select[nombre="almacenId"],
+    quimera-date[nombre="fechaDisponible"] {
+        grid-column: span 4;
+    }
+
+    .aviso-lote {
+        grid-column: span 12;
+        color: var(--color-error, #b00020);
+        margin: 0;
+    }
+}

@@ -1,5 +1,8 @@
 import { EtiquetaEstado } from "#/comun/componentes/etiqueta_estado/EtiquetaEstado.tsx";
+import { Almacen } from "#/almacen/comun/componentes/Almacen.tsx";
 import { PLANTILLA_FICHA } from "#/almacen/comun/fichas.ts";
+import { CampoFecha } from "#/produccion/comun/componentes/CampoFecha.tsx";
+import { BorrarSimple } from "#/produccion/comun/maestro_simple/BorrarSimple.tsx";
 import { getMaquinaDetalleSimple } from "#/produccion/comun/maestro_simple/maquina_detalle.ts";
 import { pestanasTrazabilidad } from "#/produccion/trazabilidad/componentes/pestanas.tsx";
 import { urlTrazabilidadLote } from "#/produccion/trazabilidad/componentes/urls.ts";
@@ -11,21 +14,25 @@ import { useMaquina } from "@olula/componentes/hook/useMaquina.js";
 import { ContextoError } from "@olula/lib/contexto.ts";
 import { EmitirEvento } from "@olula/lib/diseño.ts";
 import { plugin, puede } from "@olula/lib/dominio.ts";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useModelo } from "@olula/lib/useModelo.ts";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Lote, ProduccionLote } from "../diseño.ts";
 import {
+    cambiosLote,
+    conAlmacenYFechaDisponible,
     etiquetaEstadoLote,
     fechaDdMmAaaa,
     formatearCantidad,
     loteVacio,
     mensajeRevisados,
+    metaLote,
     nombreEtiquetaLote,
     textoArticulo,
     tituloLote,
 } from "../dominio.ts";
 import { ImprimirEtiquetasLote } from "../etiqueta/ImprimirEtiquetasLote.tsx";
-import { getEtiquetaLote, getLote, revisarLote } from "../infraestructura.ts";
+import { deleteLote, getEtiquetaLote, getLote, patchLote, revisarLote } from "../infraestructura.ts";
 import "../maestro/MaestroLote.css";
 
 const getMaquina = getMaquinaDetalleSimple(getLote, loteVacio);
@@ -52,14 +59,33 @@ const DatosProduccion = ({ p }: { p: ProduccionLote }) => (
 );
 
 /**
- * Ficha de solo lectura del lote: artículo, caducidad y lo que tiene en almacén; con el plugin
- * `produccion`, su ficha de producción y (con `produccion.trazabilidad`) sus movimientos y su
- * trazabilidad hacia atrás y hacia delante. «Revisar lote» recalcula sus cantidades.
+ * Ficha del lote: artículo, caducidad y lo que tiene en almacén; con el plugin `produccion`, su
+ * ficha de producción y (con `produccion.trazabilidad`) sus movimientos y su trazabilidad hacia
+ * atrás y hacia delante. «Revisar lote» recalcula sus cantidades.
+ *
+ * Se editan (autoguardado) la caducidad y, en lascunas, el almacén y la fecha disponible; el
+ * código y el artículo no. «Borrar» solo funciona si el lote no tiene movimientos de stock.
  */
 export const DetalleLote = ({ id, publicar = async () => {} }: { id?: string; publicar?: EmitirEvento }) => {
     const { ctx, emitir } = useMaquina(getMaquina, contextoInicial, publicar);
     const lote: Lote = ctx.entidad;
     const { intentar } = useContext(ContextoError);
+
+    const conAlmacen = conAlmacenYFechaDisponible();
+    const editable = puede("almacen.lote.cambiar");
+    const meta = useMemo(() => metaLote(conAlmacen, editable), [conAlmacen, editable]);
+
+    const autoGuardar = useCallback(
+        async (editado: Lote) => {
+            const cambios = cambiosLote(lote, editado, conAlmacen);
+            if (Object.keys(cambios).length === 0) return;
+            await intentar(() => patchLote(lote.id, cambios));
+            await emitir("entidad_guardada");
+        },
+        [lote, conAlmacen, intentar, emitir]
+    );
+
+    const { uiProps } = useModelo(meta, lote, autoGuardar);
     const [revisando, setRevisando] = useState(false);
     const [mensaje, setMensaje] = useState("");
     const [etiquetas, setEtiquetas] = useState(false);
@@ -111,16 +137,23 @@ export const DetalleLote = ({ id, publicar = async () => {} }: { id?: string; pu
                             {revisando ? "Revisando..." : "Revisar lote"}
                         </QBoton>
                     )}
+                    {puede("almacen.lote.borrar") && (
+                        <QBoton variante="borde" onClick={() => emitir("borrado_solicitado")}>Borrar</QBoton>
+                    )}
                 </div>
                 <Tabs key={lote.id}>
                     {[
                         <Tab key="tab-datos-lote" label="Datos">
                             <quimera-formulario>
                                 <QInput label="Código" nombre="id" valor={lote.id} soloLectura />
-                                <QInput label="Caducidad" nombre="caducidad" valor={fechaDdMmAaaa(lote.caducidad)} soloLectura />
+                                <CampoFecha label="Caducidad" {...uiProps("caducidad")} soloLectura={!editable} />
                                 <QInput label="Artículo" nombre="articulo" valor={textoArticulo(lote)} soloLectura />
                                 <QInput label="Referencia" nombre="sku" valor={lote.sku} soloLectura enlace={PLANTILLA_FICHA.articulo} />
                                 <QInput label="En almacén" nombre="enAlmacen" valor={formatearCantidad(lote.enAlmacen)} soloLectura />
+                                {conAlmacen && <Almacen {...uiProps("almacenId")} />}
+                                {conAlmacen && (
+                                    <CampoFecha label="Fecha disponible" {...uiProps("fechaDisponible")} soloLectura={!editable} />
+                                )}
                                 {p && <DatosProduccion p={p} />}
                             </quimera-formulario>
                         </Tab>,
@@ -137,6 +170,14 @@ export const DetalleLote = ({ id, publicar = async () => {} }: { id?: string; pu
                     nombreFichero={nombreEtiquetaLote(lote.id)}
                     cargar={(opciones) => getEtiquetaLote(lote.id, opciones)}
                     cerrar={() => setEtiquetas(false)}
+                />
+            )}
+            {ctx.estado === "BORRANDO" && (
+                <BorrarSimple
+                    publicar={emitir}
+                    titulo="Borrar lote"
+                    mensaje={`¿Está seguro de que desea borrar el lote ${lote.id}? Solo se puede si no tiene movimientos de stock.`}
+                    borrar={() => deleteLote(lote.id)}
                 />
             )}
         </Detalle>
