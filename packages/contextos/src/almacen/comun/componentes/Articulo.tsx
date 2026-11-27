@@ -1,3 +1,4 @@
+import { filtroBusquedaArticulo } from "#/almacen/comun/dominio.ts";
 import { PLANTILLA_FICHA } from "#/almacen/comun/fichas.ts";
 import { TagArticulo } from "#/ventas/articulo/diseño.ts";
 import {
@@ -5,7 +6,7 @@ import {
   getTagsArticulo,
 } from "#/ventas/articulo/infraestructura.ts";
 import { QAutocompletar } from "@olula/componentes/moleculas/qautocompletar.tsx";
-import { Filtro, Orden } from "@olula/lib/diseño.ts";
+import { Orden } from "@olula/lib/diseño.ts";
 import { useEffect, useState } from "react";
 
 interface ArticuloProps {
@@ -20,6 +21,8 @@ interface ArticuloProps {
   opcional?: boolean;
   ref?: React.RefObject<HTMLInputElement | null>;
   soloLectura?: boolean;
+  /** Solo artículos que se gestionan por lotes (p. ej. al dar de alta un lote). */
+  soloPorLotes?: boolean;
   onChange: (opcion: { valor: string; descripcion: string; datos: TagArticulo } | null) => void;
 }
 
@@ -29,6 +32,7 @@ export const Articulo = ({
   valor,
   nombre = "referencia",
   label = "Artículo",
+  soloPorLotes = false,
   onChange,
   ...props
 }: ArticuloProps) => {
@@ -49,19 +53,9 @@ export const Articulo = ({
   }, [valor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const obtenerOpciones = async (texto: string) => {
-    const criteria = {
-      filtro: {
-        or: [
-          ["descripcion", "~", texto],
-          ["id", "~", texto],
-        ],
-      },
-      orden: ["id"],
-    };
-
     const articulos = await getTagsArticulo(
-      criteria.filtro as unknown as Filtro,
-      criteria.orden as Orden
+      filtroBusquedaArticulo(texto, soloPorLotes),
+      ["id"] as Orden
     );
 
     return articulos.map((articulo) => ({
