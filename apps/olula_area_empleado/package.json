@@ -4,7 +4,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "tsc -b && vite build",
+        "build": "tsc -b && NODE_OPTIONS=--max-old-space-size=4096 vite build",
         "lint": "eslint src",
         "type-check": "tsc -p ./tsconfig.json --noEmit",
         "test": "vitest --passWithNoTests",
