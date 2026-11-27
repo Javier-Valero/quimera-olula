@@ -1,6 +1,6 @@
 import { Cliente } from "@quimera-extension/base-ventas";
 import { Box, Filter, FilterBox } from "@quimera/comps";
-import * as d3 from "d3";
+import { d3 } from "@quimera/thirdparty";
 import Quimera, { getSchemas, useStateValue } from "quimera";
 import React, { useEffect } from "react";
 

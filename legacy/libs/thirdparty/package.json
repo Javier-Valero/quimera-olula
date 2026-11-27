@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "lint": "eslint .",
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "ci": "pnpm lint && pnpm type-check && pnpm test run"
   },
   "dependencies": {
     "@emotion/cache": "^11.11.0",

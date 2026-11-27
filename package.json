@@ -6,7 +6,8 @@
     "lint": "pnpm -r run lint",
     "type-check": "pnpm -r run type-check",
     "ci": "pnpm -r --reporter=append-only run ci",
-    "test": "pnpm -r run --filter @olula/* test"
+    "test": "pnpm -r run --filter @olula/* test",
+    "audit:legacy": "node legacy/scripts/auditar_dependencias.mjs"
   },
   "dependencies": {
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -42,5 +43,4 @@
     "vite-plugin-pwa": "^0.21.2",
     "vitest": "^3.2.7"
   }
-  
 }

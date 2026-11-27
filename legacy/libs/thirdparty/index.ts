@@ -98,6 +98,10 @@ export {
   Typography
 } from "./mui";
 export { createTheme } from "@mui/material/styles";
+// Iconos SVG de @mui/icons-material usados directamente por el legacy (base/tpv)
+export { default as AccessTimeIcon } from "@mui/icons-material/AccessTime";
+export { default as CreditCardIcon } from "@mui/icons-material/CreditCard";
+export { default as EuroSymbolIcon } from "@mui/icons-material/EuroSymbol";
 export { ThemeProvider, useTheme } from "@mui/material/styles";
 // makeStyles compatible con @mui/styles sobre tss-react
 export { makeStyles } from "./estilos";

@@ -1,5 +1,4 @@
-import CreditCardIcon from "@mui/icons-material/CreditCard";
-import EuroSymbolIcon from "@mui/icons-material/EuroSymbol";
+import { CreditCardIcon, EuroSymbolIcon } from "@quimera/thirdparty";
 import { Box, Button, Field, Grid, Icon, IconButton, Typography } from "@quimera/comps";
 import Quimera, { useStateValue, util } from "quimera";
 

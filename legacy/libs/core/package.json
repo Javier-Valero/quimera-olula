@@ -4,13 +4,13 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "ci": "pnpm test run"
   },
   "dependencies": {
     "@quimera/comps": "workspace:*",
     "@quimera/styles": "workspace:*",
     "@quimera/thirdparty": "workspace:*",
-    "@mui/material": "9.5.0",
     "prop-types": "^15.7.2",
     "i18next-browser-languagedetector": "8.3.0",
     "hookrouter": "^1.2.3",

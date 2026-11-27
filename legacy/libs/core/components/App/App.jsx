@@ -1,4 +1,4 @@
-import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
+import { ThemeProvider as MuiThemeProvider } from "@quimera/thirdparty";
 import { adaptV4Theme, createTheme, ThemeProvider } from "@quimera/styles";
 import { CacheProvider, createCache, initReactI18next } from "@quimera/thirdparty";
 import i18n from "i18next";

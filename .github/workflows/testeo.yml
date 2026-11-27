@@ -37,3 +37,7 @@ jobs:
 
       - name: Lanzar Checks
         run: pnpm run ci
+
+      # Falla con avisos de seguridad altos o críticos en las dependencias de legacy/
+      - name: Auditar dependencias del legacy
+        run: pnpm run audit:legacy
