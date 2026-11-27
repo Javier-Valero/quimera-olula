@@ -96,12 +96,9 @@ export {
 } from "@mui/material";
 export { createTheme } from "@mui/material/styles";
 export { makeStyles, ThemeProvider, useTheme } from "@mui/styles";
-export {
-  DatePicker,
-  DateTimePicker,
-  LocalizationProvider as MuiPickersUtilsProvider,
-  TimePicker
-} from "@mui/x-date-pickers";
+export { LocalizationProvider as MuiPickersUtilsProvider } from "@mui/x-date-pickers";
+// Pickers adaptados: traducen las props de MUI v4 que siguen usando DateField/TimeField
+export { DatePicker, DateTimePicker, TimePicker } from "./pickers";
 export { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 export { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 export { TreeItem, SimpleTreeView as TreeView } from "@mui/x-tree-view";
@@ -158,12 +155,12 @@ export {
 
 export const adaptV4Theme = (v: unknown) => v;
 
-// Re-export keyboard pickers as aliases (they no longer exist separately in MUI v7)
+// Alias de los Keyboard*Picker de MUI v4 (ya no existen por separado)
 export {
   DatePicker as KeyboardDatePicker,
   DateTimePicker as KeyboardDateTimePicker,
   TimePicker as KeyboardTimePicker
-} from "@mui/x-date-pickers";
+} from "./pickers";
 
 // //////////////////////////////////////////////////////////////////////////////////
 

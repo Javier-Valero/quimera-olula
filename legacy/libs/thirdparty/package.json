@@ -14,13 +14,13 @@
     "@mui/lab": "7.0.1-beta.18",
     "@mui/material": "^7.0.0",
     "@mui/styles": "^6.4.8",
-    "@mui/x-date-pickers": "^7.0.0",
+    "@mui/x-date-pickers": "9.17.0",
     "@mui/x-tree-view": "^9.0.2",
     "chart.js": "^2.9.4",
     "chartjs-plugin-annotation": "^0.5.7",
     "clsx": "^1.2.1",
     "d3": "^7.6.1",
-    "date-fns": "^2.0.0-beta.5",
+    "date-fns": "^4.4.0",
     "react-beautiful-dnd": "^11.0.5",
     "react-i18next": "18.0.1",
     "react-infinite-scroll-component": "^5.0.4",
@@ -29,8 +29,7 @@
     "react-plotly.js": "^4.1.0",
     "react-signature-canvas": "^1.0.3",
     "react-swipeable-list": "^1.5.0",
-    "i18next": "27.1.1",
-    "date-fns-tz": "^1.0.10"
+    "i18next": "27.1.1"
   },
   "devDependencies": {
     "@types/chart.js": "^2.9.4",

@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- las apps no incluyen este .d.ts en su tsconfig
 /// <reference path="./plotly_dist.d.ts" />
 import { createElement, lazy, Suspense } from "react";
 import type { PlotParams } from "react-plotly.js";

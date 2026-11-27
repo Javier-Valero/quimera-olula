@@ -22,3 +22,8 @@ onlyBuiltDependencies:
   - '@parcel/watcher'
   - core-js
   - es5-ext
+
+overrides:
+  # elganso usa @aldabil/react-scheduler (sin versiones nuevas), que exige @mui/x-date-pickers 7,
+  # y este instala moment como peer: <2.31.0 tiene path traversal (GHSA de moment 2.31.0)
+  moment: ^2.31.0
