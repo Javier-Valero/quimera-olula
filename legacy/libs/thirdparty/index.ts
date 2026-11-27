@@ -145,7 +145,7 @@ export const Draggable = (props: DraggableProps) =>
 export { initReactI18next, Trans, useTranslation } from "react-i18next";
 export { default as InfiniteScroll } from "react-infinite-scroll-component";
 export { NumericFormat as NumberFormat } from "react-number-format";
-export { default as Plot } from "react-plotly.js";
+export { Plot } from "./plot";
 export { default as SignaturePad } from "react-signature-canvas";
 export {
   LeadingActions,

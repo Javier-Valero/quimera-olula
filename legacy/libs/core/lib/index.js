@@ -16,4 +16,5 @@ export {
   shortcutsBunch,
   shortcutsState,
 } from "./Shortcuts";
+export { abrirUrlSegura, urlSegura } from "./urlSegura";
 export { default as WS } from "./WS";

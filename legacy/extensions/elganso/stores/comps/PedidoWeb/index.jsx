@@ -14,7 +14,7 @@ import {
   IconButton,
 } from "@quimera/comps";
 import PropTypes from "prop-types";
-import { useStateValue } from "quimera";
+import { abrirUrlSegura, useStateValue } from "quimera";
 import React from "react";
 import useSound from "use-sound";
 
@@ -272,7 +272,7 @@ function PedidoWeb({ _estilos, ...props }) {
                     codcomanda,
                   },
                 });
-                window.open(`${etiquetaUrl}`, "_blank");
+                abrirUrlSegura(etiquetaUrl);
               }
             }}
             aria-label="Imprimir Etiqueta"
