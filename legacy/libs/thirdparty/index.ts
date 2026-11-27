@@ -1,11 +1,11 @@
 import { useMediaQuery } from "@mui/material";
 import { createElement } from "react";
 import {
-  Draggable as RbdDraggable,
+  Draggable as DndDraggable,
   DraggableProps,
-  Droppable as RbdDroppable,
+  Droppable as DndDroppable,
   DroppableProps,
-} from "react-beautiful-dnd";
+} from "@hello-pangea/dnd";
 export {
   Alert,
   AppBar,
@@ -126,10 +126,10 @@ export {
   subMonths
 } from "date-fns";
 export * as localesFns from "date-fns/locale";
-export { DragDropContext } from "react-beautiful-dnd";
-// React 19 ignora los defaultProps de react-beautiful-dnd y sus invariants fallan con props undefined
+export { DragDropContext } from "@hello-pangea/dnd";
+// Valores por defecto explícitos (heredados de react-beautiful-dnd, cuyos defaultProps ignoraba React 19)
 export const Droppable = (props: DroppableProps) =>
-  createElement(RbdDroppable, {
+  createElement(DndDroppable, {
     type: "DEFAULT",
     direction: "vertical",
     isDropDisabled: false,
@@ -138,7 +138,7 @@ export const Droppable = (props: DroppableProps) =>
     ...props,
   });
 export const Draggable = (props: DraggableProps) =>
-  createElement(RbdDraggable, {
+  createElement(DndDraggable, {
     isDragDisabled: false,
     disableInteractiveElementBlocking: false,
     shouldRespectForcePress: false,
