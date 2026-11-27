@@ -61,11 +61,11 @@ export default parent => {
       switchChart: {
         "alignSelf": "flex-end",
         "maxHeight": "25px",
-        "& .MuiButton-containedPrimary": {
+        "& .MuiButton-contained.MuiButton-colorPrimary": {
           color: theme.custom.menu.light,
           backgroundColor: theme.custom.menu.main,
         },
-        "& .MuiButton-outlinedPrimary": {
+        "& .MuiButton-outlined.MuiButton-colorPrimary": {
           color: theme.custom.menu.main,
           border: `1px solid grey`,
         },

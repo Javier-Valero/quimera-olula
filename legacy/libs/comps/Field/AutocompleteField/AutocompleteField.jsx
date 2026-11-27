@@ -64,12 +64,14 @@ function AutocompleteField({
           margin="dense"
           variant="standard"
           slotProps={{
+            // MUI 9: Autocomplete entrega `params.slotProps` (input/htmlInput/inputLabel); hay que conservarlos
+            ...params.slotProps,
+            ...slotProps,
             input: {
-              ...params.InputProps,
+              ...params.slotProps?.input,
               ...InputProps, // Mantenemos compatibilidad hacia atrás
               ...slotProps?.input,
             },
-            ...slotProps,
           }}
           {...props}
         />

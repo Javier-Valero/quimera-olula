@@ -10,12 +10,11 @@
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^7.0.0",
-    "@mui/lab": "7.0.1-beta.18",
-    "@mui/material": "^7.0.0",
+    "@mui/icons-material": "9.5.0",
+    "@mui/material": "9.5.0",
     "@mui/styles": "^6.4.8",
     "@mui/x-date-pickers": "9.17.0",
-    "@mui/x-tree-view": "^9.0.2",
+    "@mui/x-tree-view": "9.17.0",
     "chart.js": "^2.9.4",
     "chartjs-plugin-annotation": "^0.5.7",
     "clsx": "^1.2.1",
@@ -29,7 +28,8 @@
     "react-plotly.js": "^4.1.0",
     "react-signature-canvas": "^1.0.3",
     "react-swipeable-list": "^1.5.0",
-    "i18next": "27.1.1"
+    "i18next": "27.1.1",
+    "@mui/system": "^9.5.0"
   },
   "devDependencies": {
     "@types/chart.js": "^2.9.4",

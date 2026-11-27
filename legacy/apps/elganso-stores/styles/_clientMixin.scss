@@ -24,7 +24,7 @@ $bblue-color: rgba(149, 236, 250, 0.4);
 *::-webkit-scrollbar-thumb {
   background-color: $primary-color !important;
 }
-.MuiButton-containedPrimary {
+.MuiButton-contained.MuiButton-colorPrimary {
   background-color: $primary-color !important;
 }
 .MuiDataGrid-root .MuiDataGrid-cell {

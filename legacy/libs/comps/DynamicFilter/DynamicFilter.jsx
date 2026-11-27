@@ -278,7 +278,7 @@ function DynamicFilter({ id, propiedades = [], valores, filtrosPredefinidos = []
               );
             }}
             filterOptions={filtrarOpcionesSeleccionadas}
-            renderTags={(value, getTagProps) =>
+            renderValue={(value, getTagProps) =>
               value.map((option, index) =>
                 option.tipoCampo === "apiselect" ? (
                   <ChipAPIField
@@ -336,13 +336,15 @@ function DynamicFilter({ id, propiedades = [], valores, filtrosPredefinidos = []
                 onChange={event => setTextFieldAutocompleteValue(event.target.value)}
                 onKeyDown={handleTextFieldKey}
                 id={`${id}Input`}
-                inputProps={{ id: `${id}InputInput` }}
                 fullWidth
                 label="Busca"
                 variant="standard"
                 {...textFieldProps}
                 {...params}
-                InputProps={{ ...params.InputProps, ...InputProps }}
+                slotProps={{
+                  ...params.slotProps,
+                  input: { ...params.slotProps?.input, ...InputProps },
+                }}
               />
             )}
             disabled={disabled}
